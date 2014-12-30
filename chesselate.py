@@ -4,368 +4,538 @@ import pygame
 import Buttons
 import time
 from subprocess import *
+from pieces import *
 
-'''
-# Communication test
-p = Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE )
-p.stdin.write("position fen rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2\n")
-p.stdin.write("go movetime 1000\n")
-time.sleep(1)
-p.stdin.write("quit\n")
+class Chesselate:
 
-# Retrieving the best move
-x = p.stdout.read().split("\n")
-print x[-2]
-'''
-# Constants
-# Board constants
-nA = 0
-nB = 1
-nC = 2
-nD = 3
-nE = 4
-nF = 5
-nG = 6
-nH = 7
+	def __init__(self, is_player_white = True):
+		self.is_player_white = is_player_white
+		self.initialize_board()
 
-n1 = 0
-n2 = 1
-n3 = 2
-n4 = 3
-n5 = 4
-n6 = 5
-n7 = 6
-n8 = 7
+		# Active turn for the FEN notation
+		self.active_turn = 'w'
 
-bPAWN = -1
-bROOK = -5
-bKNIGHT = -3
-bBISHOP = -4
-bQUEEN = -9
-bKING = -10
+		# Castling availability for the FEN notation
+		self.kingside_white = 'K'
+		self.kingside_black = 'k'
+		self.queenside_white = 'Q'
+		self.queenside_black = 'q'
 
-wPAWN = 1
-wROOK = 5
-wKNIGHT = 3
-wBISHOP = 4
-wQUEEN = 9
-wKING = 10
+		# En Passant for the FEN notation
+		self.en_passant = '-'
 
-# Board information
-OuterBoardWidth = 500
-OuterBoardHeight = 500
-InnerBoardWidth = 480
-InnerBoardHeight = 480
-TileLength = InnerBoardHeight/8
+		# Half-move and full-move clock for the FEN notation
+		self.halfmove_clock = 0
+		self.fullmove_clock = 1
 
-# Colors
-WHITE = (255, 255, 255)
-BLACK = (  0,   0,   0)
-CHESSBOARD_BG = ( 62,  24, 114)
-# CHESSBOARD_DK = (184, 153, 227)
-# CHESSBOARD_WH = (227, 206, 255)
-CHESSBOARD_DK = (225, 225, 225)
-CHESSBOARD_WH = (255, 255, 255)
+		# Game Window information
+		pygame.init()
+		pygame.display.set_caption("Chesselate")
+		self.clock = pygame.time.Clock()
 
-BLUE =  (  0,   0, 255)
-GREEN = (  0, 200,   0)
-VIOLET = (100,  0, 200)
-RED =   (255,   0,   0)
+		self.screen = pygame.display.set_mode(Constants.SCREENSIZE)
+		self.screen.fill(Constants.WHITE)
+		pygame.display.flip()
 
-# Pygame initialization
-pygame.init()
-pygame.display.set_caption("Chesselate")
-clock = pygame.time.Clock()
-screenSize = [800, 500]
+	def initialize_board(self):
+		# Board information
+		self.board = [[Tile() for i in range(8)] for i in range(8)]
 
-screen = pygame.display.set_mode(screenSize)
-screen.fill(WHITE)
-pygame.display.flip()
+		for i in range(8):
+			# Set the pawns
+			self.board[i][Constants.TILE_7].set_piece(Piece(Constants.P_PAWN, not self.is_player_white, is_user = False))
+			self.board[i][Constants.TILE_2].set_piece(Piece(Constants.P_PAWN, self.is_player_white, is_user = True))
 
+			# Set the rooks
+			if(i == 0 or i == 7):
+				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_ROOK, not self.is_player_white, is_user = False))
+				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_ROOK, self.is_player_white, is_user = True))
 
-# Board Initializations
-board = [[100 for i in range(8)] for i in range(8)] 
+			# Set the knights
+			elif(i == 1 or i == 6):
+				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KNIGHT, not self.is_player_white, is_user = False))
+				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KNIGHT, self.is_player_white, is_user = True))
 
-for i in range(8):
-	board[i][n7] = -1
-	board[i][n2] = 1
+			# Set the bishops
+			elif(i == 2 or i == 5):
+				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_BISHOP, not self.is_player_white, is_user = False))
+				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_BISHOP, self.is_player_white, is_user = True))
 
-board[nA][n8] = bROOK
-board[nB][n8] = bKNIGHT
-board[nC][n8] = bBISHOP
-board[nD][n8] = bQUEEN
-board[nE][n8] = bKING
-board[nF][n8] = bBISHOP
-board[nG][n8] = bKNIGHT
-board[nH][n8] = bROOK
-
-board[nA][n1] = wROOK
-board[nB][n1] = wKNIGHT
-board[nC][n1] = wBISHOP
-board[nD][n1] = wQUEEN
-board[nE][n1] = wKING
-board[nF][n1] = wBISHOP
-board[nG][n1] = wKNIGHT
-board[nH][n1] = wROOK
-
-# Tile threats
-for i in range(8):
-	for j in range(8):
-		if(board[i][7-j] == wPAWN):
-			if(i < 7 and 7-j < 7 and board[i+1][7-j+1] > 20):
-				board[i+1][7-j+1] += 1
-			if(i > 0 and 7-j < 7 and board[i-1][7-j+1] > 20):
-				board[i-1][7-j+1] += 1
-
-		elif(abs(board[i][7-j]) == wKNIGHT):
-			if(i > 0 and 7-j < 6 and board[i-1][7-j+2] > 20):
-				board[i-1][7-j+2] += board[i][7-j]*1.0/abs(board[i][7-j])
-			if(i > 0 and 7-j > 1 and board[i-1][7-j-2] > 20):
-				board[i-1][7-j-2] += board[i][7-j]*1.0/abs(board[i][7-j])
-				
-			if(i < 7 and 7-j < 6 and board[i+1][7-j+2] > 20):
-				board[i+1][7-j+2] += board[i][7-j]*1.0/abs(board[i][7-j])
-			if(i < 7 and 7-j > 1 and board[i+1][7-j-2] > 20):
-				board[i+1][7-j-2] += board[i][7-j]*1.0/abs(board[i][7-j])
-
-			if(i > 1 and 7-j < 7 and board[i-2][7-j+1] > 20):
-				board[i-2][7-j+1] += board[i][7-j]*1.0/abs(board[i][7-j])
-			if(i > 1 and 7-j > 0 and board[i-2][7-j-1] > 20):
-				board[i-2][7-j-1] += board[i][7-j]*1.0/abs(board[i][7-j])
-
-			if(i < 6 and 7-j < 7 and board[i+2][7-j+1] > 20):
-				board[i+2][7-j+1] += board[i][7-j]*1.0/abs(board[i][7-j])
-			if(i < 6 and 7-j > 0 and board[i+2][7-j-1] > 20):
-				board[i+2][7-j-1] += board[i][7-j]*1.0/abs(board[i][7-j])
-
-		elif(abs(board[i][7-j]) == wBISHOP):
-			dirNE = True
-			dirNW = True
-			dirSE = True
-			dirSW = True
-			for k in range(1, 8):
-				if(i+k <= 7 and 7-j+k <= 7 and board[i+k][7-j+k] > 20 and dirNE):
-					board[i+k][7-j+k] += board[i][7-j]*1.0/abs(board[i][7-j])
+			elif(i == 3):
+				if(self.is_player_white):
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_QUEEN, not self.is_player_white, is_user = False))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_QUEEN, self.is_player_white, is_user = True))
 				else:
-					dirNE = False
-
-				if(i+k <= 7 and 7-j-k >= 0 and board[i+k][7-j-k] > 20 and dirNW):
-					board[i+k][7-j-k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirNW = False
-				
-				if(i-k >= 0 and 7-j+k <= 7 and board[i-k][7-j+k] > 20 and dirSE):
-					board[i-k][7-j+k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirSE = False
-				
-				if(i-k >= 0 and 7-j-k >= 0 and board[i-k][7-j-k] > 20 and dirSW):
-					board[i-k][7-j-k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirSW = False
-
-		elif(abs(board[i][7-j]) == wROOK):
-			dirN = True
-			dirS = True
-			dirE = True
-			dirW = True
-			for k in range(1, 8):
-				if(i+k <= 7 and board[i+k][7-j] > 20 and dirN):
-					board[i+k][7-j] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirN = False
-
-				if(i-k >= 0 and board[i-k][7-j] > 20 and dirS):
-					board[i-k][7-j] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirS = False
-				
-				if(7-j+k <= 7 and board[i][7-j+k] > 20 and dirE):
-					print "A"
-					board[i][7-j+k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					print "B"
-					dirE = False
-				
-				# MARKER
-				if(7-j-k >= 0 and board[i][7-j-k] > 20 and dirW):
-					board[i][7-j-k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirW = False
-
-		elif(abs(board[i][7-j]) == wQUEEN):
-			dirNE = True
-			dirNW = True
-			dirSE = True
-			dirSW = True
-			for k in range(1, 8):
-				if(i+k <= 7 and 7-j+k <= 7 and board[i+k][7-j+k] > 20 and dirNE):
-					board[i+k][7-j+k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirNE = False
-
-				if(i+k <= 7 and 7-j-k >= 0 and board[i+k][7-j-k] > 20 and dirNW):
-					board[i+k][7-j-k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirNW = False
-				
-				if(i-k >= 0 and 7-j+k <= 7 and board[i-k][7-j+k] > 20 and dirSE):
-					board[i-k][7-j+k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirSE = False
-				
-				if(i-k >= 0 and 7-j-k >= 0 and board[i-k][7-j-k] > 20 and dirSW):
-					board[i-k][7-j-k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirSW = False
-			dirN = True
-			dirS = True
-			dirE = True
-			dirW = True
-			for k in range(1, 8):
-				if(i+k <= 7 and board[i+k][7-j] > 20 and dirN):
-					board[i+k][7-j] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirN = False
-
-				if(i-k >= 0 and board[i-k][7-j] > 20 and dirS):
-					board[i-k][7-j] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirS = False
-				
-				if(7-j+k <= 7 and board[i][7-j+k] > 20 and dirE):
-					board[i][7-j+k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirE = False
-				
-				if(7-j-k >= 0 and board[i][7-j-k] > 20 and dirW):
-					board[i][7-j-k] += board[i][7-j]*1.0/abs(board[i][7-j])
-				else:
-					dirW = False
-		elif(abs(board[i][7-j]) == wKING):
-			if(i+1 <= 7 and 7-j+1 <= 7 and board[i+1][7-j+1] > 20):
-				board[i+1][7-j+1] += board[i][7-j]*1.0/abs(board[i][7-j])
-			if(7-j+1 <= 7 and board[i][7-j+1] > 20):
-				board[i][7-j+1] += board[i][7-j]*1.0/abs(board[i][7-j])
-			if(i-1 >= 0 and 7-j+1 <= 7 and board[i-1][7-j+1] > 20):
-				board[i-1][7-j+1] += board[i][7-j]*1.0/abs(board[i][7-j])
-
-			if(i+1 <= 7 and board[i+1][7-j] > 20):
-				board[i+1][7-j] += board[i][7-j]*1.0/abs(board[i][7-j])
-			if(i-1 >= 0 and board[i-1][7-j] > 20):
-				board[i-1][7-j] += board[i][7-j]*1.0/abs(board[i][7-j])
-
-			if(i+1 <= 7 and 7-j-1 >= 0 and board[i+1][7-j-1] > 20):
-				board[i+1][7-j-1] += board[i][7-j]*1.0/abs(board[i][7-j])
-			if(7-j-1 >= 0 and board[i+1][7-j-1] > 20):
-				board[i][7-j-1] += board[i][7-j]*1.0/abs(board[i][7-j])
-			if(i-1 and 7-j-1 >= 0 and board[i+1][7-j-1] > 20):
-				board[i-1][7-j-1] += board[i][7-j]*1.0/abs(board[i][7-j])
-
-		if(board[i][7-j] == bPAWN):	
-			if(i < 7 and 7-j > 0 and board[i+1][7-j-1] > 20):
-				board[i+1][7-j-1] -= 1
-			if(i > 0 and 7-j > 0 and board[i-1][7-j-1] > 20):
-				board[i-1][7-j-1] -= 1
-
-for i in range(8):
-	print board[i]
-
-while True:
-	# Refresh rate
-	clock.tick(10)
-	screen.fill(WHITE)
-
-	events = pygame.event.get()
-	for event in events: 
-		if event.type == pygame.QUIT: 
-			sys.exit(0)
-		else: 
-			print event
-
-	# Rendering
-	# Render the board
-	pygame.draw.rect(screen, CHESSBOARD_BG, (0, 0, OuterBoardWidth, OuterBoardHeight), 0)
-	pygame.draw.rect(screen, WHITE, (10, 10, InnerBoardWidth, InnerBoardHeight), 0)
-
-	for i in range(8):
-		if(i % 2 == 0):
-			leadingColor = CHESSBOARD_WH
-			laggingColor = CHESSBOARD_DK
-		else:
-			leadingColor = CHESSBOARD_DK
-			laggingColor = CHESSBOARD_WH
-		for j in range(8):
-			if(j % 2 == 0):
-				pygame.draw.rect(screen, leadingColor, (10+60*i, 10+60*j, TileLength, TileLength), 0)
-			else:
-				pygame.draw.rect(screen, laggingColor, (10+60*i, 10+60*j, TileLength, TileLength), 0)
-
-	# Render the pieces, it must come from the databoard
-	for i in range(8):
-		for j in range(8):
-			pieceRect = (10+TileLength*i, 10+TileLength*j, TileLength, TileLength)
-			if(board[i][7-j] <= 20):
-				isThreatened = False
-
-				if(board[i][7-j] > 10):
-					board[i][7-j] -= 10
-					isThreatened = True
-
-				if(board[i][7-j] == wPAWN):
-					imageFile = "wpawn.png"
-				elif(board[i][7-j] == wKNIGHT):
-					imageFile = "wknight.png"
-				elif(board[i][7-j] == wBISHOP):
-					imageFile = "wbishop.png"
-				elif(board[i][7-j] == wROOK):
-					imageFile = "wrook.png"
-				elif(board[i][7-j] == wQUEEN):
-					imageFile = "wqueen.png"
-				elif(board[i][7-j] == wKING):
-					imageFile = "wking.png"
-
-				elif(board[i][7-j] == bPAWN):
-					imageFile = "bpawn.png"
-				elif(board[i][7-j] == bKNIGHT):
-					imageFile = "bknight.png"
-				elif(board[i][7-j] == bBISHOP):
-					imageFile = "bbishop.png"
-				elif(board[i][7-j] == bROOK):
-					imageFile = "brook.png"
-				elif(board[i][7-j] == bQUEEN):
-					imageFile = "bqueen.png"
-				elif(board[i][7-j] == bKING):
-					imageFile = "bking.png"
-
-				if(isThreatened):
-					board[i][7-j] += 10
-					#add code for displaying threatened piece here
-
-				imagePiece = pygame.image.load(imageFile)
-				screen.blit(imagePiece, pieceRect)
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, not self.is_player_white, is_user = False))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, self.is_player_white, is_user = True))
 
 			else:
-				alpha = board[i][7-j]-100
-				s = pygame.Surface((TileLength-20, TileLength-20))
-				s.set_alpha(255.0*abs(alpha)/10.0)
-
-				if(alpha >= 0):
-					s.fill(BLUE)
+				if(self.is_player_white):
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, not self.is_player_white, is_user = False))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, self.is_player_white, is_user = True))
 				else:
-					s.fill(RED)
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_QUEEN, not self.is_player_white, is_user = False))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_QUEEN, self.is_player_white, is_user = True))
 
-				screen.blit(s, (20+TileLength*i, 20+TileLength*j))
+	def print_board(self):
+		print "==piece_types=="
+		for i in range(8):
+			for j in range(8):
+				if self.board[i][j].get_piece() is not None:
+					sys.stdout.write(str(self.board[i][j].get_piece().get_piece_type()))
+				else:
+					sys.stdout.write("0")
+			print ""
+
+		print "==is_user=="
+		for i in range(8):
+			for j in range(8):
+				if self.board[i][j].get_piece() is not None:
+					sys.stdout.write("A") if self.board[i][j].get_piece().get_is_user() else sys.stdout.write("E")
+				else:
+					sys.stdout.write("0")
+			print ""
+
+		print "==colors=="
+		for i in range(8):
+			for j in range(8):
+				if self.board[i][j].get_piece() is not None:
+					sys.stdout.write("W") if self.board[i][j].get_piece().get_is_white() else sys.stdout.write("B")
+				else:
+					sys.stdout.write("0")
+			print ""
+
+		print "==threat_levels=="
+		for i in range(8):
+			for j in range(8):
+				if self.board[i][j] is not None:
+					sys.stdout.write("["+str(self.board[i][j].get_threat_level())+"]")
+				else:
+					sys.stdout.write("0")
+			print ""
+
+	def build_threats(self):
+		for i in range(8):
+			for j in range(8):
+				tile = self.board[i][7-j]
+				piece = tile.get_piece()
+
+				if(piece is not None):
+					# This is to prevent the index-out-of-range errors
+					is_i_lt_7 = i < 7
+					is_i_lt_6 = i < 6
+					is_7j_lt_7 = 7-j < 7
+					is_7j_lt_6 = 7-j < 6
+
+					is_i_gt_1 = i > 1
+					is_i_gt_0 = i > 0
+					is_7j_gt_1 = 7-j > 1
+					is_7j_gt_0 = 7-j > 0
+
+					if(piece.get_piece_type() == Constants.P_KNIGHT):
+						if(is_i_gt_0):
+							if(is_7j_lt_6):
+								target_tile = self.board[i-1][7-j+2]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							if(is_7j_gt_1):
+								target_tile = self.board[i-1][7-j-2]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							
+						if(is_i_lt_7):
+							if(is_7j_lt_6):
+								target_tile = self.board[i+1][7-j+2]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							if(is_7j_gt_1):
+								target_tile = self.board[i+1][7-j-2]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+
+							
+						if(is_i_gt_1):
+							if(is_7j_lt_7):
+								target_tile = self.board[i-2][7-j+1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							if(is_7j_gt_0):
+								target_tile = self.board[i-2][7-j-1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+
+						if(is_i_lt_6):
+							if(is_7j_lt_7):
+								target_tile = self.board[i+2][7-j+1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							if(is_7j_gt_0):
+								target_tile = self.board[i+2][7-j-1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
 
 
+					elif(piece.get_piece_type() == Constants.P_BISHOP):
+						dirNE = True
+						dirSE = True
+						dirNW = True
+						dirSW = True
+						for k in range(1, 8):
+							is_ik_lte_7 = i+k <= 7
+							is_ik_gte_0 = i-k >= 0
+							if_7j_lte_7 = 7-j+k <= 7
+							if_7j_gte_0 = 7-j-k >= 0
 
-	# User makes a move
+							if(is_ik_lte_7):
+								if(if_7j_lte_7 and dirNE):
+									target_tile = self.board[i+k][7-j+k]
+									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if(target_tile.get_piece() is not None):
+										dirNE = False
+								else:
+									dirNE = False
 
-	# Convert the board into the fen format
+								if(if_7j_gte_0 and dirSE):
+									target_tile = self.board[i+k][7-j-k]
+									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if(target_tile.get_piece() is not None):
+										dirSE = False
+								else:
+									dirSE = False
 
-	# AI makes a move
+							if(is_ik_gte_0):
+								if(if_7j_lte_7 and dirNW):
+									target_tile = self.board[i-k][7-j+k]
+									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if(target_tile.get_piece() is not None):
+										dirNW = False
+								else:
+									dirNW = False
 
-	# Do all of the above while the game hasn't ended
+								if(if_7j_gte_0 and dirSW):
+									target_tile = self.board[i-k][7-j-k]
+									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if(target_tile.get_piece() is not None):
+										dirSW = False
+								else:
+									dirSW = False
 
-	# Refresh the display
-	pygame.display.flip()
+					elif(piece.get_piece_type() == Constants.P_ROOK):
+						dirN = True
+						dirS = True
+						dirE = True
+						dirW = True
+						for k in range(1, 8):
+							is_ik_lte_7 = i+k <= 7
+							is_ik_gte_0 = i-k >= 0
+							if_7j_lte_7 = 7-j+k <= 7
+							if_7j_gte_0 = 7-j-k >= 0
+
+							if(is_ik_lte_7 and dirE):
+								target_tile = self.board[i+k][7-j]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if(target_tile.get_piece() is not None):
+									dirE = False
+							else:
+								dirE = False
+
+							if(is_ik_gte_0 and dirW):
+								target_tile = self.board[i-k][7-j]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if(target_tile.get_piece() is not None):
+									dirW = False
+							else:
+								dirW = False
+
+							if(if_7j_lte_7 and dirN):
+								target_tile = self.board[i][7-j+k]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if(target_tile.get_piece() is not None):
+									dirN = False
+							else:
+								dirN = False
+
+							if(if_7j_gte_0 and dirS):
+								target_tile = self.board[i][7-j-k]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if(target_tile.get_piece() is not None):
+									dirS = False
+							else:
+								dirS = False
+
+
+					elif(piece.get_piece_type() == Constants.P_QUEEN):
+						dirN = True
+						dirS = True
+						dirE = True
+						dirW = True
+						dirNE = True
+						dirSE = True
+						dirNW = True
+						dirSW = True
+						for k in range(1, 8):
+							is_ik_lte_7 = i+k <= 7
+							is_ik_gte_0 = i-k >= 0
+							if_7j_lte_7 = 7-j+k <= 7
+							if_7j_gte_0 = 7-j-k >= 0
+
+							if(is_ik_lte_7 and dirE):
+								target_tile = self.board[i+k][7-j]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if(target_tile.get_piece() is not None):
+									dirE = False
+							else:
+								dirE = False
+
+							if(is_ik_gte_0 and dirW):
+								target_tile = self.board[i-k][7-j]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if(target_tile.get_piece() is not None):
+									dirW = False
+							else:
+								dirW = False
+
+							if(if_7j_lte_7 and dirN):
+								target_tile = self.board[i][7-j+k]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if(target_tile.get_piece() is not None):
+									dirN = False
+							else:
+								dirN = False
+
+							if(if_7j_gte_0 and dirS):
+								target_tile = self.board[i][7-j-k]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if(target_tile.get_piece() is not None):
+									dirS = False
+							else:
+								dirS = False
+
+							if(is_ik_lte_7):
+								if(if_7j_lte_7 and dirNE):
+									target_tile = self.board[i+k][7-j+k]
+									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if(target_tile.get_piece() is not None):
+										dirNE = False
+								else:
+									dirNE = False
+
+								if(if_7j_gte_0 and dirSE):
+									target_tile = self.board[i+k][7-j-k]
+									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if(target_tile.get_piece() is not None):
+										dirSE = False
+								else:
+									dirSE = False
+
+							if(is_ik_gte_0):
+								if(if_7j_lte_7 and dirNW):
+									target_tile = self.board[i-k][7-j+k]
+									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if(target_tile.get_piece() is not None):
+										dirNW = False
+								else:
+									dirNW = False
+
+								if(if_7j_gte_0 and dirSW):
+									target_tile = self.board[i-k][7-j-k]
+									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if(target_tile.get_piece() is not None):
+										dirSW = False
+								else:
+									dirSW = False
+
+					elif(piece.get_piece_type() == Constants.P_KING):
+						is_i_lte_7 = i+1 <= 7
+						is_i_gte_0 = i-1 >= 0
+						is_7j_lte_7 = 7-j+1 <= 7
+						is_7j_gte_0 = 7-j-1 >= 0
+
+						if(is_i_lte_7):
+							target_tile = self.board[i+1][7-j]
+							target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							
+							if(is_7j_lte_7):
+								target_tile = self.board[i+1][7-j+1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							
+							if(is_7j_gte_0):
+								target_tile = self.board[i+1][7-j-1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							
+						if(is_i_gte_0):
+							target_tile = self.board[i-1][7-j]
+							target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							
+							if(is_7j_lte_7):
+								target_tile = self.board[i-1][7-j+1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							
+							if(is_7j_gte_0):
+								target_tile = self.board[i-1][7-j-1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							
+						if(is_7j_lte_7):
+							target_tile = self.board[i][7-j+1]
+							target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+						
+						if(is_7j_gte_0):
+							target_tile = self.board[i][7-j-1]
+							target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							
+					elif(piece.get_piece_type() == Constants.P_PAWN):
+						is_i_lt_7 = i < 7
+						is_i_lt_6 = i < 6
+						is_7j_lt_7 = 7-j < 7
+						is_7j_lt_6 = 7-j < 6
+
+						is_i_gt_1 = i > 1
+						is_i_gt_0 = i > 0
+						is_7j_gt_1 = 7-j > 1
+						is_7j_gt_0 = 7-j > 0
+
+						is_user = piece.get_is_user()
+						if(is_i_lt_7):
+							if(is_user and is_7j_lt_7):
+								target_tile = self.board[i+1][7-j+1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1)
+							if(not is_user and is_7j_gt_0):
+								target_tile = self.board[i+1][7-j-1]
+								target_tile.set_threat_level(target_tile.get_threat_level() - 1)
+
+						if(is_i_gt_0):
+							if(is_user and is_7j_lt_7):
+								target_tile = self.board[i-1][7-j+1]
+								target_tile.set_threat_level(target_tile.get_threat_level() + 1)
+							if(not is_user and is_7j_gt_0):
+								target_tile = self.board[i-1][7-j-1]
+								target_tile.set_threat_level(target_tile.get_threat_level() - 1)
+
+				# else:
+				# 	pass
+
+	def render_board(self):
+		self.screen.fill(Constants.WHITE)
+
+		# Render the board
+		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, (0, 0, Constants.OUTERBOARD_HEIGHT, Constants.OUTERBOARD_WIDTH), 0)
+		for i in range(8):
+			if(i % 2 == 0):
+				leading_color = Constants.CHESSBOARD_WH
+				lagging_color = Constants.CHESSBOARD_DK
+			else:
+				leading_color = Constants.CHESSBOARD_DK
+				lagging_color = Constants.CHESSBOARD_WH
+
+			for j in range(8):
+				if(j % 2 == 0):
+					pygame.draw.rect(self.screen, leading_color, (Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j, Constants.TILE_LENGTH, Constants.TILE_LENGTH), 0)
+				else:
+					pygame.draw.rect(self.screen, lagging_color, (Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j, Constants.TILE_LENGTH, Constants.TILE_LENGTH), 0)
+
+		# Render board contents
+		for i in range(8):
+			for j in range(8):
+				tile = self.board[i][7-j]
+				piece = tile.get_piece()
+
+				if(piece is not None):
+					# Render the threatened pieces
+
+					# Render the pieces
+					piece_rect = (Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j, Constants.TILE_LENGTH, Constants.TILE_LENGTH)
+					piece_type = piece.get_piece_type()
+					color = "w" if piece.get_is_white() else "b"
+					image_file = color + str(piece_type) + ".png"
+
+					image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+					self.screen.blit(image_piece, piece_rect)
+
+				# Render the empty tile threats
+				else:
+					difference = 15
+					alpha = tile.get_threat_level()
+
+					s = pygame.Surface((Constants.TILE_LENGTH-difference, Constants.TILE_LENGTH-difference))
+					s.set_alpha(255.0*abs(alpha)/10.0)
+
+					if(alpha >= 0):
+						s.fill(Constants.BLUE)
+					else:
+						s.fill(Constants.RED)
+
+					self.screen.blit(s, (Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*j))
+
+		pygame.display.flip()
+
+	def set_kingside_white(self, kingside_white):
+		self.kingside_white = kingside_white
+
+	def set_queenside_white(self, queenside_white):
+		self.queenside_white = queenside_white
+
+	def set_kingside_black(self, kingside_black):
+		self.kingside_black = kingside_black
+
+	def set_queenside_black(self, queenside_black):
+		self.queenside_black = queenside_black
+
+	def set_en_passant(self, en_passant):
+		self.en_passant = en_passant
+
+	def set_halfmove_clock(self, halfmove_clock):
+		self.halfmove_clock = halfmove_clock
+
+	def set_fullmove_clock(self, fullmove_clock):
+		self.fullmove_clock = fullmove_clock
+
+	def set_active_turn(self, active_turn):
+		self.active_turn = active_turn
+
+	def convert_to_fen(self):
+
+		fen_piece = {
+			Constants.P_PAWN: 'p',
+			Constants.P_KNIGHT: 'n',
+			Constants.P_BISHOP: 'b',
+			Constants.P_ROOK: 'r',
+			Constants.P_QUEEN: 'q',
+			Constants.P_KING: 'k'
+		}
+		fen_string = ""
+
+		for i in range(8):
+			blank = 0
+			for j in range(8):
+				piece = self.board[j][7-i].get_piece()
+				if piece is not None:
+					if blank is not 0:
+						fen_string += str(blank)
+						blank = 0
+					fen_string += fen_piece[piece.get_piece_type()].upper() if piece.get_is_white() else fen_piece[piece.get_piece_type()]
+				else:
+					blank += 1
+			if blank is not 0:
+				fen_string += str(blank)
+			if i < 7:
+				fen_string += "/"
+
+		fen_string += " " + self.active_turn + " " + self.kingside_white + self.queenside_white + self.kingside_black + self.queenside_black + " " + self.en_passant + " " + str(self.halfmove_clock) + " " + str(self.fullmove_clock)
+
+		return fen_string
+
+	def play(self):
+		self.build_threats()
+		fen = self.convert_to_fen()
+		# self.print_board()
+
+		while(True):
+			self.render_board()
+
+			# convert board to fen
+
+			# white's turn
+
+			# black's turn
+
+			events = pygame.event.get()
+			for event in events: 
+				if event.type == pygame.QUIT: 
+					sys.exit(0)
+				else: 
+					print event
+
+if __name__ == '__main__':
+	Chesselate(is_player_white=False).play()
