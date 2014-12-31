@@ -17,6 +17,7 @@ class Piece:
 		self.is_white = is_white 
 		self.piece_type = piece_type
 		self.threat_level = 0
+		self.piece_position = (0,0,0,0)
 
 	def get_threat_level(self):
 		return self.threat_level
@@ -30,29 +31,55 @@ class Piece:
 	def get_is_white(self):
 		return self.is_white
 
+	def get_piece_position(self):
+		return self.piece_position
+
 	def set_threat_level(self, threat_level):
 		self.threat_level = threat_level
 
 	def set_piece_type(self, piece_type):
 		self.piece_type = piece_type
 
+	def set_piece_position(self, rectangle):
+		self.piece_position = rectangle
+
+	def pressed(self, mouse):
+		rect = self.piece_position
+		if self.is_user:
+			if mouse[0] > rect[0]:
+				if mouse[1] > rect[1]:
+					if mouse[0] < rect[0] + rect[2]:
+						if mouse[1] < rect[1] + rect[3]:
+							return True
+						else: return False
+					else: return False
+				else: return False
+			else: return False
+
 class Tile:
 
 	def __init__(self, piece = None, threat_level = 0):
 		self.piece = piece
 		self.threat_level = 0
-	
+		self.is_traversable = False
+
 	def get_piece(self):
 		return self.piece
 
 	def get_threat_level(self):
 		return self.threat_level
 
+	def get_is_traversable(self):
+		return self.is_traversable
+
 	def set_piece(self, piece):
 		self.piece = piece
 
 	def set_threat_level(self, threat_level):
 		self.threat_level = threat_level
+
+	def set_is_traversable(self, is_traversable):
+		self.is_traversable = is_traversable
 
 	def remove_piece(self):
 		self.piece = None
@@ -115,6 +142,15 @@ class Constants:
 	TILE_LENGTH = INNERBOARD_HEIGHT/8
 
 	# Colors
+	TRAVERSABLE_BORDER = (10, 80, 100)
+	TRAVERSABLE_SEMI = (100, 50, 255)
+	TRAVERSABLE_COLOR = (120, 200, 240)
+	TRAVERSABLE_MINI = (220, 200, 255)
+
+	TRAVERSABLE_SEMIRADIUS = 8
+	TRAVERSABLE_RADIUS = 5
+	TRAVERSABLE_MINIRADIUS = 4
+	
 	CHESSBOARD_BG = (128, 128, 128)
 	CHESSBOARD_DK = (200, 200, 200)
 	CHESSBOARD_WH = (240, 240, 240)
