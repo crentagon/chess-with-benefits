@@ -54,7 +54,30 @@ class Tile:
 	def set_threat_level(self, threat_level):
 		self.threat_level = threat_level
 
+	def remove_piece(self):
+		self.piece = None
+
 class Constants:
+
+
+	PIECE_MAPPING = {
+		'a': 0,
+		'b': 1,
+		'c': 2,
+		'd': 3,
+		'e': 4,
+		'f': 5,
+		'g': 6,
+		'h': 7,
+		'1': 0,
+		'2': 1,
+		'3': 2,
+		'4': 3,
+		'5': 4,
+		'6': 5,
+		'7': 6,
+		'8': 7
+	}
 
 	# Tile information
 	TILE_A = 0

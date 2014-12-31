@@ -115,6 +115,12 @@ class Chesselate:
 			print ""
 
 	def build_threats(self):
+		# Clear threats
+		for i in range(8):
+			for j in range(8):
+				self.board[i][j].set_threat_level(0)
+
+		# Build threats
 		for i in range(8):
 			for j in range(8):
 				tile = self.board[i][7-j]
@@ -411,6 +417,8 @@ class Chesselate:
 
 		# Render the board
 		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, (0, 0, Constants.OUTERBOARD_HEIGHT, Constants.OUTERBOARD_WIDTH), 0)
+				
+		# Render board contents
 		for i in range(8):
 			if(i % 2 == 0):
 				leading_color = Constants.CHESSBOARD_WH
@@ -420,14 +428,14 @@ class Chesselate:
 				lagging_color = Constants.CHESSBOARD_WH
 
 			for j in range(8):
+				# Render the tile
 				if(j % 2 == 0):
-					pygame.draw.rect(self.screen, leading_color, (Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j, Constants.TILE_LENGTH, Constants.TILE_LENGTH), 0)
+					tile_color = leading_color
 				else:
-					pygame.draw.rect(self.screen, lagging_color, (Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j, Constants.TILE_LENGTH, Constants.TILE_LENGTH), 0)
+					tile_color = lagging_color
 
-		# Render board contents
-		for i in range(8):
-			for j in range(8):
+				pygame.draw.rect(self.screen, tile_color, (Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j, Constants.TILE_LENGTH, Constants.TILE_LENGTH), 0)
+
 				tile = self.board[i][7-j]
 				piece = tile.get_piece()
 
@@ -445,44 +453,50 @@ class Chesselate:
 
 				# Render the empty tile threats
 				else:
+					"""
+					objDistText = basicFont.render('Object Distance: '+str(objectDist), True, BLUE, WHITE)
+					textRect = objDistText.get_rect()
+					textRect.centerx = 200
+					textRect.centery = 100
+					screen.blit(objDistText, textRect)
+					"""
 					difference = 15
-					alpha = tile.get_threat_level()
+					threat_level = tile.get_threat_level()
+					alpha = 255.0*abs(threat_level)/10.0
 
 					s = pygame.Surface((Constants.TILE_LENGTH-difference, Constants.TILE_LENGTH-difference))
-					s.set_alpha(255.0*abs(alpha)/10.0)
+					s.set_alpha(alpha)
 
-					if(alpha >= 0):
-						s.fill(Constants.BLUE)
+					if(threat_level >= 0):
+						color = Constants.BLUE
 					else:
-						s.fill(Constants.RED)
+						color = Constants.RED
+
+					if(alpha != 0):
+						s.fill(color)
+						basic_font = pygame.font.SysFont(None, 25)
+
+						threat_text = basic_font.render(str(abs(threat_level)), True, color, tile_color)
+
+						text_rect = threat_text.get_rect()
+						text_rect.centerx = Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*i + 5
+						text_rect.centery = Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*j + 7
+
+						threat_text.set_alpha(alpha)
+						self.screen.blit(threat_text, text_rect)
 
 					self.screen.blit(s, (Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*j))
 
 		pygame.display.flip()
 
-	def set_kingside_white(self, kingside_white):
-		self.kingside_white = kingside_white
+	def move_piece(self, source, destination):
+		source_x = source[:1].lower()
+		source_y = source[1:2]
+		destination_x = destination[:1].lower()
+		destination_y = destination[1:2]
 
-	def set_queenside_white(self, queenside_white):
-		self.queenside_white = queenside_white
-
-	def set_kingside_black(self, kingside_black):
-		self.kingside_black = kingside_black
-
-	def set_queenside_black(self, queenside_black):
-		self.queenside_black = queenside_black
-
-	def set_en_passant(self, en_passant):
-		self.en_passant = en_passant
-
-	def set_halfmove_clock(self, halfmove_clock):
-		self.halfmove_clock = halfmove_clock
-
-	def set_fullmove_clock(self, fullmove_clock):
-		self.fullmove_clock = fullmove_clock
-
-	def set_active_turn(self, active_turn):
-		self.active_turn = active_turn
+		self.board[Constants.PIECE_MAPPING[destination_x]][Constants.PIECE_MAPPING[destination_y]].set_piece(self.board[Constants.PIECE_MAPPING[source_x]][Constants.PIECE_MAPPING[source_y]].get_piece())
+		self.board[Constants.PIECE_MAPPING[source_x]][Constants.PIECE_MAPPING[source_y]].remove_piece()
 
 	def convert_to_fen(self):
 
@@ -517,8 +531,11 @@ class Chesselate:
 		return fen_string
 
 	def play(self):
+		# self.move_piece("e2", "e4")
 		self.build_threats()
 		fen = self.convert_to_fen()
+		print fen
+
 		# self.print_board()
 
 		while(True):
@@ -538,4 +555,4 @@ class Chesselate:
 					print event
 
 if __name__ == '__main__':
-	Chesselate(is_player_white=False).play()
+	Chesselate(is_player_white=True).play()
