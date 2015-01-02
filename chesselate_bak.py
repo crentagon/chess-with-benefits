@@ -1,22 +1,89 @@
-import sys, string, os
+import sys, string, sys
 import math
 import pygame
 import Buttons
 import time
 from subprocess import *
 
-'''
+
 # Communication test
 p = Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE )
 p.stdin.write("position fen rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2\n")
-p.stdin.write("go movetime 1000\n")
-time.sleep(1)
-p.stdin.write("quit\n")
+p.stdin.write("go movetime 2000\n")
 
+while p.poll() is None:
+	line = p.stdout.readline()
+	if line[0] == 'b': break
+	print line,
+
+print line,
+
+print "Next move!"
+p.stdin.write("position startpos b8c6\n")
+p.stdin.write("go movetime 2000\n")
+
+while p.poll() is None:
+	line = p.stdout.readline()
+	if line[0] == 'b': break
+	print line,
+
+print line,
+
+line = line.split("\r")
+line = line[0].split(" ")
+
+bestmove = line[1]
+ponder = line[3]
+
+print bestmove
+print ponder
+
+# time.sleep(5)
+# print p.stdout.readline()
+# p.stdin.write("quit\n")
+
+sys.exit(0)
 # Retrieving the best move
-x = p.stdout.read().split("\n")
-print x[-2]
+# x = p.stdout.read().split("\n")
+# print x[-2]
+
 '''
+from os import *
+from popen2 import *
+from commands import *
+
+
+subprocess = Subprocess()
+
+subprocess.call(["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE)
+
+
+
+import subprocess
+from subprocess import check_output
+
+# subprocess.call()
+subprocess.check_call(['false'])
+
+# p = subprocess.Popen(["stockfish_14053109_32bit.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+# p.stdin.write("position fen rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2\n")
+# p.stdin.write("go movetime 2000\n")
+# time.sleep(2)
+# out, err = p.communicate()
+# print subprocess.check_output()
+# p.stdin.write("position startpos b8c6\n")
+# p.stdin.write("go movetime 5000\n")
+# out, err = p.communicate()
+# print ""
+# print out
+# out = check_output([])
+
+print "Hello!"
+sys.exit(0)
+'''
+
+
+
 # Constants
 # Board constants
 nA = 0

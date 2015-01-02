@@ -1,3 +1,6 @@
+import threading
+import os, sys
+from subprocess import *
 
 class Piece:
 
@@ -58,16 +61,20 @@ class Piece:
 
 class Tile:
 
-	def __init__(self, piece = None, threat_level = 0):
+	def __init__(self, piece = None, threat_level_user = 0, threat_level_opponent = 0):
 		self.piece = piece
-		self.threat_level = 0
+		self.threat_level_user = threat_level_user
+		self.threat_level_opponent = threat_level_opponent
 		self.is_traversable = False
 
 	def get_piece(self):
 		return self.piece
 
-	def get_threat_level(self):
-		return self.threat_level
+	def get_threat_level_user(self):
+		return self.threat_level_user
+
+	def get_threat_level_opponent(self):
+		return self.threat_level_opponent
 
 	def get_is_traversable(self):
 		return self.is_traversable
@@ -75,8 +82,11 @@ class Tile:
 	def set_piece(self, piece):
 		self.piece = piece
 
-	def set_threat_level(self, threat_level):
-		self.threat_level = threat_level
+	def set_threat_level_user(self, threat_level_user):
+		self.threat_level_user = threat_level_user
+
+	def set_threat_level_opponent(self, threat_level_opponent):
+		self.threat_level_opponent = threat_level_opponent
 
 	def set_is_traversable(self, is_traversable):
 		self.is_traversable = is_traversable
@@ -84,8 +94,38 @@ class Tile:
 	def remove_piece(self):
 		self.piece = None
 
-class Constants:
+class StockfishThread(threading.Thread):
 
+	def __init__(self, fen_string, process_time):
+
+		super(StockfishThread, self).__init__()
+		self.fen_string = fen_string
+		self.process_time = process_time
+		self.is_thread_done = False
+
+		self.cpu_move = ''
+		self.ponder = ''
+
+	def run(self):
+
+		p = Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE)
+		p.stdin.write("position fen "+self.fen_string+"\n")
+		p.stdin.write("go movetime "+str(self.process_time)+"\n")
+
+		while p.poll() is None:
+			line = p.stdout.readline()
+			if line[0] == 'b': break
+			# print line,
+
+		# Retrieving the best move
+		line = line.split("\r")
+		line = line[0].split(" ")
+
+		self.cpu_move = line[1]
+		self.ponder = line[3]
+		self.is_thread_done = True
+
+class Constants:
 
 	PIECE_MAPPING = {
 		'a': 0,
@@ -104,6 +144,28 @@ class Constants:
 		'6': 5,
 		'7': 6,
 		'8': 7
+	}
+
+	CHAR_MAPPING = {
+		0: 'a',
+		1: 'b',
+		2: 'c',
+		3: 'd',
+		4: 'e',
+		5: 'f',
+		6: 'g',
+		7: 'h'
+	}
+
+	NUM_MAPPING = {
+		0: '1',
+		1: '2',
+		2: '3',
+		3: '4',
+		4: '5',
+		5: '6',
+		6: '7',
+		7: '8',
 	}
 
 	# Tile information

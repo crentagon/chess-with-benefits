@@ -1,4 +1,4 @@
-import sys, string, os
+import sys, string, os, threading
 import math
 import pygame
 from pygame import gfxdraw
@@ -38,7 +38,13 @@ class Chesselate:
 		self.source_x = 0
 		self.source_y = 0
 
+		# Stockfish
 		self.cpu_level = cpu_level
+		# self.p = Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE)
+		# self.p.stdin.write("position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+		# while True:
+		# line = self.p.stdout.readline()
+		# print line,
 
 		self.screen = pygame.display.set_mode(Constants.SCREENSIZE)
 		self.screen.fill(Constants.WHITE)
@@ -127,7 +133,8 @@ class Chesselate:
 		# Clear threats
 		for i in range(8):
 			for j in range(8):
-				self.board[i][j].set_threat_level(0)
+				self.board[i][j].set_threat_level_user(0)
+				self.board[i][j].set_threat_level_opponent(0)
 
 		# Build threats
 		for i in range(8):
@@ -147,42 +154,69 @@ class Chesselate:
 					is_7j_gt_1 = 7-j > 1
 					is_7j_gt_0 = 7-j > 0
 
-					if(piece.get_piece_type() == Constants.P_KNIGHT):
+					is_user = piece.get_is_user()
+					piece_type = piece.get_piece_type()
+
+					if(piece_type == Constants.P_KNIGHT):
 						if(is_i_gt_0):
 							if(is_7j_lt_6):
 								target_tile = self.board[i-1][7-j+2]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							if(is_7j_gt_1):
 								target_tile = self.board[i-1][7-j-2]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							
 						if(is_i_lt_7):
 							if(is_7j_lt_6):
 								target_tile = self.board[i+1][7-j+2]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							if(is_7j_gt_1):
 								target_tile = self.board[i+1][7-j-2]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 
 							
 						if(is_i_gt_1):
 							if(is_7j_lt_7):
 								target_tile = self.board[i-2][7-j+1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							if(is_7j_gt_0):
 								target_tile = self.board[i-2][7-j-1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 
 						if(is_i_lt_6):
 							if(is_7j_lt_7):
 								target_tile = self.board[i+2][7-j+1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							if(is_7j_gt_0):
 								target_tile = self.board[i+2][7-j-1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 
 
-					elif(piece.get_piece_type() == Constants.P_BISHOP):
+					elif(piece_type == Constants.P_BISHOP):
 						dirNE = True
 						dirSE = True
 						dirNW = True
@@ -196,7 +230,10 @@ class Chesselate:
 							if(is_ik_lte_7):
 								if(if_7j_lte_7 and dirNE):
 									target_tile = self.board[i+k][7-j+k]
-									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if is_user:
+										target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+									else:
+										target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 									if(target_tile.get_piece() is not None):
 										dirNE = False
 								else:
@@ -204,7 +241,10 @@ class Chesselate:
 
 								if(if_7j_gte_0 and dirSE):
 									target_tile = self.board[i+k][7-j-k]
-									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if is_user:
+										target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+									else:
+										target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 									if(target_tile.get_piece() is not None):
 										dirSE = False
 								else:
@@ -213,7 +253,10 @@ class Chesselate:
 							if(is_ik_gte_0):
 								if(if_7j_lte_7 and dirNW):
 									target_tile = self.board[i-k][7-j+k]
-									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if is_user:
+										target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+									else:
+										target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 									if(target_tile.get_piece() is not None):
 										dirNW = False
 								else:
@@ -221,7 +264,10 @@ class Chesselate:
 
 								if(if_7j_gte_0 and dirSW):
 									target_tile = self.board[i-k][7-j-k]
-									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if is_user:
+										target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+									else:
+										target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 									if(target_tile.get_piece() is not None):
 										dirSW = False
 								else:
@@ -240,7 +286,10 @@ class Chesselate:
 
 							if(is_ik_lte_7 and dirE):
 								target_tile = self.board[i+k][7-j]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 								if(target_tile.get_piece() is not None):
 									dirE = False
 							else:
@@ -248,7 +297,10 @@ class Chesselate:
 
 							if(is_ik_gte_0 and dirW):
 								target_tile = self.board[i-k][7-j]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 								if(target_tile.get_piece() is not None):
 									dirW = False
 							else:
@@ -256,7 +308,10 @@ class Chesselate:
 
 							if(if_7j_lte_7 and dirN):
 								target_tile = self.board[i][7-j+k]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 								if(target_tile.get_piece() is not None):
 									dirN = False
 							else:
@@ -264,14 +319,17 @@ class Chesselate:
 
 							if(if_7j_gte_0 and dirS):
 								target_tile = self.board[i][7-j-k]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 								if(target_tile.get_piece() is not None):
 									dirS = False
 							else:
 								dirS = False
 
 
-					elif(piece.get_piece_type() == Constants.P_QUEEN):
+					elif(piece_type == Constants.P_QUEEN):
 						dirN = True
 						dirS = True
 						dirE = True
@@ -288,7 +346,10 @@ class Chesselate:
 
 							if(is_ik_lte_7 and dirE):
 								target_tile = self.board[i+k][7-j]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 								if(target_tile.get_piece() is not None):
 									dirE = False
 							else:
@@ -296,7 +357,10 @@ class Chesselate:
 
 							if(is_ik_gte_0 and dirW):
 								target_tile = self.board[i-k][7-j]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 								if(target_tile.get_piece() is not None):
 									dirW = False
 							else:
@@ -304,7 +368,10 @@ class Chesselate:
 
 							if(if_7j_lte_7 and dirN):
 								target_tile = self.board[i][7-j+k]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 								if(target_tile.get_piece() is not None):
 									dirN = False
 							else:
@@ -312,7 +379,10 @@ class Chesselate:
 
 							if(if_7j_gte_0 and dirS):
 								target_tile = self.board[i][7-j-k]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 								if(target_tile.get_piece() is not None):
 									dirS = False
 							else:
@@ -321,7 +391,10 @@ class Chesselate:
 							if(is_ik_lte_7):
 								if(if_7j_lte_7 and dirNE):
 									target_tile = self.board[i+k][7-j+k]
-									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if is_user:
+										target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+									else:
+										target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 									if(target_tile.get_piece() is not None):
 										dirNE = False
 								else:
@@ -329,7 +402,10 @@ class Chesselate:
 
 								if(if_7j_gte_0 and dirSE):
 									target_tile = self.board[i+k][7-j-k]
-									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if is_user:
+										target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+									else:
+										target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 									if(target_tile.get_piece() is not None):
 										dirSE = False
 								else:
@@ -338,7 +414,10 @@ class Chesselate:
 							if(is_ik_gte_0):
 								if(if_7j_lte_7 and dirNW):
 									target_tile = self.board[i-k][7-j+k]
-									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if is_user:
+										target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+									else:
+										target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 									if(target_tile.get_piece() is not None):
 										dirNW = False
 								else:
@@ -346,13 +425,16 @@ class Chesselate:
 
 								if(if_7j_gte_0 and dirSW):
 									target_tile = self.board[i-k][7-j-k]
-									target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+									if is_user:
+										target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+									else:
+										target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 									if(target_tile.get_piece() is not None):
 										dirSW = False
 								else:
 									dirSW = False
 
-					elif(piece.get_piece_type() == Constants.P_KING):
+					elif(piece_type == Constants.P_KING):
 						is_i_lte_7 = i+1 <= 7
 						is_i_gte_0 = i-1 >= 0
 						is_7j_lte_7 = 7-j+1 <= 7
@@ -360,53 +442,76 @@ class Chesselate:
 
 						if(is_i_lte_7):
 							target_tile = self.board[i+1][7-j]
-							target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							if is_user:
+								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+							else:
+								target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							
 							if(is_7j_lte_7):
 								target_tile = self.board[i+1][7-j+1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							
 							if(is_7j_gte_0):
 								target_tile = self.board[i+1][7-j-1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							
 						if(is_i_gte_0):
 							target_tile = self.board[i-1][7-j]
-							target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							if is_user:
+								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+							else:
+								target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							
 							if(is_7j_lte_7):
 								target_tile = self.board[i-1][7-j+1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							
 							if(is_7j_gte_0):
 								target_tile = self.board[i-1][7-j-1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+								if is_user:
+									target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+								else:
+									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							
 						if(is_7j_lte_7):
 							target_tile = self.board[i][7-j+1]
-							target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							if is_user:
+								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+							else:
+								target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 						
 						if(is_7j_gte_0):
 							target_tile = self.board[i][7-j-1]
-							target_tile.set_threat_level(target_tile.get_threat_level() + 1 if piece.get_is_user() else target_tile.get_threat_level() - 1)
+							if is_user:
+								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+							else:
+								target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							
-					elif(piece.get_piece_type() == Constants.P_PAWN):
-						is_user = piece.get_is_user()
+					elif(piece_type == Constants.P_PAWN):
 						if(is_i_lt_7):
 							if(is_user and is_7j_lt_7):
 								target_tile = self.board[i+1][7-j+1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1)
+								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
 							if(not is_user and is_7j_gt_0):
 								target_tile = self.board[i+1][7-j-1]
-								target_tile.set_threat_level(target_tile.get_threat_level() - 1)
+								target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 
 						if(is_i_gt_0):
 							if(is_user and is_7j_lt_7):
 								target_tile = self.board[i-1][7-j+1]
-								target_tile.set_threat_level(target_tile.get_threat_level() + 1)
+								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
 							if(not is_user and is_7j_gt_0):
 								target_tile = self.board[i-1][7-j-1]
-								target_tile.set_threat_level(target_tile.get_threat_level() - 1)
+								target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 
 	def render_board(self):
 		self.screen.fill(Constants.WHITE)
@@ -434,6 +539,12 @@ class Chesselate:
 
 				tile = self.board[i][7-j]
 				piece = tile.get_piece()
+				render_threats = False
+				is_urgent = False
+
+				threat_level_user = tile.get_threat_level_user()
+				threat_level_opponent = tile.get_threat_level_opponent()
+				cumulative_threat = threat_level_user - threat_level_opponent
 
 				if(piece is not None):
 					# Render the threatened pieces
@@ -449,26 +560,48 @@ class Chesselate:
 					image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 					self.screen.blit(image_piece, piece_rect)
 
+					if cumulative_threat < 0 and piece.get_is_user():
+						render_threats = True
+						is_urgent = True
+
 				# Render the empty tile threats
 				else:
+					render_threats = True
+
+				if render_threats:
 					difference = 15
-					threat_level = tile.get_threat_level()
-					alpha = 255.0*abs(threat_level)/12.0
-					alpha_text = 255.0*abs(threat_level)/10.0
+					alpha = 0
+					basic_font = pygame.font.SysFont(None, 25)
+
+					# The opponent is guarding the tile!
+					if cumulative_threat < 0:
+						color = Constants.RED
+						threat_string = str(abs(threat_level_opponent))
+						alpha = 255.0*abs(threat_level_opponent)/12.0
+
+					# The user is guarding the tile!
+					elif cumulative_threat > 0:
+						color = Constants.BLUE
+						threat_string = str(abs(threat_level_user))
+						alpha = 255.0*abs(threat_level_user)/12.0
+
+					# Special case: even though it's 0, you still can't just put your queen there 'cause you'll be captured!
+					elif cumulative_threat == 0 and threat_level_opponent > 0:
+						color = Constants.RED
+						threat_string = str(threat_level_opponent)+"*"
+						# threat_string = "("+str(threat_level_opponent)+")"
+						alpha = 21.25 #255*1/12
+
+					if is_urgent:
+						alpha = 64
 
 					s = pygame.Surface((Constants.TILE_LENGTH-difference, Constants.TILE_LENGTH-difference))
 					s.set_alpha(alpha)
 
-					if(threat_level >= 0):
-						color = Constants.BLUE
-					else:
-						color = Constants.RED
-
 					if(alpha != 0):
 						s.fill(color)
-						basic_font = pygame.font.SysFont(None, 25)
-
-						threat_text = basic_font.render(str(abs(threat_level)), True, color, tile_color)
+						alpha_text = alpha * 1.5 if alpha * 1.5 < 255 else 255
+						threat_text = basic_font.render(threat_string, True, color, tile_color)
 
 						text_rect = threat_text.get_rect()
 						text_rect.centerx = Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*i + 5
@@ -489,10 +622,35 @@ class Chesselate:
 					# pygame.gfxdraw.filled_circle(self.screen, circle_x, circle_y, Constants.TRAVERSABLE_RADIUS, Constants.TRAVERSABLE_COLOR)
 					# pygame.gfxdraw.aacircle(self.screen, circle_x, circle_y, Constants.TRAVERSABLE_SEMIRADIUS, Constants.TRAVERSABLE_BORDER)
 
+				# Render the board guide
+				if j == 0:
+					if self.is_player_white:
+						num_text = Constants.NUM_MAPPING[7-i]
+						char_text = Constants.CHAR_MAPPING[i]
+					else:
+						num_text = Constants.NUM_MAPPING[i]
+						char_text = Constants.CHAR_MAPPING[7-i]
+
+					basic_font = pygame.font.SysFont(None, 15)
+					guide_text_char = basic_font.render(char_text, True, Constants.WHITE)
+					guide_text_num = basic_font.render(num_text, True, Constants.WHITE)
+
+					char_rect = guide_text_char.get_rect()
+					char_rect.centerx = Constants.BOARD_BUFFER + Constants.TILE_LENGTH*i + Constants.TILE_LENGTH/2
+					char_rect.centery = Constants.BOARD_BUFFER/2
+
+					num_rect = guide_text_num.get_rect()
+					num_rect.centerx = Constants.BOARD_BUFFER/2
+					num_rect.centery = Constants.BOARD_BUFFER + Constants.TILE_LENGTH*i + Constants.TILE_LENGTH/2
+
+					self.screen.blit(guide_text_char, char_rect)
+					self.screen.blit(guide_text_num, num_rect)
+
 
 		pygame.display.flip()
 
 	def move_piece(self, source_x, source_y, destination_x, destination_y):
+		# Move the piece in the game
 		self.board[destination_x][destination_y].set_piece(self.board[source_x][source_y].get_piece())
 		self.board[source_x][source_y].remove_piece()
 
@@ -900,6 +1058,7 @@ class Chesselate:
 		# self.print_board()
 
 		has_player_moved = False
+		has_opponent_moved = False
 
 		is_turn_user = True if self.is_player_white else False
 		is_turn_opponent = False if is_turn_user else True
@@ -907,31 +1066,38 @@ class Chesselate:
 		while(True):
 			self.render_board()
 
-			if has_player_moved:
+			if has_player_moved or has_opponent_moved:
 				self.clear_traversable()
 				self.build_threats()
 				self.render_board()
-				self.active_turn = 'b' if self.is_player_white else 'w'
-				has_player_moved = False
 
-				is_turn_user = False
-				is_turn_opponent = True
+				if has_player_moved:
+					self.active_turn = 'b' if self.is_player_white else 'w'
+					has_player_moved = False
+					is_turn_opponent = True
+					is_turn_user = False
+
+				elif has_opponent_moved:
+					self.active_turn = 'w' if self.is_player_white else 'b'
+					has_opponent_moved = False
+					is_turn_opponent = False
+					is_turn_user = True
 
 			if is_turn_opponent:
-				fen = self.convert_to_fen()
-				print fen
-				p = Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE )
-				p.stdin.write("position fen " + fen + "\n")
-				p.stdin.write("go movetime "+str(self.cpu_level)+"\n")
-				time.sleep(self.cpu_level/1000)
-				p.stdin.write("quit\n")
+				fen_string = self.convert_to_fen()
+				thread = StockfishThread(fen_string, self.cpu_level)
 
-				# Retrieving the best move
-				x = p.stdout.read().split("\n")
-				move_string = x[-2].split(' ')
+				thread.start()
+				is_turn_opponent = False
 
-				cpu_move = move_string[1]
-				ponder = move_string[3]
+			if thread.is_thread_done is not None and thread.is_thread_done:
+
+				thread.join()
+				cpu_move = thread.cpu_move
+				ponder = thread.ponder
+
+				print cpu_move
+				print ponder
 
 				source_x = Constants.PIECE_MAPPING[cpu_move[:1]]
 				source_y = Constants.PIECE_MAPPING[cpu_move[1:2]]
@@ -946,17 +1112,10 @@ class Chesselate:
 
 				self.move_piece(source_x, source_y, destination_x, destination_y)
 
-				print cpu_move
-				print ponder
-
-				is_turn_opponent = False
-				is_turn_user = True
-
-				# sys.exit(0)
-
+				has_opponent_moved = True
+				thread.is_thread_done = False
 
 			events = pygame.event.get()
-
 			for event in events: 
 				if event.type == pygame.QUIT: 
 					sys.exit(0)
@@ -966,24 +1125,47 @@ class Chesselate:
 					mouse_pos = pygame.mouse.get_pos()
 					board_x = (mouse_pos[0] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
 					board_y = 7-((mouse_pos[1] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+					is_piece_clicked = False
+					is_traversable = False
 
+					# Did the user click on the board?
 					if 0 <= board_x <= 7 and 0 <= board_y <= 7:
+						# What did the user click? A piece? A tile? Is the tile traversable?
 						tile = self.board[board_x][board_y]
 						piece = tile.get_piece()
+						is_traversable = tile.get_is_traversable()
+						is_piece_clicked = piece is not None
 
-					if piece is not None:
+					# A piece has been clicked!
+					if is_piece_clicked:
+						# Let's check if it's a friendly piece
 						if piece.pressed(mouse_pos):
 							self.source_x = board_x
 							self.source_y = board_y
 							self.show_traversable(board_x, board_y)
 
-					if tile.get_is_traversable():
+						# It clicked on a traversable piece? User's gonna do a capture! Good for you, user.
+						elif tile.get_is_traversable():
+							is_traversable = True
+
+						# User clicked on an enemy, uncapturable piece. Not this time!
+						else:
+							self.clear_traversable()
+
+					# Looks like user clicked on a traversable tile
+					if is_traversable:
 						self.move_piece(self.source_x, self.source_y, board_x, board_y)
 						has_player_moved = True
-						# Store the move in a stack
+
+						# To-do: Store the move in a stack
+
+					# User clicked on tile that is not traversable? We cool as long as user didn't click on its own piece.
+					else:
+						if not is_piece_clicked:
+							self.clear_traversable()
 
 				# else: 
 				# 	print event
 
 if __name__ == '__main__':
-	Chesselate(is_player_white=False).play()
+	Chesselate(is_player_white=False, cpu_level=2000).play()
