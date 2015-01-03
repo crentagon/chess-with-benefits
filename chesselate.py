@@ -84,7 +84,7 @@ class Chesselate:
 					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, not self.is_player_white, is_user = False))
 					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, self.is_player_white, is_user = True))
 
-			else:
+			elif(i==4):
 				if(self.is_player_white):
 					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, not self.is_player_white, is_user = False))
 					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, self.is_player_white, is_user = True))
@@ -654,6 +654,42 @@ class Chesselate:
 		self.board[destination_x][destination_y].set_piece(self.board[source_x][source_y].get_piece())
 		self.board[source_x][source_y].remove_piece()
 
+		# Set the is_moved to True
+		piece = self.board[destination_x][destination_y].get_piece()
+		if not piece.get_is_moved():
+			piece.set_is_moved_true()
+
+		# Check if it's a castle
+		difference = destination_x - source_x
+		if piece.get_piece_type() == Constants.P_KING and abs(difference) == 2:
+			if piece.get_is_user():
+				rank = 0
+			else:
+				rank = 7
+
+			king_var = -3
+			queen_var = 2
+
+			if self.is_player_white:
+				king_var = -2
+				queen_var = 3
+
+			if piece.get_is_white():
+				self.kingside_white = '-'
+				self.queenside_white = '-'
+
+			else:
+				self.kingside_black = '-'
+				self.queenside_black = '-'
+
+			if difference > 0:
+				self.board[Constants.TILE_H+king_var][rank].set_piece(self.board[Constants.TILE_H][rank].get_piece())
+				self.board[Constants.TILE_H][rank].remove_piece()
+
+			else:
+				self.board[Constants.TILE_A+queen_var][rank].set_piece(self.board[Constants.TILE_A][rank].get_piece())
+				self.board[Constants.TILE_A][rank].remove_piece()
+
 	def convert_to_fen(self):
 
 		fen_piece = {
@@ -1028,6 +1064,48 @@ class Chesselate:
 				if(target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False):
 					target_tile.set_is_traversable(True)
 
+			# Castling
+			if not piece.get_is_moved() and self.board[i][j].get_threat_level_opponent() <= 0:
+				can_castle_kingside = True
+				can_castle_queenside = True
+
+				kingside = Constants.TILE_A
+				queenside = Constants.TILE_H
+				multiplier = -1
+
+				if self.is_player_white:
+					kingside = Constants.TILE_H
+					queenside = Constants.TILE_A
+					multiplier = 1
+
+				kingside_rook = not self.board[kingside][Constants.TILE_1].get_piece().get_is_moved()
+				queenside_rook = not self.board[queenside][Constants.TILE_1].get_piece().get_is_moved()
+				
+				if kingside_rook or queenside_rook:
+					for k in range(1,3):
+						if can_castle_kingside and kingside_rook:
+							kingside_tile = self.board[i+multiplier*k][Constants.TILE_1]
+							if kingside_tile.get_piece() is not None or kingside_tile.get_threat_level_opponent() > 0:
+								can_castle_kingside = False
+
+						if can_castle_queenside and queenside_rook:
+							queenside_tile = self.board[i-multiplier*k][Constants.TILE_1]
+							if queenside_tile.get_piece() is not None or queenside_tile.get_threat_level_opponent() > 0:
+								can_castle_queenside = False
+
+				else:
+					can_castle_kingside = False
+					can_castle_queenside = False
+
+				if can_castle_kingside:
+					self.board[i + multiplier*1][Constants.TILE_1].set_is_traversable(True)
+					self.board[i + multiplier*2][Constants.TILE_1].set_is_traversable(True)
+
+				if can_castle_queenside:
+					self.board[i - multiplier*1][Constants.TILE_1].set_is_traversable(True)
+					self.board[i - multiplier*2][Constants.TILE_1].set_is_traversable(True)
+
+
 		elif piece.get_piece_type() == Constants.P_PAWN:
 			if(is_7j_lte_7):
 				target_tile = self.board[i][j+1]
@@ -1062,6 +1140,7 @@ class Chesselate:
 
 		is_turn_user = True if self.is_player_white else False
 		is_turn_opponent = False if is_turn_user else True
+		thread = None
 
 		while(True):
 			self.render_board()
@@ -1085,12 +1164,13 @@ class Chesselate:
 
 			if is_turn_opponent:
 				fen_string = self.convert_to_fen()
+				print fen_string
 				thread = StockfishThread(fen_string, self.cpu_level)
 
 				thread.start()
 				is_turn_opponent = False
 
-			if thread.is_thread_done is not None and thread.is_thread_done:
+			if thread is not None and thread.is_thread_done is not None and thread.is_thread_done:
 
 				thread.join()
 				cpu_move = thread.cpu_move

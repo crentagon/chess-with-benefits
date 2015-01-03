@@ -21,6 +21,7 @@ class Piece:
 		self.piece_type = piece_type
 		self.threat_level = 0
 		self.piece_position = (0,0,0,0)
+		self.is_moved = False
 
 	def get_threat_level(self):
 		return self.threat_level
@@ -34,6 +35,9 @@ class Piece:
 	def get_is_white(self):
 		return self.is_white
 
+	def get_is_moved(self):
+		return self.is_moved
+
 	def get_piece_position(self):
 		return self.piece_position
 
@@ -45,6 +49,9 @@ class Piece:
 
 	def set_piece_position(self, rectangle):
 		self.piece_position = rectangle
+
+	def set_is_moved_true(self):
+		self.is_moved = True
 
 	def pressed(self, mouse):
 		rect = self.piece_position
