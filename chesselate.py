@@ -11,7 +11,6 @@ class Chesselate:
 
 	def __init__(self, is_player_white = True, cpu_level = 2000):
 		self.is_player_white = is_player_white
-		self.initialize_board()
 
 		# Active turn for the FEN notation
 		self.active_turn = 'w'
@@ -45,6 +44,7 @@ class Chesselate:
 		# while True:
 		# line = self.p.stdout.readline()
 		# print line,
+		self.initialize_board()
 
 		self.screen = pygame.display.set_mode(Constants.SCREENSIZE)
 		self.screen.fill(Constants.WHITE)
@@ -54,7 +54,8 @@ class Chesselate:
 		# Board information
 		self.board = [[Tile() for i in range(8)] for i in range(8)]
 
-		# self.board[Constants.TILE_E][Constants.TILE_5].set_piece(Piece(Constants.P_ROOK, self.is_player_white, is_user = True))
+		# self.board[Constants.TILE_F][Constants.TILE_6].set_piece(Piece(Constants.P_PAWN, self.is_player_white, is_user = True))
+		# self.board[Constants.TILE_F][Constants.TILE_5].set_piece(Piece(Constants.P_PAWN, not self.is_player_white, is_user = False))
 
 		for i in range(8):
 			# Set the pawns
@@ -84,7 +85,7 @@ class Chesselate:
 					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, not self.is_player_white, is_user = False))
 					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, self.is_player_white, is_user = True))
 
-			elif(i==4):
+			else:
 				if(self.is_player_white):
 					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, not self.is_player_white, is_user = False))
 					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, self.is_player_white, is_user = True))
@@ -560,7 +561,7 @@ class Chesselate:
 					image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 					self.screen.blit(image_piece, piece_rect)
 
-					if cumulative_threat < 0 and piece.get_is_user():
+					if (cumulative_threat < 0 and piece.get_is_user()) :
 						render_threats = True
 						is_urgent = True
 
@@ -576,21 +577,26 @@ class Chesselate:
 					# The opponent is guarding the tile!
 					if cumulative_threat < 0:
 						color = Constants.RED
-						threat_string = str(abs(threat_level_opponent))
-						alpha = 255.0*abs(threat_level_opponent)/12.0
+						threat_string = str(abs(cumulative_threat))
+						alpha = 255.0*abs(cumulative_threat)/12.0
 
 					# The user is guarding the tile!
 					elif cumulative_threat > 0:
 						color = Constants.BLUE
-						threat_string = str(abs(threat_level_user))
-						alpha = 255.0*abs(threat_level_user)/12.0
+						threat_string = str(abs(cumulative_threat))
+						alpha = 255.0*abs(cumulative_threat)/12.0
 
 					# Special case: even though it's 0, you still can't just put your queen there 'cause you'll be captured!
-					elif cumulative_threat == 0 and threat_level_opponent > 0:
-						color = Constants.RED
-						threat_string = str(threat_level_opponent)+"*"
+					elif cumulative_threat == 0:
 						# threat_string = "("+str(threat_level_opponent)+")"
-						alpha = 21.25 #255*1/12
+						if threat_level_opponent > 0:
+							alpha = 21.25 #255*1/12
+							threat_string = str(threat_level_opponent)+"*"
+							color = Constants.RED
+						# elif threat_level_user > 0:
+						# 	alpha = 21.25 #255*1/12
+						# 	threat_string = str(threat_level_user)+"*"
+						# 	color = Constants.BLUE
 
 					if is_urgent:
 						alpha = 64
@@ -659,9 +665,40 @@ class Chesselate:
 		if not piece.get_is_moved():
 			piece.set_is_moved_true()
 
+		difference_x = destination_x - source_x
+		difference_y = destination_y - source_y
+
+		# Check if it's an en passant
+		if self.en_passant != '-' and piece.get_piece_type() == Constants.P_PAWN and destination_x == Constants.PIECE_MAPPING[self.en_passant[0]] and destination_y == Constants.PIECE_MAPPING[self.en_passant[1]]:
+			if piece.get_is_user():
+				self.board[destination_x][destination_y-1].remove_piece()
+			else:
+				self.board[destination_x][destination_y+1].remove_piece()
+
+			# print "We're doing an en passant!"
+			self.en_passant = '-'
+
+		# Check if the pawn that just moved is en passant-able
+		elif piece.get_piece_type() == Constants.P_PAWN and abs(difference_y) == 2:
+			if not self.is_player_white:
+				y_coorda = 7-(destination_y-1)
+				y_coordb = 7-(destination_y+1)
+				x_coord = 7-destination_x
+			else:
+				y_coorda = destination_y-1
+				y_coordb = destination_y+1
+				x_coord = destination_x
+
+			if piece.get_is_user():
+				self.en_passant = Constants.CHAR_MAPPING[x_coord] + Constants.NUM_MAPPING[y_coorda]
+			else:
+				self.en_passant = Constants.CHAR_MAPPING[x_coord] + Constants.NUM_MAPPING[y_coordb]
+			print self.en_passant 
+		else:
+			self.en_passant = '-'
+
 		# Check if it's a castle
-		difference = destination_x - source_x
-		if piece.get_piece_type() == Constants.P_KING and abs(difference) == 2:
+		if piece.get_piece_type() == Constants.P_KING and abs(difference_x) == 2:
 			if piece.get_is_user():
 				rank = 0
 			else:
@@ -682,7 +719,7 @@ class Chesselate:
 				self.kingside_black = '-'
 				self.queenside_black = '-'
 
-			if difference > 0:
+			if difference_x > 0:
 				self.board[Constants.TILE_H+king_var][rank].set_piece(self.board[Constants.TILE_H][rank].get_piece())
 				self.board[Constants.TILE_H][rank].remove_piece()
 
@@ -1026,42 +1063,42 @@ class Chesselate:
 		elif piece.get_piece_type() == Constants.P_KING:
 			if(is_i_lte_7):
 				target_tile = self.board[i+1][j]
-				if(target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False):
+				if(target_tile.get_threat_level_opponent() <= 0 and (target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False)):
 					target_tile.set_is_traversable(True)
 				
 				if(is_7j_lte_7):
 					target_tile = self.board[i+1][j+1]
-					if(target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False):
+					if(target_tile.get_threat_level_opponent() <= 0 and (target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False)):
 						target_tile.set_is_traversable(True)
 				
 				if(is_7j_gte_0):
 					target_tile = self.board[i+1][j-1]
-					if(target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False):
+					if(target_tile.get_threat_level_opponent() <= 0 and (target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False)):
 						target_tile.set_is_traversable(True)
 				
 			if(is_i_gte_0):
 				target_tile = self.board[i-1][j]
-				if(target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False):
+				if(target_tile.get_threat_level_opponent() <= 0 and (target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False)):
 					target_tile.set_is_traversable(True)
 				
 				if(is_7j_lte_7):
 					target_tile = self.board[i-1][j+1]
-					if(target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False):
+					if(target_tile.get_threat_level_opponent() <= 0 and (target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False)):
 						target_tile.set_is_traversable(True)
 				
 				if(is_7j_gte_0):
 					target_tile = self.board[i-1][j-1]
-					if(target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False):
+					if(target_tile.get_threat_level_opponent() <= 0 and (target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False)):
 						target_tile.set_is_traversable(True)
 				
 			if(is_7j_lte_7):
 				target_tile = self.board[i][j+1]
-				if(target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False):
+				if(target_tile.get_threat_level_opponent() <= 0 and (target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False)):
 					target_tile.set_is_traversable(True)
 			
 			if(is_7j_gte_0):
 				target_tile = self.board[i][j-1]
-				if(target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False):
+				if(target_tile.get_threat_level_opponent() <= 0 and (target_tile.get_piece() == None or target_tile.get_piece().get_is_user() == False)):
 					target_tile.set_is_traversable(True)
 
 			# Castling
@@ -1105,17 +1142,16 @@ class Chesselate:
 					self.board[i - multiplier*1][Constants.TILE_1].set_is_traversable(True)
 					self.board[i - multiplier*2][Constants.TILE_1].set_is_traversable(True)
 
-
 		elif piece.get_piece_type() == Constants.P_PAWN:
 			if(is_7j_lte_7):
 				target_tile = self.board[i][j+1]
 				if(target_tile.get_piece() == None):
 					target_tile.set_is_traversable(True)
 
-			if(j == Constants.PIECE_MAPPING['2']):
-				target_tile = self.board[i][j+2]
-				if(target_tile.get_piece() == None):
-					target_tile.set_is_traversable(True)
+					if(j == Constants.PIECE_MAPPING['2']):
+						target_tile = self.board[i][j+2]
+						if(target_tile.get_piece() == None):
+							target_tile.set_is_traversable(True)
 
 			if(is_i_lt_7 and is_7j_lt_7):
 				target_tile = self.board[i+1][j+1]
@@ -1125,7 +1161,21 @@ class Chesselate:
 			if(is_i_gt_0 and is_7j_lt_7):
 				target_tile = self.board[i-1][j+1]
 				if(target_tile.get_piece() is not None and target_tile.get_piece().get_is_user() == False):
-					target_tile.set_is_traversable(True)		
+					target_tile.set_is_traversable(True)
+ 
+			# En Passant
+			if self.en_passant != '-' :
+				target_tile_x = Constants.PIECE_MAPPING[self.en_passant[0]]
+				target_tile_y = Constants.PIECE_MAPPING[self.en_passant[1]]
+
+				# print j
+				# print target_tile_y
+				# print i
+				# print target_tile_x
+
+				if j == target_tile_y - 1 and (i == target_tile_x + 1 or i == target_tile_x - 1):
+					target_tile = self.board[target_tile_x][target_tile_y]
+					target_tile.set_is_traversable(True)
 
 	def play(self):
 		# self.move_piece("e2", "e4")
@@ -1248,4 +1298,4 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	Chesselate(is_player_white=False, cpu_level=2000).play()
+	Chesselate(is_player_white=True, cpu_level=1500).play()
