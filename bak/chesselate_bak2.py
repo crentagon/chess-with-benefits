@@ -2,6 +2,7 @@ import sys, string, os, threading
 import math
 import pygame
 from pygame import gfxdraw
+import Buttons
 import time
 from subprocess import *
 from pieces import *
@@ -53,34 +54,45 @@ class Chesselate:
 		# Board information
 		self.board = [[Tile() for i in range(8)] for i in range(8)]
 
+		# self.board[Constants.TILE_F][Constants.TILE_6].set_piece(Piece(Constants.P_PAWN, self.is_player_white, is_user = True))
+		# self.board[Constants.TILE_F][Constants.TILE_5].set_piece(Piece(Constants.P_PAWN, not self.is_player_white, is_user = False))
+
 		for i in range(8):
 			# Set the pawns
-			self.board[i][Constants.TILE_7].set_piece(Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white))
-			self.board[i][Constants.TILE_2].set_piece(Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white))
+			self.board[i][Constants.TILE_7].set_piece(Piece(Constants.P_PAWN, not self.is_player_white, is_user = False))
+			self.board[i][Constants.TILE_2].set_piece(Piece(Constants.P_PAWN, self.is_player_white, is_user = True))
 
 			# Set the rooks
 			if(i == 0 or i == 7):
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_ROOK, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_ROOK, is_white=True, is_user = self.is_player_white))
+				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_ROOK, not self.is_player_white, is_user = False))
+				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_ROOK, self.is_player_white, is_user = True))
 
 			# Set the knights
 			elif(i == 1 or i == 6):
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KNIGHT, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KNIGHT, is_white=True, is_user = self.is_player_white))
+				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KNIGHT, not self.is_player_white, is_user = False))
+				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KNIGHT, self.is_player_white, is_user = True))
 
 			# Set the bishops
 			elif(i == 2 or i == 5):
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_BISHOP, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_BISHOP, is_white=True, is_user = self.is_player_white))
+				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_BISHOP, not self.is_player_white, is_user = False))
+				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_BISHOP, self.is_player_white, is_user = True))
 
 			elif(i == 3):
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_QUEEN, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_QUEEN, is_white=True, is_user = self.is_player_white))
-				
+				if(self.is_player_white):
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_QUEEN, not self.is_player_white, is_user = False))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_QUEEN, self.is_player_white, is_user = True))
+				else:
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, not self.is_player_white, is_user = False))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, self.is_player_white, is_user = True))
+
 			else:
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white))
-			
+				if(self.is_player_white):
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, not self.is_player_white, is_user = False))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, self.is_player_white, is_user = True))
+				else:
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_QUEEN, not self.is_player_white, is_user = False))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_QUEEN, self.is_player_white, is_user = True))
+
 	def print_board(self):
 		print "==piece_types=="
 		for i in range(8):
@@ -204,6 +216,7 @@ class Chesselate:
 								else:
 									target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 
+
 					elif(piece_type == Constants.P_BISHOP):
 						dirNE = True
 						dirSE = True
@@ -315,6 +328,7 @@ class Chesselate:
 									dirS = False
 							else:
 								dirS = False
+
 
 					elif(piece_type == Constants.P_QUEEN):
 						dirN = True
@@ -484,26 +498,21 @@ class Chesselate:
 								target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 							
 					elif(piece_type == Constants.P_PAWN):
-						is_white = piece.get_is_white()
-						factor = -1
-						if is_user:
-							factor = 1
-
-						if is_white:
-							if(is_i_lt_7):
+						if(is_i_lt_7):
+							if(is_user and is_7j_lt_7):
 								target_tile = self.board[i+1][7-j+1]
-								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + factor)
-							if(is_i_gt_0):
-								target_tile = self.board[i-1][7-j+1]
-								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + factor)
-
-						else:
-							if(is_i_lt_7):
+								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+							if(not is_user and is_7j_gt_0):
 								target_tile = self.board[i+1][7-j-1]
-								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + factor)
-							if(is_i_gt_0):
+								target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
+
+						if(is_i_gt_0):
+							if(is_user and is_7j_lt_7):
+								target_tile = self.board[i-1][7-j+1]
+								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + 1)
+							if(not is_user and is_7j_gt_0):
 								target_tile = self.board[i-1][7-j-1]
-								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + factor)
+								target_tile.set_threat_level_opponent(target_tile.get_threat_level_opponent() + 1)
 
 	def render_board(self):
 		self.screen.fill(Constants.WHITE)
@@ -529,14 +538,7 @@ class Chesselate:
 
 				pygame.draw.rect(self.screen, tile_color, (Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j, Constants.TILE_LENGTH, Constants.TILE_LENGTH), 0)
 
-				if self.is_player_white:
-					x_coord = i
-					y_coord = 7-j
-				else:
-					x_coord = 7-i
-					y_coord = j
-
-				tile = self.board[x_coord][y_coord]
+				tile = self.board[i][7-j]
 				piece = tile.get_piece()
 				render_threats = False
 				is_urgent = False
@@ -677,41 +679,38 @@ class Chesselate:
 			self.en_passant = '-'
 
 		# Check if the pawn that just moved is en passant-able
-		# elif piece.get_piece_type() == Constants.P_PAWN and abs(difference_y) == 2:
-		# 	if not self.is_player_white:
-		# 		y_coorda = 7-(destination_y-1)
-		# 		y_coordb = 7-(destination_y+1)
-		# 		x_coord = 7-destination_x
-		# 	else:
-		# 		y_coorda = destination_y-1
-		# 		y_coordb = destination_y+1
-		# 		x_coord = destination_x
-
-		# 	if piece.get_is_user():
-		# 		self.en_passant = Constants.CHAR_MAPPING[x_coord] + Constants.NUM_MAPPING[y_coorda]
-		# 	else:
-		# 		self.en_passant = Constants.CHAR_MAPPING[x_coord] + Constants.NUM_MAPPING[y_coordb]
-		# 	print self.en_passant 
-		# else:
-		# 	self.en_passant = '-'
-
-
-		# Check if it's a castle. If yes, move the rook as well
-		if piece.get_piece_type() == Constants.P_KING and abs(difference_x) == 2:
-			# Kingside castle:
-			if destination_x == Constants.TILE_C:
-				rook_destination = Constants.TILE_D
-				rook_source = Constants.TILE_A
-
-			# Queenside castle:
+		elif piece.get_piece_type() == Constants.P_PAWN and abs(difference_y) == 2:
+			if not self.is_player_white:
+				y_coorda = 7-(destination_y-1)
+				y_coordb = 7-(destination_y+1)
+				x_coord = 7-destination_x
 			else:
-				rook_destination = Constants.TILE_F
-				rook_source = Constants.TILE_H
-				
-			self.board[rook_destination][destination_y].set_piece(self.board[rook_source][destination_y].get_piece())
-			self.board[rook_source][destination_y].remove_piece()
+				y_coorda = destination_y-1
+				y_coordb = destination_y+1
+				x_coord = destination_x
 
-			# Update the FEN notation to bar the side from castling again
+			if piece.get_is_user():
+				self.en_passant = Constants.CHAR_MAPPING[x_coord] + Constants.NUM_MAPPING[y_coorda]
+			else:
+				self.en_passant = Constants.CHAR_MAPPING[x_coord] + Constants.NUM_MAPPING[y_coordb]
+			print self.en_passant 
+		else:
+			self.en_passant = '-'
+
+		# Check if it's a castle
+		if piece.get_piece_type() == Constants.P_KING and abs(difference_x) == 2:
+			if piece.get_is_user():
+				rank = 0
+			else:
+				rank = 7
+
+			king_var = -3
+			queen_var = 2
+
+			if self.is_player_white:
+				king_var = -2
+				queen_var = 3
+
 			if piece.get_is_white():
 				self.kingside_white = '-'
 				self.queenside_white = '-'
@@ -719,6 +718,14 @@ class Chesselate:
 			else:
 				self.kingside_black = '-'
 				self.queenside_black = '-'
+
+			if difference_x > 0:
+				self.board[Constants.TILE_H+king_var][rank].set_piece(self.board[Constants.TILE_H][rank].get_piece())
+				self.board[Constants.TILE_H][rank].remove_piece()
+
+			else:
+				self.board[Constants.TILE_A+queen_var][rank].set_piece(self.board[Constants.TILE_A][rank].get_piece())
+				self.board[Constants.TILE_A][rank].remove_piece()
 
 	def convert_to_fen(self):
 
@@ -735,7 +742,10 @@ class Chesselate:
 		for i in range(8):
 			blank = 0
 			for j in range(8):
-				piece = self.board[j][7-i].get_piece()
+				if(self.is_player_white):
+					piece = self.board[j][7-i].get_piece()
+				else:
+					piece = self.board[7-j][i].get_piece()
 
 				if piece is not None:
 					if blank is not 0:
@@ -1096,22 +1106,27 @@ class Chesselate:
 				can_castle_kingside = True
 				can_castle_queenside = True
 
-				rank = Constants.TILE_8
-				if piece.get_is_white():
-					rank = Constants.TILE_1
+				kingside = Constants.TILE_A
+				queenside = Constants.TILE_H
+				multiplier = -1
 
-				kingside_rook = not self.board[Constants.TILE_H][rank].get_piece().get_is_moved()
-				queenside_rook = not self.board[Constants.TILE_A][rank].get_piece().get_is_moved()
+				if self.is_player_white:
+					kingside = Constants.TILE_H
+					queenside = Constants.TILE_A
+					multiplier = 1
+
+				kingside_rook = not self.board[kingside][Constants.TILE_1].get_piece().get_is_moved()
+				queenside_rook = not self.board[queenside][Constants.TILE_1].get_piece().get_is_moved()
 				
 				if kingside_rook or queenside_rook:
 					for k in range(1,3):
 						if can_castle_kingside and kingside_rook:
-							kingside_tile = self.board[i+k][rank]
+							kingside_tile = self.board[i+multiplier*k][Constants.TILE_1]
 							if kingside_tile.get_piece() is not None or kingside_tile.get_threat_level_opponent() > 0:
 								can_castle_kingside = False
 
 						if can_castle_queenside and queenside_rook:
-							queenside_tile = self.board[i-k][rank]
+							queenside_tile = self.board[i-multiplier*k][Constants.TILE_1]
 							if queenside_tile.get_piece() is not None or queenside_tile.get_threat_level_opponent() > 0:
 								can_castle_queenside = False
 
@@ -1120,51 +1135,47 @@ class Chesselate:
 					can_castle_queenside = False
 
 				if can_castle_kingside:
-					self.board[i + 1][rank].set_is_traversable(True)
-					self.board[i + 2][rank].set_is_traversable(True)
+					self.board[i + multiplier*1][Constants.TILE_1].set_is_traversable(True)
+					self.board[i + multiplier*2][Constants.TILE_1].set_is_traversable(True)
 
 				if can_castle_queenside:
-					self.board[i - 1][rank].set_is_traversable(True)
-					self.board[i - 2][rank].set_is_traversable(True)
+					self.board[i - multiplier*1][Constants.TILE_1].set_is_traversable(True)
+					self.board[i - multiplier*2][Constants.TILE_1].set_is_traversable(True)
 
 		elif piece.get_piece_type() == Constants.P_PAWN:
-			is_white = piece.get_is_white()
-
-			factor = -1
-			if is_white:
-				factor = 1
-
-			if is_7j_lte_7:
-				# Normal movement: moving one square up (or below) a rank
-				target_tile = self.board[i][j+factor*1]
+			if(is_7j_lte_7):
+				target_tile = self.board[i][j+1]
 				if(target_tile.get_piece() == None):
 					target_tile.set_is_traversable(True)
 
-				# That movement from where the pawn moves two spaces. I don't know what it's called
-				if(j == Constants.PIECE_MAPPING['2'] or j == Constants.PIECE_MAPPING['7']):
-					target_tile = self.board[i][j+factor*2]
-					if(target_tile.get_piece() == None):
-						target_tile.set_is_traversable(True)
+					if(j == Constants.PIECE_MAPPING['2']):
+						target_tile = self.board[i][j+2]
+						if(target_tile.get_piece() == None):
+							target_tile.set_is_traversable(True)
 
-				# Pawn's doing a capture!
-				if(is_i_lt_7 and is_7j_lt_7):
-					target_tile = self.board[i+1][j+factor*1]
-					if(target_tile.get_piece() is not None and target_tile.get_piece().get_is_user() == False):
-						target_tile.set_is_traversable(True)
+			if(is_i_lt_7 and is_7j_lt_7):
+				target_tile = self.board[i+1][j+1]
+				if(target_tile.get_piece() is not None and target_tile.get_piece().get_is_user() == False):
+					target_tile.set_is_traversable(True)
 
-				if(is_i_gt_0 and is_7j_lt_7):
-					target_tile = self.board[i-1][j+factor*1]
-					if(target_tile.get_piece() is not None and target_tile.get_piece().get_is_user() == False):
-						target_tile.set_is_traversable(True)
-			
+			if(is_i_gt_0 and is_7j_lt_7):
+				target_tile = self.board[i-1][j+1]
+				if(target_tile.get_piece() is not None and target_tile.get_piece().get_is_user() == False):
+					target_tile.set_is_traversable(True)
  
 			# En Passant
-			# if self.en_passant != '-' :
-			# 	target_tile_x = Constants.PIECE_MAPPING[self.en_passant[0]]
-			# 	target_tile_y = Constants.PIECE_MAPPING[self.en_passant[1]]
-			# 	if j == target_tile_y - 1 and (i == target_tile_x + 1 or i == target_tile_x - 1):
-			# 		target_tile = self.board[target_tile_x][target_tile_y]
-			# 		target_tile.set_is_traversable(True)
+			if self.en_passant != '-' :
+				target_tile_x = Constants.PIECE_MAPPING[self.en_passant[0]]
+				target_tile_y = Constants.PIECE_MAPPING[self.en_passant[1]]
+
+				# print j
+				# print target_tile_y
+				# print i
+				# print target_tile_x
+
+				if j == target_tile_y - 1 and (i == target_tile_x + 1 or i == target_tile_x - 1):
+					target_tile = self.board[target_tile_x][target_tile_y]
+					target_tile.set_is_traversable(True)
 
 	def play(self):
 		# self.move_piece("e2", "e4")
@@ -1223,6 +1234,12 @@ class Chesselate:
 				destination_x = Constants.PIECE_MAPPING[cpu_move[2:3]]
 				destination_y = Constants.PIECE_MAPPING[cpu_move[3:4]]
 
+				if not self.is_player_white:
+					source_x = 7 - source_x
+					source_y = 7 - source_y
+					destination_x = 7 - destination_x
+					destination_y = 7 - destination_y
+
 				self.move_piece(source_x, source_y, destination_x, destination_y)
 
 				has_opponent_moved = True
@@ -1236,14 +1253,8 @@ class Chesselate:
 				# User's turn
 				elif event.type == 5 and is_turn_user:
 					mouse_pos = pygame.mouse.get_pos()
-
-					if self.is_player_white:
-						board_x = (mouse_pos[0] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-						board_y = 7-((mouse_pos[1] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-					else:
-						board_x = 7-((mouse_pos[0] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-						board_y = (mouse_pos[1] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-
+					board_x = (mouse_pos[0] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					board_y = 7-((mouse_pos[1] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
 					is_piece_clicked = False
 					is_traversable = False
 
@@ -1287,4 +1298,4 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	Chesselate(is_player_white=False, cpu_level=2000).play()
+	Chesselate(is_player_white=True, cpu_level=1500).play()
