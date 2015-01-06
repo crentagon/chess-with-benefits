@@ -53,7 +53,7 @@ class Chesselate:
 		# Board information
 		self.board = [[Tile() for i in range(8)] for i in range(8)]
 
-		testing = 10
+		testing = 0
 
 		# En Passant test
 		if testing == 10:
@@ -678,7 +678,7 @@ class Chesselate:
 		difference_y = destination_y - source_y
 
 		# Check if it's an en passant
-		if piece.get_piece_type() == Constants.P_PAWN and destination_x == Constants.PIECE_MAPPING[self.en_passant[0]] and destination_y == Constants.PIECE_MAPPING[self.en_passant[1]]:
+		if self.en_passant != '-' and piece.get_piece_type() == Constants.P_PAWN and destination_x == Constants.PIECE_MAPPING[self.en_passant[0]] and destination_y == Constants.PIECE_MAPPING[self.en_passant[1]]:
 			if piece.get_is_white():
 				self.board[destination_x][destination_y-1].remove_piece()
 			else:
@@ -688,30 +688,17 @@ class Chesselate:
 			self.en_passant = '-'
 
 		# Check if the pawn that just moved is en passant-able
-		elif piece.get_piece_type() == Constants.P_PAWN and abs(difference_y) == 2:
+		if piece.get_piece_type() == Constants.P_PAWN and abs(difference_y) == 2:
 			passant_mapping_y = destination_y - 1
 			if not piece.get_is_white():
 				passant_mapping_y = destination_y + 1
 
 			self.en_passant = Constants.CHAR_MAPPING[destination_x] + Constants.NUM_MAPPING[passant_mapping_y]
+			# print "The piece is en passant-able!"
+			# print "The target en passant square is ", self.en_passant
 
-		# 	if not self.is_player_white:
-		# 		y_coorda = 7-(destination_y-1)
-		# 		y_coordb = 7-(destination_y+1)
-		# 		x_coord = 7-destination_x
-		# 	else:
-		# 		y_coorda = destination_y-1
-		# 		y_coordb = destination_y+1
-		# 		x_coord = destination_x
-
-		# 	if piece.get_is_user():
-		# 		self.en_passant = Constants.CHAR_MAPPING[x_coord] + Constants.NUM_MAPPING[y_coorda]
-		# 	else:
-		# 		self.en_passant = Constants.CHAR_MAPPING[x_coord] + Constants.NUM_MAPPING[y_coordb]
-		# 	print self.en_passant 
-		# else:
-		# 	self.en_passant = '-'
-
+		else:
+			self.en_passant = '-'
 
 		# Check if it's a castle. If yes, move the rook as well
 		if piece.get_piece_type() == Constants.P_KING and abs(difference_x) == 2:

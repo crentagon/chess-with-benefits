@@ -119,6 +119,9 @@ class StockfishThread(threading.Thread):
 		p.stdin.write("position fen "+self.fen_string+"\n")
 		p.stdin.write("go movetime "+str(self.process_time)+"\n")
 
+		# print "position fen "+self.fen_string
+		# print "go movetime "+str(self.process_time)
+
 		while p.poll() is None:
 			line = p.stdout.readline()
 			if line[0] == 'b': break
