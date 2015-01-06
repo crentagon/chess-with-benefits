@@ -53,33 +53,44 @@ class Chesselate:
 		# Board information
 		self.board = [[Tile() for i in range(8)] for i in range(8)]
 
-		for i in range(8):
-			# Set the pawns
-			self.board[i][Constants.TILE_7].set_piece(Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white))
-			self.board[i][Constants.TILE_2].set_piece(Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white))
+		testing = 10
 
-			# Set the rooks
-			if(i == 0 or i == 7):
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_ROOK, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_ROOK, is_white=True, is_user = self.is_player_white))
+		# En Passant test
+		if testing == 10:
+			self.en_passant = "d6"
+			self.board[Constants.TILE_D][Constants.TILE_5].set_piece(Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white))
+			self.board[Constants.TILE_E][Constants.TILE_5].set_piece(Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white))
+			self.board[Constants.TILE_A][Constants.TILE_8].set_piece(Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white))
+			self.board[Constants.TILE_H][Constants.TILE_8].set_piece(Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white))
 
-			# Set the knights
-			elif(i == 1 or i == 6):
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KNIGHT, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KNIGHT, is_white=True, is_user = self.is_player_white))
+		if testing == 0:
+			for i in range(8):
+				# Set the pawns
+				self.board[i][Constants.TILE_7].set_piece(Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white))
+				self.board[i][Constants.TILE_2].set_piece(Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white))
 
-			# Set the bishops
-			elif(i == 2 or i == 5):
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_BISHOP, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_BISHOP, is_white=True, is_user = self.is_player_white))
+				# Set the rooks
+				if(i == 0 or i == 7):
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_ROOK, is_white=False, is_user = not self.is_player_white))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_ROOK, is_white=True, is_user = self.is_player_white))
 
-			elif(i == 3):
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_QUEEN, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_QUEEN, is_white=True, is_user = self.is_player_white))
-				
-			else:
-				self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white))
-				self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white))
+				# Set the knights
+				elif(i == 1 or i == 6):
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KNIGHT, is_white=False, is_user = not self.is_player_white))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KNIGHT, is_white=True, is_user = self.is_player_white))
+
+				# Set the bishops
+				elif(i == 2 or i == 5):
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_BISHOP, is_white=False, is_user = not self.is_player_white))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_BISHOP, is_white=True, is_user = self.is_player_white))
+
+				elif(i == 3):
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_QUEEN, is_white=False, is_user = not self.is_player_white))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_QUEEN, is_white=True, is_user = self.is_player_white))
+					
+				else:
+					self.board[i][Constants.TILE_8].set_piece(Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white))
+					self.board[i][Constants.TILE_1].set_piece(Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white))
 			
 	def print_board(self):
 		print "==piece_types=="
@@ -667,8 +678,8 @@ class Chesselate:
 		difference_y = destination_y - source_y
 
 		# Check if it's an en passant
-		if self.en_passant != '-' and piece.get_piece_type() == Constants.P_PAWN and destination_x == Constants.PIECE_MAPPING[self.en_passant[0]] and destination_y == Constants.PIECE_MAPPING[self.en_passant[1]]:
-			if piece.get_is_user():
+		if piece.get_piece_type() == Constants.P_PAWN and destination_x == Constants.PIECE_MAPPING[self.en_passant[0]] and destination_y == Constants.PIECE_MAPPING[self.en_passant[1]]:
+			if piece.get_is_white():
 				self.board[destination_x][destination_y-1].remove_piece()
 			else:
 				self.board[destination_x][destination_y+1].remove_piece()
@@ -677,7 +688,13 @@ class Chesselate:
 			self.en_passant = '-'
 
 		# Check if the pawn that just moved is en passant-able
-		# elif piece.get_piece_type() == Constants.P_PAWN and abs(difference_y) == 2:
+		elif piece.get_piece_type() == Constants.P_PAWN and abs(difference_y) == 2:
+			passant_mapping_y = destination_y - 1
+			if not piece.get_is_white():
+				passant_mapping_y = destination_y + 1
+
+			self.en_passant = Constants.CHAR_MAPPING[destination_x] + Constants.NUM_MAPPING[passant_mapping_y]
+
 		# 	if not self.is_player_white:
 		# 		y_coorda = 7-(destination_y-1)
 		# 		y_coordb = 7-(destination_y+1)
@@ -1159,12 +1176,17 @@ class Chesselate:
 			
  
 			# En Passant
-			# if self.en_passant != '-' :
-			# 	target_tile_x = Constants.PIECE_MAPPING[self.en_passant[0]]
-			# 	target_tile_y = Constants.PIECE_MAPPING[self.en_passant[1]]
-			# 	if j == target_tile_y - 1 and (i == target_tile_x + 1 or i == target_tile_x - 1):
-			# 		target_tile = self.board[target_tile_x][target_tile_y]
-			# 		target_tile.set_is_traversable(True)
+			if self.en_passant != '-' :
+				target_tile_x = Constants.PIECE_MAPPING[self.en_passant[0]]
+				target_tile_y = Constants.PIECE_MAPPING[self.en_passant[1]]
+				
+				factor = 1
+				if not self.is_player_white:
+					factor = -1
+
+				if j == target_tile_y - factor and (i == target_tile_x + factor or i == target_tile_x - factor):
+					target_tile = self.board[target_tile_x][target_tile_y]
+					target_tile.set_is_traversable(True)
 
 	def play(self):
 		# self.move_piece("e2", "e4")
@@ -1287,4 +1309,4 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	Chesselate(is_player_white=False, cpu_level=2000).play()
+	Chesselate(is_player_white=True, cpu_level=2000).play()
