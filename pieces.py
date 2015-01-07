@@ -197,6 +197,9 @@ class Constants:
 	TILE_7 = 6
 	TILE_8 = 7
 
+	FONT = "fonts/Roboto-Light.ttf"
+	FONT_REG = "fonts/Roboto-Medium.ttf"
+
 	# Piece information
 	P_KING = 0
 	P_PAWN = 1
@@ -206,6 +209,7 @@ class Constants:
 	P_BISHOP = 4
 
 	# Board information
+	PROMOTION_COORD = (650, 125)
 	SCREENSIZE = [800, 500]
 	OUTERBOARD_WIDTH = 500
 	OUTERBOARD_HEIGHT = 500
@@ -227,6 +231,8 @@ class Constants:
 	CHESSBOARD_DK = (200, 200, 200)
 	CHESSBOARD_WH = (240, 240, 240)
 	WHITE = (255, 255, 255)
+	BLACK = (  0,   0,   0)
+	BG = (100, 100, 100)
 
 	# Others
 	RESOURCES = "res/"

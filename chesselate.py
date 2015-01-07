@@ -10,6 +10,9 @@ class Chesselate:
 
 	def __init__(self, is_player_white = True, cpu_level = 2000):
 		self.is_player_white = is_player_white
+		self.goal_rank = 7
+		if not self.is_player_white:
+			self.goal_rank = 0
 
 		# Active turn for the FEN notation
 		self.active_turn = 'w'
@@ -22,6 +25,7 @@ class Chesselate:
 
 		# En Passant for the FEN notation
 		self.en_passant = '-'
+		self.is_undergoing_promotion = False
 
 		# Half-move and full-move clock for the FEN notation
 		self.halfmove_clock = 0
@@ -38,12 +42,13 @@ class Chesselate:
 
 		# Stockfish
 		self.cpu_level = cpu_level
-		# self.p = Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE)
-		# self.p.stdin.write("position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-		# while True:
-		# line = self.p.stdout.readline()
-		# print line,
+
+		# Board stuff
+		self.is_board_clickable = True
 		self.initialize_board()
+
+		# Right panel buttons
+		self.promotions = {}
 
 		self.screen = pygame.display.set_mode(Constants.SCREENSIZE)
 		self.screen.fill(Constants.WHITE)
@@ -496,32 +501,65 @@ class Chesselate:
 							
 					elif(piece_type == Constants.P_PAWN):
 						is_white = piece.get_is_white()
-						factor = -1
-						if is_user:
-							factor = 1
+						factor = 1 if is_user else -1
 
 						if is_white:
-							if(is_i_lt_7):
+							if(is_i_lt_7 and is_7j_lt_7):
 								target_tile = self.board[i+1][7-j+1]
 								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + factor)
-							if(is_i_gt_0):
+							if(is_i_gt_0 and is_7j_lt_7):
 								target_tile = self.board[i-1][7-j+1]
 								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + factor)
 
 						else:
-							if(is_i_lt_7):
+							if(is_i_lt_7 and is_7j_gt_0):
 								target_tile = self.board[i+1][7-j-1]
 								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + factor)
-							if(is_i_gt_0):
+							if(is_i_gt_0 and is_7j_gt_0):
 								target_tile = self.board[i-1][7-j-1]
 								target_tile.set_threat_level_user(target_tile.get_threat_level_user() + factor)
 
 	def render_board(self):
-		self.screen.fill(Constants.WHITE)
+		self.screen.fill(Constants.BG)
+		font = Constants.RESOURCES+Constants.FONT
+		font_reg = Constants.RESOURCES+Constants.FONT_REG
 
 		# Render the board
 		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, (0, 0, Constants.OUTERBOARD_HEIGHT, Constants.OUTERBOARD_WIDTH), 0)
-				
+		
+		if self.is_undergoing_promotion:
+
+			# Promotion buttons
+			promotionable_pieces = [Constants.P_KNIGHT, Constants.P_BISHOP, Constants.P_ROOK, Constants.P_QUEEN]
+			color = "w" if self.is_player_white else "b"
+
+			for i in range(2):
+				for j in range(2):
+					rect_x = Constants.PROMOTION_COORD[0] + (i-1)*(Constants.TILE_LENGTH + Constants.BOARD_BUFFER)
+					rect_y = Constants.BOARD_BUFFER*3 + Constants.PROMOTION_COORD[1] + (Constants.TILE_LENGTH + Constants.BOARD_BUFFER)*j
+					size = Constants.TILE_LENGTH
+
+					image_file = color + str(promotionable_pieces[i*2+j]) + ".png"
+					image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+
+					piece_rect = (rect_x, rect_y, size, size)
+					self.screen.blit(image_piece, piece_rect)
+
+					piece = Piece(promotionable_pieces[i*2+j], is_white=self.is_player_white, is_user = True)
+					piece.set_piece_position(piece_rect)
+
+					self.promotions[i*2+j] = piece
+
+			# Promotion text
+			char_text = "Select a piece to promote to:"
+			basic_font = pygame.font.Font(font, 20)
+			promotion_text = basic_font.render(char_text, True, Constants.WHITE)
+
+			promotion_rect = promotion_text.get_rect()
+			promotion_rect.center = Constants.PROMOTION_COORD
+
+			self.screen.blit(promotion_text, promotion_rect)
+
 		# Render board contents
 		for i in range(8):
 			if(i % 2 == 0):
@@ -581,7 +619,7 @@ class Chesselate:
 				if render_threats:
 					difference = 15
 					alpha = 0
-					basic_font = pygame.font.SysFont(None, 25)
+					basic_font = pygame.font.Font(font_reg, 20)
 
 					# The opponent is guarding the tile!
 					if cumulative_threat < 0:
@@ -646,7 +684,7 @@ class Chesselate:
 						num_text = Constants.NUM_MAPPING[i]
 						char_text = Constants.CHAR_MAPPING[7-i]
 
-					basic_font = pygame.font.SysFont(None, 15)
+					basic_font = pygame.font.SysFont(font, 15)
 					guide_text_char = basic_font.render(char_text, True, Constants.WHITE)
 					guide_text_num = basic_font.render(num_text, True, Constants.WHITE)
 
@@ -784,12 +822,6 @@ class Chesselate:
 		is_i_gte_0 = i-1 >= 0
 		is_7j_lte_7 = j+1 <= 7
 		is_7j_gte_0 = j-1 >= 0
-
-		# Build traversibility:
-		# if piece.get_piece_type() == Constants.P_PAWN:
-		# 	self.board[i][j+1].set_is_traversable(True)
-		# 	if j == Constants.PIECE_MAPPING['2']:
-		# 		self.board[i][j+2].set_is_traversable(True)
 		
 		if piece.get_piece_type() == Constants.P_KNIGHT:
 			# This is to prevent the index-out-of-range errors
@@ -1145,7 +1177,8 @@ class Chesselate:
 					target_tile.set_is_traversable(True)
 
 				# That movement from where the pawn moves two spaces. I don't know what it's called
-				if(j == Constants.PIECE_MAPPING['2'] or j == Constants.PIECE_MAPPING['7']):
+				start_rank = Constants.PIECE_MAPPING['2'] if self.is_player_white else Constants.PIECE_MAPPING['7']
+				if(j == start_rank):
 					target_tile = self.board[i][j+factor*2]
 					if(target_tile.get_piece() == None):
 						target_tile.set_is_traversable(True)
@@ -1190,9 +1223,9 @@ class Chesselate:
 		is_turn_opponent = False if is_turn_user else True
 		thread = None
 
-		while(True):
+		while(True):			
 			self.render_board()
-
+			
 			if has_player_moved or has_opponent_moved:
 				self.clear_traversable()
 				self.build_threats()
@@ -1210,6 +1243,7 @@ class Chesselate:
 					is_turn_opponent = False
 					is_turn_user = True
 
+			# Opponent's Turn
 			if is_turn_opponent:
 				fen_string = self.convert_to_fen()
 				print fen_string
@@ -1232,7 +1266,18 @@ class Chesselate:
 				destination_x = Constants.PIECE_MAPPING[cpu_move[2:3]]
 				destination_y = Constants.PIECE_MAPPING[cpu_move[3:4]]
 
-				self.move_piece(source_x, source_y, destination_x, destination_y)
+				if len(cpu_move) == 5:
+					promotion = cpu_move[4:5]
+					promotion_map = {
+						"r": Constants.P_ROOK,
+						"b": Constants.P_BISHOP,
+						"n": Constants.P_KNIGHT,
+						"q": Constants.P_QUEEN
+					}
+					self.board[destination_x][destination_y].get_piece().set_piece_type(promotion_map[promotion])
+
+				else:
+					self.move_piece(source_x, source_y, destination_x, destination_y)
 
 				has_opponent_moved = True
 				thread.is_thread_done = False
@@ -1255,17 +1300,33 @@ class Chesselate:
 
 					is_piece_clicked = False
 					is_traversable = False
+					promotion = ''
 
 					# Did the user click on the board?
-					if 0 <= board_x <= 7 and 0 <= board_y <= 7:
+					if 0 <= board_x <= 7 and 0 <= board_y <= 7 and self.is_board_clickable:
 						# What did the user click? A piece? A tile? Is the tile traversable?
 						tile = self.board[board_x][board_y]
 						piece = tile.get_piece()
 						is_traversable = tile.get_is_traversable()
 						is_piece_clicked = piece is not None
 
+					# The user clicked somewhere else!
+					else:
+						# Is the user clicking on the en passant promotion buttons?
+						for i in range(4):
+							if self.promotions[i].pressed(mouse_pos):
+								promotion = self.promotions[i].get_piece_type()
+
+								if promotion != '':
+									self.board[self.source_x][self.source_y].get_piece().set_piece_type(promotion)
+									self.is_board_clickable = True
+									self.is_undergoing_promotion = False
+
+								has_player_moved = True
+								break
+
 					# A piece has been clicked!
-					if is_piece_clicked:
+					if is_piece_clicked and self.is_board_clickable:
 						# Let's check if it's a friendly piece
 						if piece.pressed(mouse_pos):
 							self.source_x = board_x
@@ -1284,6 +1345,13 @@ class Chesselate:
 					if is_traversable:
 						self.move_piece(self.source_x, self.source_y, board_x, board_y)
 						has_player_moved = True
+
+						# Pawn promotion
+						if board_y == self.goal_rank and self.board[board_x][board_y].get_piece().get_piece_type() == Constants.P_PAWN:
+							self.is_board_clickable = False
+							self.is_undergoing_promotion = True
+							self.source_x = board_x
+							self.source_y = board_y
 
 						# To-do: Store the move in a stack
 
