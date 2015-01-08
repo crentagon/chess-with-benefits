@@ -23,36 +23,6 @@ class Piece:
 		self.piece_position = (0,0,0,0)
 		self.is_moved = False
 
-	def get_threat_level(self):
-		return self.threat_level
-
-	def get_piece_type(self):
-		return self.piece_type
-
-	def get_is_user(self):
-		return self.is_user
-
-	def get_is_white(self):
-		return self.is_white
-
-	def get_is_moved(self):
-		return self.is_moved
-
-	def get_piece_position(self):
-		return self.piece_position
-
-	def set_threat_level(self, threat_level):
-		self.threat_level = threat_level
-
-	def set_piece_type(self, piece_type):
-		self.piece_type = piece_type
-
-	def set_piece_position(self, rectangle):
-		self.piece_position = rectangle
-
-	def set_is_moved_true(self):
-		self.is_moved = True
-
 	def pressed(self, mouse):
 		rect = self.piece_position
 		if self.is_user:
@@ -73,30 +43,6 @@ class Tile:
 		self.threat_level_user = threat_level_user
 		self.threat_level_opponent = threat_level_opponent
 		self.is_traversable = False
-
-	def get_piece(self):
-		return self.piece
-
-	def get_threat_level_user(self):
-		return self.threat_level_user
-
-	def get_threat_level_opponent(self):
-		return self.threat_level_opponent
-
-	def get_is_traversable(self):
-		return self.is_traversable
-
-	def set_piece(self, piece):
-		self.piece = piece
-
-	def set_threat_level_user(self, threat_level_user):
-		self.threat_level_user = threat_level_user
-
-	def set_threat_level_opponent(self, threat_level_opponent):
-		self.threat_level_opponent = threat_level_opponent
-
-	def set_is_traversable(self, is_traversable):
-		self.is_traversable = is_traversable
 
 	def remove_piece(self):
 		self.piece = None
