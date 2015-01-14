@@ -10,9 +10,7 @@ class Chesselate:
 
 	def __init__(self, is_player_white = True, cpu_level = 2000):
 		self.is_player_white = is_player_white
-		self.goal_rank = 7
-		if not self.is_player_white:
-			self.goal_rank = 0
+		self.goal_rank = 7 if self.is_player_white else 0
 
 		# Active turn for the FEN notation
 		self.active_turn = 'w'
@@ -45,17 +43,27 @@ class Chesselate:
 
 		# Board stuff
 		self.is_board_clickable = True
+		self.temp_board = [[Tile() for i in range(8)] for i in range(8)]
 		self.initialize_board()
 
 		# Right panel buttons
 		self.promotions = {}
 
 		# Debug mode: Disables opponent's moves
-		self.debug_mode = True
+		self.debug_mode = False
 
 		self.screen = pygame.display.set_mode(Constants.SCREENSIZE)
 		self.screen.fill(Constants.WHITE)
 		pygame.display.flip()
+
+	def get_board(self):
+		test = [[Tile() for i in range(8)] for i in range(8)]
+
+		for i in range(8):
+			for j in range(8):
+				test[i][j].piece = self.board[i][j].piece
+
+		return test
 
 	def initialize_board(self):
 		# Board information
@@ -71,8 +79,42 @@ class Chesselate:
 			self.board[Constants.TILE_A][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
 			self.board[Constants.TILE_H][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
 
-		# elif testing == 20:
-		# self.board[Constants.TILE_D][Constants.TILE_7].piece = Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white)
+		# Check test 01
+		elif testing == 20:
+			self.board[Constants.TILE_E][Constants.TILE_1].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_C][Constants.TILE_4].piece = Piece(Constants.P_QUEEN, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_E][Constants.TILE_8].piece = Piece(Constants.P_ROOK, is_white=False, is_user = not self.is_player_white)
+			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
+
+		# Check test 02
+		elif testing == 21:
+			self.board[Constants.TILE_E][Constants.TILE_1].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_E][Constants.TILE_4].piece = Piece(Constants.P_ROOK, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_E][Constants.TILE_8].piece = Piece(Constants.P_ROOK, is_white=False, is_user = not self.is_player_white)
+			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
+
+		# Check test 03: Pawns
+		elif testing == 22:
+			self.board[Constants.TILE_E][Constants.TILE_2].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_C][Constants.TILE_2].piece = Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_D][Constants.TILE_3].piece = Piece(Constants.P_BISHOP, is_white=False, is_user = not self.is_player_white)
+			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
+
+		# Check test 03: Pawns 2.0
+		elif testing == 23:
+			self.board[Constants.TILE_E][Constants.TILE_2].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_C][Constants.TILE_2].piece = Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_D][Constants.TILE_3].piece = Piece(Constants.P_BISHOP, is_white=False, is_user = not self.is_player_white)
+			self.board[Constants.TILE_C][Constants.TILE_4].piece = Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white)
+			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
+
+		# Check test 03: Pawns 3.0
+		elif testing == 24:
+			self.board[Constants.TILE_G][Constants.TILE_1].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_G][Constants.TILE_2].piece = Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white)
+			self.board[Constants.TILE_F][Constants.TILE_3].piece = Piece(Constants.P_KNIGHT, is_white=False, is_user = not self.is_player_white)
+			# self.board[Constants.TILE_C][Constants.TILE_4].piece = Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white)
+			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
 
 		elif testing == 0:
 			for i in range(8):
@@ -140,17 +182,32 @@ class Chesselate:
 					sys.stdout.write("0")
 			print ""
 
-	def build_threats(self):
+	def is_check(self, board_input):
+		self.build_threats(board_input)
+
+		for i in range(8):
+			for j in range(8):
+				tile = board_input[i][j]
+				piece = tile.piece
+				is_piece = piece is not None
+
+				if is_piece and piece.is_user and piece.piece_type == Constants.P_KING:
+					if tile.threat_level_opponent > 0:
+						return True
+					else:
+						return False
+
+	def build_threats(self, board_input):
 		# Clear threats
 		for i in range(8):
 			for j in range(8):
-				self.board[i][j].threat_level_user = 0
-				self.board[i][j].threat_level_opponent = 0
+				board_input[i][j].threat_level_user = 0
+				board_input[i][j].threat_level_opponent = 0
 
 		# Build threats
 		for i in range(8):
 			for j in range(8):
-				tile = self.board[i][7-j]
+				tile = board_input[i][7-j]
 				piece = tile.piece
 
 				if(piece is not None):
@@ -171,13 +228,13 @@ class Chesselate:
 					if(piece_type == Constants.P_KNIGHT):
 						if(is_i_gt_0):
 							if(is_7j_lt_6):
-								target_tile = self.board[i-1][7-j+2]
+								target_tile = board_input[i-1][7-j+2]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 							if(is_7j_gt_1):
-								target_tile = self.board[i-1][7-j-2]
+								target_tile = board_input[i-1][7-j-2]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -185,13 +242,13 @@ class Chesselate:
 							
 						if(is_i_lt_7):
 							if(is_7j_lt_6):
-								target_tile = self.board[i+1][7-j+2]
+								target_tile = board_input[i+1][7-j+2]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 							if(is_7j_gt_1):
-								target_tile = self.board[i+1][7-j-2]
+								target_tile = board_input[i+1][7-j-2]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -200,13 +257,13 @@ class Chesselate:
 							
 						if(is_i_gt_1):
 							if(is_7j_lt_7):
-								target_tile = self.board[i-2][7-j+1]
+								target_tile = board_input[i-2][7-j+1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 							if(is_7j_gt_0):
-								target_tile = self.board[i-2][7-j-1]
+								target_tile = board_input[i-2][7-j-1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -214,13 +271,13 @@ class Chesselate:
 
 						if(is_i_lt_6):
 							if(is_7j_lt_7):
-								target_tile = self.board[i+2][7-j+1]
+								target_tile = board_input[i+2][7-j+1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 							if(is_7j_gt_0):
-								target_tile = self.board[i+2][7-j-1]
+								target_tile = board_input[i+2][7-j-1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -239,7 +296,7 @@ class Chesselate:
 
 							if(is_ik_lte_7):
 								if(if_7j_lte_7 and dirNE):
-									target_tile = self.board[i+k][7-j+k]
+									target_tile = board_input[i+k][7-j+k]
 									if is_user:
 										target_tile.threat_level_user += 1
 									else:
@@ -250,7 +307,7 @@ class Chesselate:
 									dirNE = False
 
 								if(if_7j_gte_0 and dirSE):
-									target_tile = self.board[i+k][7-j-k]
+									target_tile = board_input[i+k][7-j-k]
 									if is_user:
 										target_tile.threat_level_user += 1
 									else:
@@ -262,7 +319,7 @@ class Chesselate:
 
 							if(is_ik_gte_0):
 								if(if_7j_lte_7 and dirNW):
-									target_tile = self.board[i-k][7-j+k]
+									target_tile = board_input[i-k][7-j+k]
 									if is_user:
 										target_tile.threat_level_user += 1
 									else:
@@ -273,7 +330,7 @@ class Chesselate:
 									dirNW = False
 
 								if(if_7j_gte_0 and dirSW):
-									target_tile = self.board[i-k][7-j-k]
+									target_tile = board_input[i-k][7-j-k]
 									if is_user:
 										target_tile.threat_level_user += 1
 									else:
@@ -295,7 +352,7 @@ class Chesselate:
 							if_7j_gte_0 = 7-j-k >= 0
 
 							if(is_ik_lte_7 and dirE):
-								target_tile = self.board[i+k][7-j]
+								target_tile = board_input[i+k][7-j]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -306,7 +363,7 @@ class Chesselate:
 								dirE = False
 
 							if(is_ik_gte_0 and dirW):
-								target_tile = self.board[i-k][7-j]
+								target_tile = board_input[i-k][7-j]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -317,7 +374,7 @@ class Chesselate:
 								dirW = False
 
 							if(if_7j_lte_7 and dirN):
-								target_tile = self.board[i][7-j+k]
+								target_tile = board_input[i][7-j+k]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -328,7 +385,7 @@ class Chesselate:
 								dirN = False
 
 							if(if_7j_gte_0 and dirS):
-								target_tile = self.board[i][7-j-k]
+								target_tile = board_input[i][7-j-k]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -354,7 +411,7 @@ class Chesselate:
 							if_7j_gte_0 = 7-j-k >= 0
 
 							if(is_ik_lte_7 and dirE):
-								target_tile = self.board[i+k][7-j]
+								target_tile = board_input[i+k][7-j]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -365,7 +422,7 @@ class Chesselate:
 								dirE = False
 
 							if(is_ik_gte_0 and dirW):
-								target_tile = self.board[i-k][7-j]
+								target_tile = board_input[i-k][7-j]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -376,7 +433,7 @@ class Chesselate:
 								dirW = False
 
 							if(if_7j_lte_7 and dirN):
-								target_tile = self.board[i][7-j+k]
+								target_tile = board_input[i][7-j+k]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -387,7 +444,7 @@ class Chesselate:
 								dirN = False
 
 							if(if_7j_gte_0 and dirS):
-								target_tile = self.board[i][7-j-k]
+								target_tile = board_input[i][7-j-k]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -399,7 +456,7 @@ class Chesselate:
 
 							if(is_ik_lte_7):
 								if(if_7j_lte_7 and dirNE):
-									target_tile = self.board[i+k][7-j+k]
+									target_tile = board_input[i+k][7-j+k]
 									if is_user:
 										target_tile.threat_level_user += 1
 									else:
@@ -410,7 +467,7 @@ class Chesselate:
 									dirNE = False
 
 								if(if_7j_gte_0 and dirSE):
-									target_tile = self.board[i+k][7-j-k]
+									target_tile = board_input[i+k][7-j-k]
 									if is_user:
 										target_tile.threat_level_user += 1
 									else:
@@ -422,7 +479,7 @@ class Chesselate:
 
 							if(is_ik_gte_0):
 								if(if_7j_lte_7 and dirNW):
-									target_tile = self.board[i-k][7-j+k]
+									target_tile = board_input[i-k][7-j+k]
 									if is_user:
 										target_tile.threat_level_user += 1
 									else:
@@ -433,7 +490,7 @@ class Chesselate:
 									dirNW = False
 
 								if(if_7j_gte_0 and dirSW):
-									target_tile = self.board[i-k][7-j-k]
+									target_tile = board_input[i-k][7-j-k]
 									if is_user:
 										target_tile.threat_level_user += 1
 									else:
@@ -450,56 +507,56 @@ class Chesselate:
 						is_7j_gte_0 = 7-j-1 >= 0
 
 						if(is_i_lte_7):
-							target_tile = self.board[i+1][7-j]
+							target_tile = board_input[i+1][7-j]
 							if is_user:
 								target_tile.threat_level_user += 1
 							else:
 								target_tile.threat_level_opponent += 1
 							
 							if(is_7j_lte_7):
-								target_tile = self.board[i+1][7-j+1]
+								target_tile = board_input[i+1][7-j+1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 							
 							if(is_7j_gte_0):
-								target_tile = self.board[i+1][7-j-1]
+								target_tile = board_input[i+1][7-j-1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 							
 						if(is_i_gte_0):
-							target_tile = self.board[i-1][7-j]
+							target_tile = board_input[i-1][7-j]
 							if is_user:
 								target_tile.threat_level_user += 1
 							else:
 								target_tile.threat_level_opponent += 1
 							
 							if(is_7j_lte_7):
-								target_tile = self.board[i-1][7-j+1]
+								target_tile = board_input[i-1][7-j+1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 							
 							if(is_7j_gte_0):
-								target_tile = self.board[i-1][7-j-1]
+								target_tile = board_input[i-1][7-j-1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 							
 						if(is_7j_lte_7):
-							target_tile = self.board[i][7-j+1]
+							target_tile = board_input[i][7-j+1]
 							if is_user:
 								target_tile.threat_level_user += 1
 							else:
 								target_tile.threat_level_opponent += 1
 						
 						if(is_7j_gte_0):
-							target_tile = self.board[i][7-j-1]
+							target_tile = board_input[i][7-j-1]
 							if is_user:
 								target_tile.threat_level_user += 1
 							else:
@@ -511,14 +568,14 @@ class Chesselate:
 
 						if is_white:
 							if(is_i_lt_7 and is_7j_lt_7):
-								target_tile = self.board[i+1][7-j+1]
+								target_tile = board_input[i+1][7-j+1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 
 							if(is_i_gt_0 and is_7j_lt_7):
-								target_tile = self.board[i-1][7-j+1]
+								target_tile = board_input[i-1][7-j+1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -526,13 +583,13 @@ class Chesselate:
 
 						else:
 							if(is_i_lt_7 and is_7j_gt_0):
-								target_tile = self.board[i+1][7-j-1]
+								target_tile = board_input[i+1][7-j-1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
 									target_tile.threat_level_opponent += 1
 							if(is_i_gt_0 and is_7j_gt_0):
-								target_tile = self.board[i-1][7-j-1]
+								target_tile = board_input[i-1][7-j-1]
 								if is_user:
 									target_tile.threat_level_user += 1
 								else:
@@ -627,7 +684,8 @@ class Chesselate:
 					self.screen.blit(image_piece, piece_rect)
 
 					# Render the threatened pieces
-					if ((cumulative_threat < 0 and piece.is_user) or (cumulative_threat > 0 and not piece.is_user)):
+					is_king_and_threatened = piece_type == Constants.P_KING and piece.is_user and threat_level_opponent > 0
+					if ((cumulative_threat < 0 and piece.is_user) or (cumulative_threat > 0 and not piece.is_user)) or is_king_and_threatened:
 						render_threats = True
 						is_urgent = True
 
@@ -724,8 +782,6 @@ class Chesselate:
 		
 		# Move the piece in the game
 		self.board[destination_x][destination_y].piece = self.board[source_x][source_y].piece
-
-		# self.board[destination_x][destination_y].set_piece(self.board[source_x][source_y].piece)
 		self.board[source_x][source_y].remove_piece()
 
 		piece = self.board[destination_x][destination_y].piece
@@ -852,44 +908,96 @@ class Chesselate:
 				if(is_i_gt_0):
 					if(is_7j_lt_6):
 						target_tile = self.board[i-1][j+2]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
+
+						temp_board = self.get_board()
+						temp_board[i-1][j+2].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
 							target_tile.is_traversable = True
+
 					if(is_7j_gt_1):
 						target_tile = self.board[i-1][j-2]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
+
+						temp_board = self.get_board()
+						temp_board[i-1][j-2].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
 							target_tile.is_traversable = True
-					
+												
 				if(is_i_lt_7):
 					if(is_7j_lt_6):
 						target_tile = self.board[i+1][j+2]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
+
+						temp_board = self.get_board()
+						temp_board[i+1][j+2].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
 							target_tile.is_traversable = True
+							
 					if(is_7j_gt_1):
-						target_tile = self.board[i+1][j-2]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
+						target_tile = self.board[i+1][j-2]						
+
+						temp_board = self.get_board()
+						temp_board[i+1][j-2].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
 							target_tile.is_traversable = True
 
-					
 				if(is_i_gt_1):
 					if(is_7j_lt_7):
 						target_tile = self.board[i-2][j+1]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
+
+						temp_board = self.get_board()
+						temp_board[i-2][j+1].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
 							target_tile.is_traversable = True
+							
 					if(is_7j_gt_0):
 						target_tile = self.board[i-2][j-1]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
+
+						temp_board = self.get_board()
+						temp_board[i-2][j-1].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
 							target_tile.is_traversable = True
+							
 
 				if(is_i_lt_6):
 					if(is_7j_lt_7):
 						target_tile = self.board[i+2][j+1]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
+
+						temp_board = self.get_board()
+						temp_board[i+2][j+1].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
 							target_tile.is_traversable = True
+							
 					if(is_7j_gt_0):
 						target_tile = self.board[i+2][j-1]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
+
+						temp_board = self.get_board()
+						temp_board[i+2][j-1].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
 							target_tile.is_traversable = True
-		
+							
 		elif piece.piece_type == Constants.P_BISHOP:
 			dirNE = True
 			dirSE = True
@@ -905,8 +1013,15 @@ class Chesselate:
 				if(is_ik_lte_7):
 					if(if_7j_lte_7 and dirNE):
 						target_tile = self.board[i+k][j+k]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
-							target_tile.is_traversable = True
+
+						temp_board = self.get_board()
+						temp_board[i+k][j+k].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False):
+							if not is_check_after_move:
+								target_tile.is_traversable = True
 							if(target_tile.piece is not None and target_tile.piece.is_user == False):
 								dirNE = False
 						else:
@@ -916,8 +1031,15 @@ class Chesselate:
 
 					if(if_7j_gte_0 and dirSE):
 						target_tile = self.board[i+k][j-k]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
-							target_tile.is_traversable = True
+
+						temp_board = self.get_board()
+						temp_board[i+k][j-k].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False):
+							if not is_check_after_move:
+								target_tile.is_traversable = True
 							if(target_tile.piece is not None and target_tile.piece.is_user == False):
 								dirSE = False
 						else:
@@ -928,8 +1050,15 @@ class Chesselate:
 				if(is_ik_gte_0):
 					if(if_7j_lte_7 and dirNW):
 						target_tile = self.board[i-k][j+k]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
-							target_tile.is_traversable = True
+
+						temp_board = self.get_board()
+						temp_board[i-k][j+k].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False):
+							if not is_check_after_move:
+								target_tile.is_traversable = True
 							if(target_tile.piece is not None and target_tile.piece.is_user == False):
 								dirNW = False
 						else:
@@ -939,8 +1068,15 @@ class Chesselate:
 
 					if(if_7j_gte_0 and dirSW):
 						target_tile = self.board[i-k][j-k]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
-							target_tile.is_traversable = True
+
+						temp_board = self.get_board()
+						temp_board[i-k][j-k].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False):
+							if not is_check_after_move:
+								target_tile.is_traversable = True
 							if(target_tile.piece is not None and target_tile.piece.is_user == False):
 								dirSW = False
 						else:
@@ -961,8 +1097,15 @@ class Chesselate:
 
 				if(is_ik_lte_7 and dirE):
 					target_tile = self.board[i+k][j]
-					if(target_tile.piece == None or target_tile.piece.is_user == False):
-						target_tile.is_traversable = True
+
+					temp_board = self.get_board()
+					temp_board[i+k][j].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if (target_tile.piece == None or target_tile.piece.is_user == False):
+						if not is_check_after_move:
+							target_tile.is_traversable = True
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirE = False
 					else:
@@ -972,8 +1115,15 @@ class Chesselate:
 
 				if(is_ik_gte_0 and dirW):
 					target_tile = self.board[i-k][j]
-					if(target_tile.piece == None or target_tile.piece.is_user == False):
-						target_tile.is_traversable = True
+
+					temp_board = self.get_board()
+					temp_board[i-k][j].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if (target_tile.piece == None or target_tile.piece.is_user == False):
+						if not is_check_after_move:
+							target_tile.is_traversable = True
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirW = False
 					else:
@@ -983,8 +1133,15 @@ class Chesselate:
 
 				if(if_7j_lte_7 and dirN):
 					target_tile = self.board[i][j+k]
-					if(target_tile.piece == None or target_tile.piece.is_user == False):
-						target_tile.is_traversable = True
+
+					temp_board = self.get_board()
+					temp_board[i][j+k].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if (target_tile.piece == None or target_tile.piece.is_user == False):
+						if not is_check_after_move:
+							target_tile.is_traversable = True
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirN = False
 					else:
@@ -994,8 +1151,15 @@ class Chesselate:
 
 				if(if_7j_gte_0 and dirS):
 					target_tile = self.board[i][j-k]
-					if(target_tile.piece == None or target_tile.piece.is_user == False):
-						target_tile.is_traversable = True
+
+					temp_board = self.get_board()
+					temp_board[i][j-k].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if (target_tile.piece == None or target_tile.piece.is_user == False):
+						if not is_check_after_move:
+							target_tile.is_traversable = True
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirS = False
 					else:
@@ -1021,8 +1185,15 @@ class Chesselate:
 
 				if(is_ik_lte_7 and dirE):
 					target_tile = self.board[i+k][j]
-					if(target_tile.piece == None or target_tile.piece.is_user == False):
-						target_tile.is_traversable = True
+
+					temp_board = self.get_board()
+					temp_board[i+k][j].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if (target_tile.piece == None or target_tile.piece.is_user == False):
+						if not is_check_after_move:
+							target_tile.is_traversable = True
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirE = False
 					else:
@@ -1032,8 +1203,15 @@ class Chesselate:
 
 				if(is_ik_gte_0 and dirW):
 					target_tile = self.board[i-k][j]
-					if(target_tile.piece == None or target_tile.piece.is_user == False):
-						target_tile.is_traversable = True
+
+					temp_board = self.get_board()
+					temp_board[i-k][j].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if (target_tile.piece == None or target_tile.piece.is_user == False):
+						if not is_check_after_move:
+							target_tile.is_traversable = True
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirW = False
 					else:
@@ -1043,8 +1221,15 @@ class Chesselate:
 
 				if(if_7j_lte_7 and dirN):
 					target_tile = self.board[i][j+k]
-					if(target_tile.piece == None or target_tile.piece.is_user == False):
-						target_tile.is_traversable = True
+
+					temp_board = self.get_board()
+					temp_board[i][j+k].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if (target_tile.piece == None or target_tile.piece.is_user == False):
+						if not is_check_after_move:
+							target_tile.is_traversable = True
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirN = False
 					else:
@@ -1054,8 +1239,15 @@ class Chesselate:
 
 				if(if_7j_gte_0 and dirS):
 					target_tile = self.board[i][j-k]
-					if(target_tile.piece == None or target_tile.piece.is_user == False):
-						target_tile.is_traversable = True
+
+					temp_board = self.get_board()
+					temp_board[i][j-k].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if (target_tile.piece == None or target_tile.piece.is_user == False):
+						if not is_check_after_move:
+							target_tile.is_traversable = True
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirS = False
 					else:
@@ -1066,8 +1258,15 @@ class Chesselate:
 				if(is_ik_lte_7):
 					if(if_7j_lte_7 and dirNE):
 						target_tile = self.board[i+k][j+k]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
-							target_tile.is_traversable = True
+
+						temp_board = self.get_board()
+						temp_board[i+k][j+k].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False):
+							if not is_check_after_move:
+								target_tile.is_traversable = True
 							if(target_tile.piece is not None and target_tile.piece.is_user == False):
 								dirNE = False
 						else:
@@ -1077,8 +1276,15 @@ class Chesselate:
 
 					if(if_7j_gte_0 and dirSE):
 						target_tile = self.board[i+k][j-k]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
-							target_tile.is_traversable = True
+
+						temp_board = self.get_board()
+						temp_board[i+k][j-k].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False):
+							if not is_check_after_move:
+								target_tile.is_traversable = True
 							if(target_tile.piece is not None and target_tile.piece.is_user == False):
 								dirSE = False
 						else:
@@ -1089,8 +1295,15 @@ class Chesselate:
 				if(is_ik_gte_0):
 					if(if_7j_lte_7 and dirNW):
 						target_tile = self.board[i-k][j+k]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
-							target_tile.is_traversable = True
+
+						temp_board = self.get_board()
+						temp_board[i-k][j+k].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False):
+							if not is_check_after_move:
+								target_tile.is_traversable = True
 							if(target_tile.piece is not None and target_tile.piece.is_user == False):
 								dirNW = False
 						else:
@@ -1100,8 +1313,15 @@ class Chesselate:
 
 					if(if_7j_gte_0 and dirSW):
 						target_tile = self.board[i-k][j-k]
-						if(target_tile.piece == None or target_tile.piece.is_user == False):
-							target_tile.is_traversable = True
+
+						temp_board = self.get_board()
+						temp_board[i-k][j-k].set_piece(temp_board[i][j].get_piece())
+						temp_board[i][j].remove_piece()
+						is_check_after_move = self.is_check(temp_board)
+
+						if (target_tile.piece == None or target_tile.piece.is_user == False):
+							if not is_check_after_move:
+								target_tile.is_traversable = True
 							if(target_tile.piece is not None and target_tile.piece.is_user == False):
 								dirSW = False
 						else:
@@ -1192,25 +1412,49 @@ class Chesselate:
 			if is_7j_lte_7:
 				# Normal movement: moving one square up (or below) a rank
 				target_tile = self.board[i][j+factor*1]
-				if(target_tile.piece == None):
+
+				temp_board = self.get_board()
+				temp_board[i][j+factor*1].set_piece(temp_board[i][j].get_piece())
+				temp_board[i][j].remove_piece()
+				is_check_after_move = self.is_check(temp_board)
+
+				if target_tile.piece == None and not is_check_after_move:
 					target_tile.is_traversable = True
 
 				# That movement from where the pawn moves two spaces. I don't know what it's called
 				start_rank = Constants.PIECE_MAPPING['2'] if self.is_player_white else Constants.PIECE_MAPPING['7']
 				if(j == start_rank and self.board[i][j+factor].piece == None):
 					target_tile = self.board[i][j+factor*2]
-					if(target_tile.piece == None):
+
+					temp_board = self.get_board()
+					temp_board[i][j+factor*2].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if(target_tile.piece == None) and not is_check_after_move:
 						target_tile.is_traversable = True
 
 				# Pawn's doing a capture!
 				if(is_i_lt_7 and is_7j_lt_7):
 					target_tile = self.board[i+1][j+factor*1]
-					if(target_tile.piece is not None and target_tile.piece.is_user == False):
+
+					temp_board = self.get_board()
+					temp_board[i+1][j+factor*1].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if(target_tile.piece is not None and target_tile.piece.is_user == False) and not is_check_after_move:
 						target_tile.is_traversable = True
 
 				if(is_i_gt_0 and is_7j_lt_7):
 					target_tile = self.board[i-1][j+factor*1]
-					if(target_tile.piece is not None and target_tile.piece.is_user == False):
+
+					temp_board = self.get_board()
+					temp_board[i-1][j+factor*1].set_piece(temp_board[i][j].get_piece())
+					temp_board[i][j].remove_piece()
+					is_check_after_move = self.is_check(temp_board)
+
+					if(target_tile.piece is not None and target_tile.piece.is_user == False)  and not is_check_after_move:
 						target_tile.is_traversable = True
 			
  
@@ -1229,7 +1473,7 @@ class Chesselate:
 
 	def play(self):
 		# self.move_piece("e2", "e4")
-		self.build_threats()
+		self.build_threats(self.board)
 		fen = self.convert_to_fen()
 		print fen
 
@@ -1247,7 +1491,7 @@ class Chesselate:
 			
 			if has_player_moved or has_opponent_moved:
 				self.clear_traversable()
-				self.build_threats()
+				self.build_threats(self.board)
 				self.render_board()
 
 				if has_player_moved:
