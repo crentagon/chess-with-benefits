@@ -43,6 +43,7 @@ class Tile:
 		self.threat_level_user = threat_level_user
 		self.threat_level_opponent = threat_level_opponent
 		self.is_traversable = False
+		self.is_last_movement = False
 
 	def get_piece(self):
 		return self.piece
@@ -185,9 +186,10 @@ class Constants:
 	WHITE = (255, 255, 255)
 	BLACK = (  0,   0,   0)
 	BG = (100, 100, 100)
+	RED =   (255,   0,   0)
+	BLUE =  (  0,   0, 255)
+	JUST_MOVED = (180, 120, 255)
 
 	# Others
 	RESOURCES = "res/"
 	BOARD_BUFFER = 10
-	RED =   (255,   0,   0)
-	BLUE =  (  0,   0, 255)

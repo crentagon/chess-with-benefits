@@ -656,11 +656,6 @@ class Chesselate:
 				# Render the tile
 				tile_color = leading_color if j % 2 == 0 else lagging_color
 
-				rect_x = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i
-				rect_y = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j
-				side = Constants.TILE_LENGTH
-				pygame.draw.rect(self.screen, tile_color, (rect_x, rect_y, side, side), 0)
-
 				if self.is_player_white:
 					x_coord = i
 					y_coord = 7-j
@@ -672,6 +667,17 @@ class Chesselate:
 				piece = tile.piece
 				render_threats = False
 				is_urgent = False
+
+				rect_x = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i
+				rect_y = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j
+				side = Constants.TILE_LENGTH
+				pygame.draw.rect(self.screen, tile_color, (rect_x, rect_y, side, side), 0)
+
+				if tile.is_last_movement:
+					thickness = 4
+					decrease = 0.95
+					coord_buffer = side*(1-decrease)/2
+					pygame.draw.rect(self.screen, Constants.JUST_MOVED, (rect_x+coord_buffer, rect_y+coord_buffer, side*decrease, side*decrease), thickness)
 
 				threat_level_user = tile.threat_level_user
 				threat_level_opponent = tile.threat_level_opponent
@@ -732,6 +738,10 @@ class Chesselate:
 					if is_urgent:
 						alpha = 64
 
+					if is_king_and_threatened:
+						threat_string = "*"
+						color = Constants.RED
+
 					s = pygame.Surface((Constants.TILE_LENGTH-difference, Constants.TILE_LENGTH-difference))
 					s.set_alpha(alpha)
 
@@ -783,13 +793,19 @@ class Chesselate:
 
 		pygame.display.flip()
 
-	def move_piece(self, source_x, source_y, destination_x, destination_y):
+	def move_piece(self, source_x, source_y, destination_x, destination_y):		
+		self.clear_last_movement()
+
 		# Flag for checking if the move is a capture
 		is_capture = self.board[destination_x][destination_y].piece is not None
 		
 		# Move the piece in the game
 		self.board[destination_x][destination_y].piece = self.board[source_x][source_y].piece
 		self.board[source_x][source_y].remove_piece()
+
+		# Mark the last moved piece
+		self.board[destination_x][destination_y].is_last_movement = True
+		self.board[source_x][source_y].is_last_movement = True
 
 		piece = self.board[destination_x][destination_y].piece
 
@@ -1427,8 +1443,8 @@ class Chesselate:
 
 				rank = Constants.TILE_1 if piece.is_white else Constants.TILE_8
 
-				kingside_rook = not self.board[Constants.TILE_H][rank].piece.is_moved
-				queenside_rook = not self.board[Constants.TILE_A][rank].piece.is_moved
+				kingside_rook = self.board[Constants.TILE_H][rank].piece is not None and not self.board[Constants.TILE_H][rank].piece.is_moved and self.board[Constants.TILE_H][rank].piece.piece_type == Constants.P_ROOK
+				queenside_rook = self.board[Constants.TILE_A][rank].piece is not None and not self.board[Constants.TILE_A][rank].piece.is_moved and self.board[Constants.TILE_A][rank].piece.piece_type == Constants.P_ROOK
 				
 				if kingside_rook or queenside_rook:
 					for k in range(1,3):
@@ -1522,6 +1538,11 @@ class Chesselate:
 				if j == target_tile_y - factor and (i == target_tile_x + factor or i == target_tile_x - factor):
 					target_tile = self.board[target_tile_x][target_tile_y]
 					target_tile.is_traversable = True
+
+	def clear_last_movement(self):
+		for x in range(8):
+			for y in range(8):
+				self.board[x][y].is_last_movement = False
 
 	def play(self):
 		# self.move_piece("e2", "e4")
