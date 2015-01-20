@@ -180,14 +180,14 @@ class Chesselate:
 					sys.stdout.write("0")
 			print ""
 
-		print "==threat_levels=="
-		for i in range(8):
-			for j in range(8):
-				if self.board[i][j] is not None:
-					sys.stdout.write("["+str(self.board[i][j].threat_level)+"]")
-				else:
-					sys.stdout.write("0")
-			print ""
+		# print "==threat_levels=="
+		# for i in range(8):
+		# 	for j in range(8):
+		# 		if self.board[i][j] is not None:
+		# 			sys.stdout.write("["+str(self.board[i][j].threat_level)+"]")
+		# 		else:
+		# 			sys.stdout.write("0")
+		# 	print ""
 
 	def is_check(self, board_input):
 		self.build_threats(board_input)
@@ -645,6 +645,8 @@ class Chesselate:
 
 		# Render board contents
 		for i in range(8):
+			is_king_and_threatened = False
+
 			if(i % 2 == 0):
 				leading_color = Constants.CHESSBOARD_WH
 				lagging_color = Constants.CHESSBOARD_DK
@@ -793,7 +795,7 @@ class Chesselate:
 
 		pygame.display.flip()
 
-	def move_piece(self, source_x, source_y, destination_x, destination_y):		
+	def move_piece(self, source_x, source_y, destination_x, destination_y):	
 		self.clear_last_movement()
 
 		# Flag for checking if the move is a capture
@@ -1544,11 +1546,69 @@ class Chesselate:
 			for y in range(8):
 				self.board[x][y].is_last_movement = False
 
+	def clear_board(self):
+		for i in range(8):
+			for j in range(8):
+				self.board[i][j].piece = None
+
+	def convert_fen_to_board(self, fen_string):
+		self.clear_board()
+		fen = fen_string.split(" ")
+
+		# No additional processing required
+		self.active_turn = fen[1]
+		self.en_passant_info = fen[3]
+		self.halfmove_clock = int(fen[4])
+		self.fullmove_clock = int(fen[5])
+
+		# Castling information
+		castling_info = fen[2]
+		self.kingside_white = castling_info[0]
+		self.kingside_black = castling_info[1]
+		self.queenside_white = castling_info[2]
+		self.queenside_black = castling_info[3]
+
+		# Board information
+		board_info = fen[0]
+		rows = board_info.split("/")
+
+		converter = {
+			"K": [Constants.P_KING, True],
+			"Q": [Constants.P_QUEEN, True],
+			"R": [Constants.P_ROOK, True],
+			"B": [Constants.P_BISHOP, True],
+			"N": [Constants.P_KNIGHT, True],
+			"P": [Constants.P_PAWN, True],
+			"k": [Constants.P_KING, False],
+			"q": [Constants.P_QUEEN, False],
+			"r": [Constants.P_ROOK, False],
+			"b": [Constants.P_BISHOP, False],
+			"n": [Constants.P_KNIGHT, False],
+			"p": [Constants.P_PAWN, False],
+		}
+
+		i = 0
+		j = 0
+		for row in rows:
+			for element in row:
+				try:
+				    element = int(element)
+				    j += element
+				except ValueError:
+					is_piece_player = True if (self.is_player_white and converter[element][1]) or (not self.is_player_white and not converter[element][1]) else False
+
+					self.board[j][7-i].piece = Piece(converter[element][0], converter[element][1], is_piece_player)
+					j += 1
+			i+=1
+			j=0
+
+
 	def play(self):
 		# self.move_piece("e2", "e4")
+		self.convert_fen_to_board("r1b1kb1r/pppp1ppp/8/1N1n4/2P5/5N2/PP1PKPPP/R1B4R w KQkq c3 0 11")
 		self.build_threats(self.board)
 		fen = self.convert_to_fen()
-		print fen
+		# print fen
 
 		# self.print_board()
 
@@ -1731,4 +1791,4 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	Chesselate(is_player_white=True, cpu_level=2000).play()
+	Chesselate(is_player_white=False, cpu_level=2000).play()
