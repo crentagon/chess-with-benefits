@@ -88,6 +88,23 @@ class StockfishThread(threading.Thread):
 		self.ponder = line[3]
 		self.is_thread_done = True
 
+class MoveStack:
+
+     def __init__(self):
+         self.container = [] 
+
+     def isEmpty(self):
+         return self.size() == 0 
+
+     def push(self, item):
+         self.container.append(item) 
+
+     def pop(self):
+         return self.container.pop(0) 
+
+     def size(self):
+         return len(self.container)
+
 class Constants:
 
 	PIECE_MAPPING = {
@@ -169,6 +186,8 @@ class Constants:
 	INNERBOARD_WIDTH = 480
 	INNERBOARD_HEIGHT = 480
 	TILE_LENGTH = INNERBOARD_HEIGHT/8
+	SIDEBAR_WIDTH = 50
+	SIDEBAR_BUTTON = 45
 
 	# Colors
 	TRAVERSABLE_BORDER = (10, 80, 100)
@@ -183,9 +202,10 @@ class Constants:
 	CHESSBOARD_BG = (128, 128, 128)
 	CHESSBOARD_DK = (200, 200, 200)
 	CHESSBOARD_WH = (240, 240, 240)
+	SIDEBAR_BG = (64, 64, 64)
 	WHITE = (255, 255, 255)
 	BLACK = (  0,   0,   0)
-	BG = (100, 100, 100)
+	BG = (96, 96, 96)
 	RED =   (255,   0,   0)
 	BLUE =  (  0,   0, 255)
 	JUST_MOVED = (180, 120, 255)

@@ -8,30 +8,33 @@ from pieces import *
 
 class Chesselate:
 
-	def __init__(self, is_player_white = True, cpu_level = 2000):
+	def __init__(self, is_player_white = True, cpu_level = 2000, fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
+		
+		# Player color specifics
 		self.is_player_white = is_player_white
 		self.goal_rank = 7 if self.is_player_white else 0
 
-		# Active turn for the FEN notation
-		self.active_turn = 'w'
+		# Initialize the board and the stack
+		self.board = [[Tile() for i in range(8)] for i in range(8)]
+		self.stack = MoveStack()
 
-		# Castling availability for the FEN notation
+		# Important attributes for the FEN notation
+		self.active_turn = 'w'
 		self.kingside_white = 'K'
 		self.kingside_black = 'k'
 		self.queenside_white = 'Q'
 		self.queenside_black = 'q'
-
-		# En Passant for the FEN notation
 		self.en_passant = '-'
 		self.is_undergoing_promotion = False
-
-		# Half-move and full-move clock for the FEN notation
 		self.halfmove_clock = 0
 		self.fullmove_clock = 1
 
+		# Set up the board given the fen_string
+		self.convert_fen_to_board(fen_string)
+
 		# Game Window information
 		pygame.init()
-		pygame.display.set_caption("Chesselate")
+		pygame.display.set_caption("Chess with Benefits")
 		self.clock = pygame.time.Clock()
 
 		# Source move
@@ -44,13 +47,16 @@ class Chesselate:
 		# Board stuff
 		self.is_board_clickable = True
 		self.temp_board = [[Tile() for i in range(8)] for i in range(8)]
-		self.initialize_board()
 
 		# Right panel buttons
 		self.promotions = {}
 
 		# Debug mode: Disables opponent's moves
 		self.debug_mode = False
+
+		# Sidebar buttons
+		self.sidebar_buttons = []
+		self.populate_sidebar()
 
 		self.screen = pygame.display.set_mode(Constants.SCREENSIZE)
 		self.screen.fill(Constants.WHITE)
@@ -65,93 +71,9 @@ class Chesselate:
 
 		return test
 
-	def initialize_board(self):
-		# Board information
-		self.board = [[Tile() for i in range(8)] for i in range(8)]
+	def populate_sidebar(self):
+		self.sidebar_buttons.append(["sidebar_undo.png", "Undo Move"])
 
-		testing = 0
-
-		# En Passant test
-		if testing == 10:
-			self.en_passant = "d6"
-			self.board[Constants.TILE_D][Constants.TILE_5].piece = Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white)
-			self.board[Constants.TILE_E][Constants.TILE_5].piece = Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_A][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
-			self.board[Constants.TILE_H][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
-
-		# Check test 01
-		elif testing == 20:
-			self.board[Constants.TILE_E][Constants.TILE_1].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_C][Constants.TILE_4].piece = Piece(Constants.P_QUEEN, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_E][Constants.TILE_8].piece = Piece(Constants.P_ROOK, is_white=False, is_user = not self.is_player_white)
-			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
-
-		# Check test 02
-		elif testing == 21:
-			self.board[Constants.TILE_E][Constants.TILE_1].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_E][Constants.TILE_4].piece = Piece(Constants.P_ROOK, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_E][Constants.TILE_8].piece = Piece(Constants.P_ROOK, is_white=False, is_user = not self.is_player_white)
-			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
-
-		# Check test 03: Pawns
-		elif testing == 22:
-			self.board[Constants.TILE_E][Constants.TILE_2].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_C][Constants.TILE_2].piece = Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_D][Constants.TILE_3].piece = Piece(Constants.P_BISHOP, is_white=False, is_user = not self.is_player_white)
-			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
-
-		# Check test 03: Pawns 2.0
-		elif testing == 23:
-			self.board[Constants.TILE_E][Constants.TILE_2].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_C][Constants.TILE_2].piece = Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_D][Constants.TILE_3].piece = Piece(Constants.P_BISHOP, is_white=False, is_user = not self.is_player_white)
-			self.board[Constants.TILE_C][Constants.TILE_4].piece = Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white)
-			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
-
-		# Check test 03: Pawns 3.0
-		elif testing == 24:
-			self.board[Constants.TILE_G][Constants.TILE_1].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_G][Constants.TILE_2].piece = Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_F][Constants.TILE_3].piece = Piece(Constants.P_KNIGHT, is_white=False, is_user = not self.is_player_white)
-			# self.board[Constants.TILE_C][Constants.TILE_4].piece = Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white)
-			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
-
-		# Bug: King movement
-		elif testing == 30:
-			self.board[Constants.TILE_E][Constants.TILE_2].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
-			# self.board[Constants.TILE_E][Constants.TILE_4].piece = Piece(Constants.P_ROOK, is_white=True, is_user = self.is_player_white)
-			self.board[Constants.TILE_E][Constants.TILE_8].piece = Piece(Constants.P_ROOK, is_white=False, is_user = not self.is_player_white)
-			self.board[Constants.TILE_G][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
-
-		elif testing == 0:
-			for i in range(8):
-				# Set the pawns
-				self.board[i][Constants.TILE_7].piece = Piece(Constants.P_PAWN, is_white=False, is_user = not self.is_player_white)
-				self.board[i][Constants.TILE_2].piece = Piece(Constants.P_PAWN, is_white=True, is_user = self.is_player_white)
-
-				# Set the rooks
-				if(i == 0 or i == 7):
-					self.board[i][Constants.TILE_8].piece = Piece(Constants.P_ROOK, is_white=False, is_user = not self.is_player_white)
-					self.board[i][Constants.TILE_1].piece = Piece(Constants.P_ROOK, is_white=True, is_user = self.is_player_white)
-
-				# Set the knights
-				elif(i == 1 or i == 6):
-					self.board[i][Constants.TILE_8].piece = Piece(Constants.P_KNIGHT, is_white=False, is_user = not self.is_player_white)
-					self.board[i][Constants.TILE_1].piece = Piece(Constants.P_KNIGHT, is_white=True, is_user = self.is_player_white)
-
-				# Set the bishops
-				elif(i == 2 or i == 5):
-					self.board[i][Constants.TILE_8].piece = Piece(Constants.P_BISHOP, is_white=False, is_user = not self.is_player_white)
-					self.board[i][Constants.TILE_1].piece = Piece(Constants.P_BISHOP, is_white=True, is_user = self.is_player_white)
-
-				elif(i == 3):
-					self.board[i][Constants.TILE_8].piece = Piece(Constants.P_QUEEN, is_white=False, is_user = not self.is_player_white)
-					self.board[i][Constants.TILE_1].piece = Piece(Constants.P_QUEEN, is_white=True, is_user = self.is_player_white)
-					
-				else:
-					self.board[i][Constants.TILE_8].piece = Piece(Constants.P_KING, is_white=False, is_user = not self.is_player_white)
-					self.board[i][Constants.TILE_1].piece = Piece(Constants.P_KING, is_white=True, is_user = self.is_player_white)
-			
 	def print_board(self):
 		print "==piece_types=="
 		for i in range(8):
@@ -607,9 +529,21 @@ class Chesselate:
 		font = Constants.RESOURCES+Constants.FONT
 		font_reg = Constants.RESOURCES+Constants.FONT_REG
 
-		# Render the board
-		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, (0, 0, Constants.OUTERBOARD_HEIGHT, Constants.OUTERBOARD_WIDTH), 0)
+		# Render the board background
+		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, (0, 0, Constants.OUTERBOARD_WIDTH, Constants.OUTERBOARD_HEIGHT), 0)
 		
+		# Sidebar buttons
+		pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH, 0, Constants.SIDEBAR_WIDTH, Constants.OUTERBOARD_HEIGHT), 0)
+		for element in self.sidebar_buttons:
+			image_file = element[0]
+			image_text = element[1]
+			image_icon = pygame.image.load(Constants.RESOURCES+image_file)
+
+			# I stopped here!
+			piece_rect = (rect_x, rect_y, size, size)
+			self.screen.blit(image_piece, piece_rect)
+
+		# User is undergoing pawn promotion
 		if self.is_undergoing_promotion:
 
 			# Promotion buttons
@@ -1602,15 +1536,11 @@ class Chesselate:
 			i+=1
 			j=0
 
-
 	def play(self):
-		# self.move_piece("e2", "e4")
-		self.convert_fen_to_board("r1b1kb1r/pppp1ppp/8/1N1n4/2P5/5N2/PP1PKPPP/R1B4R w KQkq c3 0 11")
 		self.build_threats(self.board)
-		fen = self.convert_to_fen()
-		# print fen
-
-		# self.print_board()
+		
+		fen_string = self.convert_to_fen()
+		current_move = ''
 
 		has_player_moved = False
 		has_opponent_moved = False
@@ -1639,13 +1569,15 @@ class Chesselate:
 					is_turn_opponent = False
 					is_turn_user = True
 
+				fen_string = self.convert_to_fen()
+				self.stack.push([fen_string, current_move])
+
 			if self.debug_mode:
 				is_turn_opponent = False
 				is_turn_user = True
 
 			# Opponent's Turn
 			if not self.debug_mode and is_turn_opponent:
-				fen_string = self.convert_to_fen()
 				print fen_string
 				thread = StockfishThread(fen_string, self.cpu_level)
 
@@ -1656,6 +1588,7 @@ class Chesselate:
 
 				thread.join()
 				cpu_move = thread.cpu_move
+				current_move = cpu_move
 				ponder = thread.ponder
 
 				print cpu_move
@@ -1757,6 +1690,12 @@ class Chesselate:
 
 					# Looks like user clicked on a traversable tile
 					if is_traversable:
+						source_move_x = Constants.CHAR_MAPPING[self.source_x]
+						source_move_y = Constants.NUM_MAPPING[self.source_y]
+						destination_move_x = Constants.CHAR_MAPPING[board_x]
+						destination_move_y = Constants.NUM_MAPPING[board_y]
+						current_move = source_move_x + source_move_y + destination_move_x + destination_move_y
+
 						self.move_piece(self.source_x, self.source_y, board_x, board_y)
 						has_player_moved = True
 
@@ -1766,8 +1705,6 @@ class Chesselate:
 							self.is_undergoing_promotion = True
 							self.source_x = board_x
 							self.source_y = board_y
-
-						# To-do: Store the move in a stack
 
 					# User clicked on tile that is not traversable? We cool as long as user didn't click on its own piece.
 					else:
@@ -1791,4 +1728,5 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
+	test = "rnbqkb1r/pppppppp/8/3PP3/1P2n3/8/P1P2PPP/RNBQKBNR w KkQq - 1 7"
 	Chesselate(is_player_white=False, cpu_level=2000).play()
