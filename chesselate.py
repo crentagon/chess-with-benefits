@@ -532,16 +532,29 @@ class Chesselate:
 		# Render the board background
 		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, (0, 0, Constants.OUTERBOARD_WIDTH, Constants.OUTERBOARD_HEIGHT), 0)
 		
-		# Sidebar buttons
+		# Render the sidebar buttons
 		pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH, 0, Constants.SIDEBAR_WIDTH, Constants.OUTERBOARD_HEIGHT), 0)
+		rect_x = ((Constants.SIDEBAR_WIDTH - Constants.SIDEBAR_BUTTON)/2) + (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH)
+		size = Constants.SIDEBAR_BUTTON
+		sub_rect_x = ((Constants.SIDEBAR_WIDTH - Constants.SIDEBAR_BUTTON_ICON)/2) + (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH)
+		sub_size = Constants.SIDEBAR_BUTTON_ICON
+		i = 0
+
 		for element in self.sidebar_buttons:
 			image_file = element[0]
 			image_text = element[1]
 			image_icon = pygame.image.load(Constants.RESOURCES+image_file)
 
-			# I stopped here!
-			piece_rect = (rect_x, rect_y, size, size)
-			self.screen.blit(image_piece, piece_rect)
+			# The button
+			rect_y = Constants.BOARD_BUFFER + (size + Constants.BOARD_BUFFER)*i
+			button_rect = (rect_x, rect_y, size, size)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, button_rect, 0)
+
+			# The icon
+			sub_rect_y = rect_y + ((size - sub_size)/2)
+			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+			icon_rect = (rect_x, rect_y, size, size)
+			self.screen.blit(image_piece, icon_rect)
 
 		# User is undergoing pawn promotion
 		if self.is_undergoing_promotion:
@@ -549,12 +562,12 @@ class Chesselate:
 			# Promotion buttons
 			promotionable_pieces = [Constants.P_KNIGHT, Constants.P_BISHOP, Constants.P_ROOK, Constants.P_QUEEN]
 			color = "w" if self.is_player_white else "b"
+			size = Constants.TILE_LENGTH
 
 			for i in range(2):
 				for j in range(2):
 					rect_x = Constants.PROMOTION_COORD[0] + (i-1)*(Constants.TILE_LENGTH + Constants.BOARD_BUFFER)
 					rect_y = Constants.BOARD_BUFFER*3 + Constants.PROMOTION_COORD[1] + (Constants.TILE_LENGTH + Constants.BOARD_BUFFER)*j
-					size = Constants.TILE_LENGTH
 
 					image_file = color + str(promotionable_pieces[i*2+j]) + ".png"
 					image_piece = pygame.image.load(Constants.RESOURCES+image_file)

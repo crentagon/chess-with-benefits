@@ -2,7 +2,6 @@ import sys, string, os, threading
 import math
 import pygame
 from pygame import gfxdraw
-import Buttons
 import time
 from subprocess import *
 from pieces import *
