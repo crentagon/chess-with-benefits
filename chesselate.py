@@ -72,7 +72,7 @@ class Chesselate:
 		return test
 
 	def populate_sidebar(self):
-		self.sidebar_buttons.append(["sidebar_undo.png", "Undo Move"])
+		self.sidebar_buttons.append(["sidebar_undo.png", "Undo Move", "undo"])
 
 	def print_board(self):
 		print "==piece_types=="
@@ -843,7 +843,7 @@ class Chesselate:
 				fen_string += "/"
 
 		fen_string += " " + self.active_turn + " " + self.kingside_white + self.queenside_white + self.kingside_black + self.queenside_black + " " + self.en_passant + " " + str(self.halfmove_clock) + " " + str(self.fullmove_clock)
-
+		# print ">>> BOARD_TO_FEN:", fen_string
 		return fen_string
 
 	def clear_traversable(self):
@@ -1345,7 +1345,7 @@ class Chesselate:
 					target_tile = self.board[i-1][j+1]
 
 					temp_board = self.get_board()
-					temp_board[i+1][j+1].set_piece(temp_board[i][j].get_piece())
+					temp_board[i-1][j+1].set_piece(temp_board[i][j].get_piece())
 					temp_board[i][j].remove_piece()
 					is_check_after_move = self.is_check(temp_board)
 
@@ -1499,6 +1499,9 @@ class Chesselate:
 				self.board[i][j].piece = None
 
 	def convert_fen_to_board(self, fen_string):
+
+		# print ">>> FEN_TO_BOARD:", fen_string
+		# sys.exit(0)
 		self.clear_board()
 		fen = fen_string.split(" ")
 
@@ -1511,8 +1514,8 @@ class Chesselate:
 		# Castling information
 		castling_info = fen[2]
 		self.kingside_white = castling_info[0]
-		self.kingside_black = castling_info[1]
-		self.queenside_white = castling_info[2]
+		self.queenside_white = castling_info[1]
+		self.kingside_black = castling_info[2]
 		self.queenside_black = castling_info[3]
 
 		# Board information
@@ -1554,6 +1557,8 @@ class Chesselate:
 		
 		fen_string = self.convert_to_fen()
 		current_move = ''
+		self.stack.push([fen_string, current_move])
+		# print "Pushed:", fen_string
 
 		has_player_moved = False
 		has_opponent_moved = False
@@ -1584,6 +1589,7 @@ class Chesselate:
 
 				fen_string = self.convert_to_fen()
 				self.stack.push([fen_string, current_move])
+				# print "Pushed:", fen_string
 
 			if self.debug_mode:
 				is_turn_opponent = False
@@ -1600,47 +1606,52 @@ class Chesselate:
 			if thread is not None and thread.is_thread_done is not None and thread.is_thread_done:
 
 				thread.join()
-				cpu_move = thread.cpu_move
-				current_move = cpu_move
-				ponder = thread.ponder
 
-				print cpu_move
-				print ponder
+				if not thread.is_undo_clicked:
+					cpu_move = thread.cpu_move
+					current_move = cpu_move
+					ponder = thread.ponder
 
-				if cpu_move == '(none)' and ponder == '(none)':
-					print "Stalemate!"
-					time.sleep(2)
-					sys.exit(0)
-				elif cpu_move == '(none)':
-					print "User won!"
-					time.sleep(2)
-					sys.exit(0)
+					print cpu_move
+					print ponder
 
-				source_x = Constants.PIECE_MAPPING[cpu_move[:1]]
-				source_y = Constants.PIECE_MAPPING[cpu_move[1:2]]
-				destination_x = Constants.PIECE_MAPPING[cpu_move[2:3]]
-				destination_y = Constants.PIECE_MAPPING[cpu_move[3:4]]
+					if cpu_move == '(none)' and ponder == '(none)':
+						print "Stalemate!"
+						time.sleep(2)
+						sys.exit(0)
+					elif cpu_move == '(none)':
+						print "User won!"
+						time.sleep(2)
+						sys.exit(0)
 
-				if len(cpu_move) == 5:
-					promotion = cpu_move[4:5]
-					promotion_map = {
-						"r": Constants.P_ROOK,
-						"b": Constants.P_BISHOP,
-						"n": Constants.P_KNIGHT,
-						"q": Constants.P_QUEEN
-					}
-					self.board[destination_x][destination_y].piece.piece_type = promotion_map[promotion]
+					source_x = Constants.PIECE_MAPPING[cpu_move[:1]]
+					source_y = Constants.PIECE_MAPPING[cpu_move[1:2]]
+					destination_x = Constants.PIECE_MAPPING[cpu_move[2:3]]
+					destination_y = Constants.PIECE_MAPPING[cpu_move[3:4]]
 
-				else:
-					self.move_piece(source_x, source_y, destination_x, destination_y)
+					if len(cpu_move) == 5:
+						promotion = cpu_move[4:5]
+						promotion_map = {
+							"r": Constants.P_ROOK,
+							"b": Constants.P_BISHOP,
+							"n": Constants.P_KNIGHT,
+							"q": Constants.P_QUEEN
+						}
+						self.board[destination_x][destination_y].piece.piece_type = promotion_map[promotion]
 
-				has_opponent_moved = True
-				thread.is_thread_done = False
+					else:
+						self.move_piece(source_x, source_y, destination_x, destination_y)
 
-				if ponder == '(none)':
-					print "Stockfish won!"
-					time.sleep(2)
-					sys.exit(0)
+					has_opponent_moved = True
+					thread.is_thread_done = False
+
+					if ponder == '(none)':
+						self.clear_traversable()
+						self.build_threats(self.board)
+						self.render_board()
+						print "Stockfish won!"
+						time.sleep(2)
+						sys.exit(0)
 
 			events = pygame.event.get()
 			for event in events: 
@@ -1648,7 +1659,7 @@ class Chesselate:
 					sys.exit(0)
 
 				# User's turn
-				elif event.type == 5 and is_turn_user:
+				elif event.type == 5:
 					mouse_pos = pygame.mouse.get_pos()
 
 					if self.is_player_white:
@@ -1663,7 +1674,7 @@ class Chesselate:
 					promotion = ''
 
 					# Did the user click on the board?
-					if 0 <= board_x <= 7 and 0 <= board_y <= 7 and self.is_board_clickable:
+					if 0 <= board_x <= 7 and 0 <= board_y <= 7 and self.is_board_clickable and is_turn_user:
 						# What did the user click? A piece? A tile? Is the tile traversable?
 						tile = self.board[board_x][board_y]
 						piece = tile.piece
@@ -1672,6 +1683,77 @@ class Chesselate:
 
 					# The user clicked somewhere else!
 					else:
+						# Is the user clicking on the sidebar?
+						if mouse_pos[0] >= (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH):
+							index = 65536
+							if mouse_pos[1] % (Constants.SIDEBAR_BUTTON) >= Constants.BOARD_BUFFER:
+								index = (mouse_pos[1]/Constants.SIDEBAR_BUTTON)
+
+							if index < len(self.sidebar_buttons):
+								if self.sidebar_buttons[index][2] == 'undo':
+									# Cannot undo if stack only has one element
+									if self.stack.size() > 1:
+										# After an undo, it'll always be your turn unless it's the first move
+										self.active_turn = 'w' if self.is_player_white else 'b'
+
+										# print has_player_moved
+										# sys.exit(0)
+
+										# If the player has just moved, we pop twice
+										if not is_turn_user:
+											self.stack.pop()
+											element = self.stack.pop()
+											fen = element[0]
+											thread.is_undo_clicked = True
+
+											self.stack.push(element)
+											is_turn_opponent = False
+											is_turn_user = True
+
+										# If the opponent has just moved...
+										else:
+											# If it's the very first move, we push it again.
+											if self.stack.size() == 2:
+												self.stack.pop()
+												element = self.stack.pop()
+												fen = element[0]
+												# print "Popped thrice?", fen
+
+												is_turn_opponent = False
+												is_turn_user = True
+
+												self.stack.push(element)
+												# print "Pushed*:", fen
+
+												if not self.is_player_white:
+													self.active_turn = 'w'
+													is_turn_opponent = True
+													is_turn_user = False
+												else:
+													thread.is_undo_clicked = True
+
+											else:
+												# ...we pop thrice.
+												self.stack.pop()
+												self.stack.pop()
+												element = self.stack.pop()
+												fen = element[0]
+												# print "Popped thrice?", fen
+
+												is_turn_opponent = False
+												is_turn_user = True
+
+												self.stack.push(element)
+												# print "Pushed*:", fen
+
+
+										fen_string = fen
+										self.convert_fen_to_board(fen)
+										self.clear_traversable()
+										self.build_threats(self.board)
+										self.render_board()
+										self.clear_last_movement()
+
 						# Is the user clicking on the promotion buttons?
 						for i in range(4):
 							if self.is_undergoing_promotion and self.promotions[i].pressed(mouse_pos):
@@ -1686,7 +1768,7 @@ class Chesselate:
 								break
 
 					# A piece has been clicked!
-					if is_piece_clicked and self.is_board_clickable:
+					if is_piece_clicked and self.is_board_clickable and is_turn_user:
 						# Let's check if it's a friendly piece
 						if piece.pressed(mouse_pos):
 							self.source_x = board_x
@@ -1741,5 +1823,5 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	test = "rnbqkb1r/pppppppp/8/3PP3/1P2n3/8/P1P2PPP/RNBQKBNR w KkQq - 1 7"
-	Chesselate(is_player_white=False, cpu_level=2000).play()
+	test = "6k1/ppp3pp/2n1p3/7P/1PP5/1P4P1/3r3r/R4R1K w ---- - 1 25"
+	Chesselate(is_player_white=True, cpu_level=2000, fen_string = test).play()

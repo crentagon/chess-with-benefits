@@ -62,6 +62,7 @@ class StockfishThread(threading.Thread):
 		self.fen_string = fen_string
 		self.process_time = process_time
 		self.is_thread_done = False
+		self.is_undo_clicked = False
 
 		self.cpu_move = ''
 		self.ponder = ''
@@ -72,8 +73,10 @@ class StockfishThread(threading.Thread):
 		p.stdin.write("position fen "+self.fen_string+"\n")
 		p.stdin.write("go movetime "+str(self.process_time)+"\n")
 
+		# print "<YAY>"
 		# print "position fen "+self.fen_string
 		# print "go movetime "+str(self.process_time)
+		# print "</YAY>"
 
 		while p.poll() is None:
 			line = p.stdout.readline()
@@ -93,14 +96,14 @@ class MoveStack:
      def __init__(self):
          self.container = [] 
 
-     def isEmpty(self):
+     def is_empty(self):
          return self.size() == 0 
 
      def push(self, item):
          self.container.append(item) 
 
      def pop(self):
-         return self.container.pop(0) 
+         return self.container.pop() 
 
      def size(self):
          return len(self.container)
