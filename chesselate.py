@@ -102,15 +102,6 @@ class Chesselate:
 					sys.stdout.write("0")
 			print ""
 
-		# print "==threat_levels=="
-		# for i in range(8):
-		# 	for j in range(8):
-		# 		if self.board[i][j] is not None:
-		# 			sys.stdout.write("["+str(self.board[i][j].threat_level)+"]")
-		# 		else:
-		# 			sys.stdout.write("0")
-		# 	print ""
-
 	def is_check(self, board_input):
 		self.build_threats(board_input)
 
@@ -742,21 +733,289 @@ class Chesselate:
 
 		pygame.display.flip()
 
+	def render_tile(self, i, j):
+		is_king_and_threatened = False
+		font = Constants.RESOURCES+Constants.FONT
+		font_reg = Constants.RESOURCES+Constants.FONT_REG
+
+		if(i % 2 == 0):
+			leading_color = Constants.CHESSBOARD_WH
+			lagging_color = Constants.CHESSBOARD_DK
+		else:
+			leading_color = Constants.CHESSBOARD_DK
+			lagging_color = Constants.CHESSBOARD_WH
+		
+		tile_color = leading_color if j % 2 == 0 else lagging_color
+		if self.is_player_white:
+			x_coord = i
+			y_coord = 7-j
+		else:
+			x_coord = 7-i
+			y_coord = j
+
+		tile = self.board[x_coord][y_coord]
+		piece = tile.piece
+		render_threats = False
+		is_urgent = False
+
+		rect_x = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i
+		rect_y = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j
+		side = Constants.TILE_LENGTH
+		pygame.draw.rect(self.screen, tile_color, (rect_x, rect_y, side, side), 0)
+
+		if tile.is_last_movement:
+			thickness = 4
+			decrease = 0.95
+			coord_buffer = side*(1-decrease)/2
+			pygame.draw.rect(self.screen, Constants.JUST_MOVED, (rect_x+coord_buffer, rect_y+coord_buffer, side*decrease, side*decrease), thickness)
+
+		threat_level_user = tile.threat_level_user
+		threat_level_opponent = tile.threat_level_opponent
+		cumulative_threat = threat_level_user - threat_level_opponent
+
+		if(piece is not None):
+
+			# Render the pieces
+			piece_rect = (rect_x, rect_y, side, side)
+			piece_type = piece.piece_type
+			piece.piece_position = piece_rect
+
+			color = "w" if piece.is_white else "b"
+			image_file = color + str(piece_type) + ".png"
+
+			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+			self.screen.blit(image_piece, piece_rect)
+
+			# Render the threatened pieces
+			is_king_and_threatened = piece_type == Constants.P_KING and piece.is_user and threat_level_opponent > 0
+			if ((cumulative_threat < 0 and piece.is_user) or (cumulative_threat > 0 and not piece.is_user)) or is_king_and_threatened:
+				render_threats = True
+				is_urgent = True
+
+		# Render the empty tile threats
+		else:
+			render_threats = True
+
+		if render_threats:
+			difference = 15
+			alpha = 0
+			basic_font = pygame.font.Font(font_reg, 20)
+
+			# The opponent is guarding the tile!
+			if cumulative_threat < 0:
+				color = Constants.RED
+				threat_string = str(abs(cumulative_threat))
+				alpha = 255.0*abs(cumulative_threat)/12.0
+
+			# The user is guarding the tile!
+			elif cumulative_threat > 0:
+				color = Constants.BLUE
+				threat_string = str(abs(cumulative_threat))
+				alpha = 255.0*abs(cumulative_threat)/12.0
+
+			# Special case: even though it's 0, you still can't just put your queen there 'cause you'll be captured!
+			elif cumulative_threat == 0:
+				# threat_string = "("+str(threat_level_opponent)+")"
+				if threat_level_opponent > 0:
+					alpha = 21.25 #255*1/12
+					threat_string = str(threat_level_opponent)+"*"
+					color = Constants.RED
+				elif threat_level_user > 0:
+					alpha = 21.25 #255*1/12
+					threat_string = str(threat_level_user)+"*"
+					color = Constants.BLUE
+
+			if is_urgent:
+				alpha = 64
+
+			if is_king_and_threatened:
+				threat_string = "*"
+				color = Constants.RED
+
+			s = pygame.Surface((Constants.TILE_LENGTH-difference, Constants.TILE_LENGTH-difference))
+			s.set_alpha(alpha)
+
+			if(alpha != 0):
+				s.fill(color)
+				alpha_text = alpha * 1.5 if alpha * 1.5 < 255 else 255
+				threat_text = basic_font.render(threat_string, True, color, tile_color)
+
+				text_rect = threat_text.get_rect()
+				text_rect.centerx = Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*i + 5
+				text_rect.centery = Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*j + 8
+
+				threat_text.set_alpha(alpha_text)
+				self.screen.blit(threat_text, text_rect)
+
+			self.screen.blit(s, (Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*i, Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*j))
+
+		# Render traversibility
+		if tile.is_traversable:
+			circle_x = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i+Constants.TILE_LENGTH/2
+			circle_y = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j+Constants.TILE_LENGTH/2
+
+			pygame.gfxdraw.filled_circle(self.screen, circle_x, circle_y, Constants.TRAVERSABLE_SEMIRADIUS, Constants.TRAVERSABLE_SEMI)
+			pygame.gfxdraw.filled_circle(self.screen, circle_x, circle_y, Constants.TRAVERSABLE_MINIRADIUS, Constants.TRAVERSABLE_MINI)
+
+		pygame.display.update()
+
 	def move_piece(self, source_x, source_y, destination_x, destination_y):	
+		piece = self.board[source_x][source_y].piece
+
+		# Clear last movement
 		self.clear_last_movement()
 
 		# Flag for checking if the move is a capture
 		is_capture = self.board[destination_x][destination_y].piece is not None
-		
+
 		# Move the piece in the game
-		self.board[destination_x][destination_y].piece = self.board[source_x][source_y].piece
+		destination_piece = self.board[source_x][source_y].piece
 		self.board[source_x][source_y].remove_piece()
+
+		# Animate the movement
+		if self.is_player_white:
+			source_coord_x = (source_x * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+			source_coord_y = ((7 - source_y)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+			destination_coord_x = (destination_x * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+			destination_coord_y = ((7 - destination_y)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+		else:
+			source_coord_x = ((7 - source_x)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+			source_coord_y = (source_y * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+			destination_coord_x = ((7 - destination_x)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+			destination_coord_y = (destination_y * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+
+		is_vertical = destination_coord_x - source_coord_x == 0
+		is_horizontal = destination_coord_y - source_coord_y == 0
+
+		m = 0
+		b = 0
+		if not (is_vertical or is_horizontal):
+			m = (destination_coord_y - source_coord_y)/(destination_coord_x - source_coord_x)
+			b = source_coord_y - (m * source_coord_x)
+
+		x = source_coord_x
+		y = source_coord_y
+
+		print "x", x
+		print "y", y
+		print "destination_coord_x", destination_coord_x
+		print "destination_coord_y", destination_coord_y
+		print "m", m
+		print "b", b
+
+		frames = 10
+		interval = 10*math.sqrt(2)/frames
+
+		if is_vertical:
+			multiplier = 1 if destination_coord_y - source_coord_y < 0 else -1
+			increment = abs((destination_coord_y - source_coord_y)/frames)
+		elif is_horizontal:
+			multiplier = 1 if destination_coord_x - source_coord_x < 0 else -1
+			increment = abs((destination_coord_x - source_coord_x)/frames)
+		else:
+			multiplier_x = 1 if destination_coord_x - source_coord_x < 0 else -1
+			multiplier_y = 1 if destination_coord_y - source_coord_y < 0 else -1
+			increment = abs((destination_coord_x - source_coord_x)/frames)
+
+		# i = 0
+		while True:
+			# i += 1
+
+			# factor = (-)
+			# factor = math.pow(-(i-5*math.sqrt(2)), 2) + 1
+
+			if not (is_vertical or is_horizontal):
+				x -= multiplier_x*increment
+				y = m*x + b
+
+				i_temp = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+				i_temp_1 = i_temp + 1
+				i_temp_2 = i_temp - 1
+				j_temp = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+				j_temp_1 = j_temp + 1
+				j_temp_2 = j_temp - 1
+
+				i1_gte_0 = i_temp_1 >= 0
+				i2_gte_0 = i_temp_2 >= 0
+				j1_gte_0 = j_temp_1 >= 0
+				j2_gte_0 = j_temp_2 >= 0
+
+				i1_lte_7 = i_temp_1 <= 7
+				i2_lte_7 = i_temp_2 <= 7
+				j1_lte_7 = j_temp_1 <= 7
+				j2_lte_7 = j_temp_2 <= 7
+
+				self.render_tile(i_temp, j_temp)
+
+				if j1_gte_0 and j1_lte_7:
+					self.render_tile(i_temp, j_temp_1)
+
+					if i1_lte_7 and i1_gte_0:
+						self.render_tile(i_temp_1, j_temp_1)
+					if i2_lte_7 and i2_gte_0:
+						self.render_tile(i_temp_2, j_temp_1)
+
+				if j2_gte_0 and j2_lte_7:
+					self.render_tile(i_temp, j_temp_2)
+					if i1_lte_7 and i1_gte_0:
+						self.render_tile(i_temp_1, j_temp_2)
+					if i2_lte_7 and i2_gte_0:
+						self.render_tile(i_temp_2, j_temp_2)
+
+				if i1_lte_7 and i1_gte_0:
+					self.render_tile(i_temp_1, j_temp)
+				if i2_lte_7 and i2_gte_0:
+					self.render_tile(i_temp_2, j_temp)
+
+				if multiplier_x*x < multiplier_x*destination_coord_x:
+					break
+
+			elif is_vertical:
+				y -= multiplier*increment
+
+				i = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+				j_before = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+				j_after = j_before + multiplier
+
+				self.render_tile(i, j_before)
+				self.render_tile(i, j_after)
+
+				if multiplier*y < multiplier*destination_coord_y:
+					break
+			elif is_horizontal:
+				x -= multiplier*increment
+
+				i_before = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+				i_after = i_before + multiplier
+				j = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+				
+				self.render_tile(i_before, j)
+				self.render_tile(i_after, j)
+
+				if multiplier*x < multiplier*destination_coord_x:
+					break
+
+			side = Constants.TILE_LENGTH
+			piece_rect = (x, y, side, side)
+			piece_type = piece.piece_type
+			piece.piece_position = piece_rect
+
+			color = "w" if piece.is_white else "b"
+			image_file = color + str(piece_type) + ".png"
+
+			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+			self.screen.blit(image_piece, piece_rect)
+
+			pygame.display.update()
+			# pygame.time.delay(3)
+
+		# Destination
+		self.board[destination_x][destination_y].piece = destination_piece
 
 		# Mark the last moved piece
 		self.board[destination_x][destination_y].is_last_movement = True
 		self.board[source_x][source_y].is_last_movement = True
 
-		piece = self.board[destination_x][destination_y].piece
 
 		# Half-move clock and full-move clock
 		is_pawn_move = piece.piece_type == Constants.P_PAWN
@@ -1823,5 +2082,5 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	test = "6k1/ppp3pp/2n1p3/7P/1PP5/1P4P1/3r3r/R4R1K w ---- - 1 25"
-	Chesselate(is_player_white=True, cpu_level=2000, fen_string = test).play()
+	# test = "6k1/ppp3pp/2n1p3/7P/1PP5/1P4P1/3r3r/R4R1K w ---- - 1 25"
+	Chesselate(is_player_white=True, cpu_level=2000).play()
