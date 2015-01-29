@@ -896,15 +896,16 @@ class Chesselate:
 		x = source_coord_x
 		y = source_coord_y
 
-		print "x", x
-		print "y", y
-		print "destination_coord_x", destination_coord_x
-		print "destination_coord_y", destination_coord_y
-		print "m", m
-		print "b", b
+		# print "x", x
+		# print "y", y
+		# print "destination_coord_x", destination_coord_x
+		# print "destination_coord_y", destination_coord_y
+		# print "m", m
+		# print "b", b
 
 		frames = 10
-		interval = 10*math.sqrt(2)/frames
+		# interval = math.radians((360-270)/frames)
+		# angle = math.radians(270)
 
 		if is_vertical:
 			multiplier = 1 if destination_coord_y - source_coord_y < 0 else -1
@@ -917,80 +918,85 @@ class Chesselate:
 			multiplier_y = 1 if destination_coord_y - source_coord_y < 0 else -1
 			increment = abs((destination_coord_x - source_coord_x)/frames)
 
-		# i = 0
+		is_windows_xp = True
 		while True:
-			# i += 1
+			# inc_factor = math.sin(angle)
+			# angle += interval
 
-			# factor = (-)
-			# factor = math.pow(-(i-5*math.sqrt(2)), 2) + 1
+			# if increment < 1:
+			# 	inc_factor *= increment
 
 			if not (is_vertical or is_horizontal):
 				x -= multiplier_x*increment
 				y = m*x + b
 
-				i_temp = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-				i_temp_1 = i_temp + 1
-				i_temp_2 = i_temp - 1
-				j_temp = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-				j_temp_1 = j_temp + 1
-				j_temp_2 = j_temp - 1
+				if not is_windows_xp:
+					i_temp = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+					i_temp_1 = i_temp + 1
+					i_temp_2 = i_temp - 1
+					j_temp = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					j_temp_1 = j_temp + 1
+					j_temp_2 = j_temp - 1
 
-				i1_gte_0 = i_temp_1 >= 0
-				i2_gte_0 = i_temp_2 >= 0
-				j1_gte_0 = j_temp_1 >= 0
-				j2_gte_0 = j_temp_2 >= 0
+					i1_gte_0 = i_temp_1 >= 0
+					i2_gte_0 = i_temp_2 >= 0
+					j1_gte_0 = j_temp_1 >= 0
+					j2_gte_0 = j_temp_2 >= 0
 
-				i1_lte_7 = i_temp_1 <= 7
-				i2_lte_7 = i_temp_2 <= 7
-				j1_lte_7 = j_temp_1 <= 7
-				j2_lte_7 = j_temp_2 <= 7
+					i1_lte_7 = i_temp_1 <= 7
+					i2_lte_7 = i_temp_2 <= 7
+					j1_lte_7 = j_temp_1 <= 7
+					j2_lte_7 = j_temp_2 <= 7
 
-				self.render_tile(i_temp, j_temp)
+					self.render_tile(i_temp, j_temp)
 
-				if j1_gte_0 and j1_lte_7:
-					self.render_tile(i_temp, j_temp_1)
+					if j1_gte_0 and j1_lte_7:
+						self.render_tile(i_temp, j_temp_1)
+
+						if i1_lte_7 and i1_gte_0:
+							self.render_tile(i_temp_1, j_temp_1)
+						if i2_lte_7 and i2_gte_0:
+							self.render_tile(i_temp_2, j_temp_1)
+
+					if j2_gte_0 and j2_lte_7:
+						self.render_tile(i_temp, j_temp_2)
+						if i1_lte_7 and i1_gte_0:
+							self.render_tile(i_temp_1, j_temp_2)
+						if i2_lte_7 and i2_gte_0:
+							self.render_tile(i_temp_2, j_temp_2)
 
 					if i1_lte_7 and i1_gte_0:
-						self.render_tile(i_temp_1, j_temp_1)
+						self.render_tile(i_temp_1, j_temp)
 					if i2_lte_7 and i2_gte_0:
-						self.render_tile(i_temp_2, j_temp_1)
-
-				if j2_gte_0 and j2_lte_7:
-					self.render_tile(i_temp, j_temp_2)
-					if i1_lte_7 and i1_gte_0:
-						self.render_tile(i_temp_1, j_temp_2)
-					if i2_lte_7 and i2_gte_0:
-						self.render_tile(i_temp_2, j_temp_2)
-
-				if i1_lte_7 and i1_gte_0:
-					self.render_tile(i_temp_1, j_temp)
-				if i2_lte_7 and i2_gte_0:
-					self.render_tile(i_temp_2, j_temp)
+						self.render_tile(i_temp_2, j_temp)
 
 				if multiplier_x*x < multiplier_x*destination_coord_x:
 					break
 
 			elif is_vertical:
 				y -= multiplier*increment
+				# y = int(y)
 
-				i = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-				j_before = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-				j_after = j_before + multiplier
+				if not is_windows_xp:
+					i = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+					j_before = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					j_after = j_before + multiplier
 
-				self.render_tile(i, j_before)
-				self.render_tile(i, j_after)
+					self.render_tile(i, j_before)
+					self.render_tile(i, j_after)
 
 				if multiplier*y < multiplier*destination_coord_y:
 					break
 			elif is_horizontal:
 				x -= multiplier*increment
 
-				i_before = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-				i_after = i_before + multiplier
-				j = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-				
-				self.render_tile(i_before, j)
-				self.render_tile(i_after, j)
+				if not is_windows_xp:
+					i_before = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+					i_after = i_before + multiplier
+					j = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					
+					self.render_tile(i_before, j)
+					self.render_tile(i_after, j)
 
 				if multiplier*x < multiplier*destination_coord_x:
 					break
