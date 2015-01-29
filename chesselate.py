@@ -9,7 +9,8 @@ from pieces import *
 class Chesselate:
 
 	def __init__(self, is_player_white = True, cpu_level = 2000, fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
-		
+		self.animate = False
+
 		# Player color specifics
 		self.is_player_white = is_player_white
 		self.goal_rank = 7 if self.is_player_white else 0
@@ -734,6 +735,7 @@ class Chesselate:
 		pygame.display.flip()
 
 	def render_tile(self, i, j):
+
 		is_king_and_threatened = False
 		font = Constants.RESOURCES+Constants.FONT
 		font_reg = Constants.RESOURCES+Constants.FONT_REG
@@ -857,7 +859,7 @@ class Chesselate:
 			pygame.gfxdraw.filled_circle(self.screen, circle_x, circle_y, Constants.TRAVERSABLE_SEMIRADIUS, Constants.TRAVERSABLE_SEMI)
 			pygame.gfxdraw.filled_circle(self.screen, circle_x, circle_y, Constants.TRAVERSABLE_MINIRADIUS, Constants.TRAVERSABLE_MINI)
 
-		pygame.display.update()
+		# pygame.display.update()
 
 	def move_piece(self, source_x, source_y, destination_x, destination_y):	
 		piece = self.board[source_x][source_y].piece
@@ -873,147 +875,173 @@ class Chesselate:
 		self.board[source_x][source_y].remove_piece()
 
 		# Animate the movement
-		if self.is_player_white:
-			source_coord_x = (source_x * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
-			source_coord_y = ((7 - source_y)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
-			destination_coord_x = (destination_x * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
-			destination_coord_y = ((7 - destination_y)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
-		else:
-			source_coord_x = ((7 - source_x)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
-			source_coord_y = (source_y * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
-			destination_coord_x = ((7 - destination_x)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
-			destination_coord_y = (destination_y * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+		if self.animate:
+			if self.is_player_white:
+				source_coord_x = (source_x * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+				source_coord_y = ((7 - source_y)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+				destination_coord_x = (destination_x * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+				destination_coord_y = ((7 - destination_y)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+			else:
+				source_coord_x = ((7 - source_x)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+				source_coord_y = (source_y * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+				destination_coord_x = ((7 - destination_x)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
+				destination_coord_y = (destination_y * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
 
-		is_vertical = destination_coord_x - source_coord_x == 0
-		is_horizontal = destination_coord_y - source_coord_y == 0
+			is_vertical = destination_coord_x - source_coord_x == 0
+			is_horizontal = destination_coord_y - source_coord_y == 0
 
-		m = 0
-		b = 0
-		if not (is_vertical or is_horizontal):
-			m = (destination_coord_y - source_coord_y)/(destination_coord_x - source_coord_x)
-			b = source_coord_y - (m * source_coord_x)
-
-		x = source_coord_x
-		y = source_coord_y
-
-		# print "x", x
-		# print "y", y
-		# print "destination_coord_x", destination_coord_x
-		# print "destination_coord_y", destination_coord_y
-		# print "m", m
-		# print "b", b
-
-		frames = 10
-		# interval = math.radians((360-270)/frames)
-		# angle = math.radians(270)
-
-		if is_vertical:
-			multiplier = 1 if destination_coord_y - source_coord_y < 0 else -1
-			increment = abs((destination_coord_y - source_coord_y)/frames)
-		elif is_horizontal:
-			multiplier = 1 if destination_coord_x - source_coord_x < 0 else -1
-			increment = abs((destination_coord_x - source_coord_x)/frames)
-		else:
-			multiplier_x = 1 if destination_coord_x - source_coord_x < 0 else -1
-			multiplier_y = 1 if destination_coord_y - source_coord_y < 0 else -1
-			increment = abs((destination_coord_x - source_coord_x)/frames)
-
-		is_windows_xp = True
-		while True:
-			# inc_factor = math.sin(angle)
-			# angle += interval
-
-			# if increment < 1:
-			# 	inc_factor *= increment
-
+			m = 0
+			b = 0
 			if not (is_vertical or is_horizontal):
-				x -= multiplier_x*increment
-				y = m*x + b
+				m = (destination_coord_y - source_coord_y)/(destination_coord_x - source_coord_x)
+				b = destination_coord_y - (m * destination_coord_x)
 
-				if not is_windows_xp:
-					i_temp = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-					i_temp_1 = i_temp + 1
-					i_temp_2 = i_temp - 1
-					j_temp = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-					j_temp_1 = j_temp + 1
-					j_temp_2 = j_temp - 1
+			x = source_coord_x
+			y = source_coord_y
 
-					i1_gte_0 = i_temp_1 >= 0
-					i2_gte_0 = i_temp_2 >= 0
-					j1_gte_0 = j_temp_1 >= 0
-					j2_gte_0 = j_temp_2 >= 0
+			# print "====="
+			# print "x", x
+			# print "y", y
+			# print "destination_coord_x", destination_coord_x
+			# print "destination_coord_y", destination_coord_y
+			# print "m", m
+			# print "b", b
 
-					i1_lte_7 = i_temp_1 <= 7
-					i2_lte_7 = i_temp_2 <= 7
-					j1_lte_7 = j_temp_1 <= 7
-					j2_lte_7 = j_temp_2 <= 7
+			frames = 32
+			i = 0
+			# interval = math.radians((360-270)/frames)
+			# angle = math.radians(270)
 
-					self.render_tile(i_temp, j_temp)
-
-					if j1_gte_0 and j1_lte_7:
-						self.render_tile(i_temp, j_temp_1)
-
-						if i1_lte_7 and i1_gte_0:
-							self.render_tile(i_temp_1, j_temp_1)
-						if i2_lte_7 and i2_gte_0:
-							self.render_tile(i_temp_2, j_temp_1)
-
-					if j2_gte_0 and j2_lte_7:
-						self.render_tile(i_temp, j_temp_2)
-						if i1_lte_7 and i1_gte_0:
-							self.render_tile(i_temp_1, j_temp_2)
-						if i2_lte_7 and i2_gte_0:
-							self.render_tile(i_temp_2, j_temp_2)
-
-					if i1_lte_7 and i1_gte_0:
-						self.render_tile(i_temp_1, j_temp)
-					if i2_lte_7 and i2_gte_0:
-						self.render_tile(i_temp_2, j_temp)
-
-				if multiplier_x*x < multiplier_x*destination_coord_x:
-					break
-
-			elif is_vertical:
-				y -= multiplier*increment
-				# y = int(y)
-
-				if not is_windows_xp:
-					i = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-					j_before = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-					j_after = j_before + multiplier
-
-					self.render_tile(i, j_before)
-					self.render_tile(i, j_after)
-
-				if multiplier*y < multiplier*destination_coord_y:
-					break
+			if is_vertical:
+				multiplier = 1 if destination_coord_y - source_coord_y < 0 else -1
+				increment = abs((destination_coord_y - source_coord_y)/frames)
 			elif is_horizontal:
-				x -= multiplier*increment
+				multiplier = 1 if destination_coord_x - source_coord_x < 0 else -1
+				increment = abs((destination_coord_x - source_coord_x)/frames)
+			else:
+				multiplier_x = 1 if destination_coord_x - source_coord_x < 0 else -1
+				multiplier_y = 1 if destination_coord_y - source_coord_y < 0 else -1
+				temp_x = destination_coord_x - source_coord_x
+				temp_y = destination_coord_y - source_coord_y
+				temp_x = temp_x * temp_x
+				temp_y = temp_y * temp_y
+				increment = abs(math.pow(((temp_x)+(temp_x)), 0.5)/frames)
 
-				if not is_windows_xp:
-					i_before = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-					i_after = i_before + multiplier
-					j = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-					
-					self.render_tile(i_before, j)
-					self.render_tile(i_after, j)
+			is_windows_xp = False
+			clock = pygame.time.Clock()
+			while True:
+				i += 8
+				# inc_factor = math.sin(angle)
+				# angle += interval
 
-				if multiplier*x < multiplier*destination_coord_x:
-					break
+				# if increment < 1:
+				# 	inc_factor *= increment
 
-			side = Constants.TILE_LENGTH
-			piece_rect = (x, y, side, side)
-			piece_type = piece.piece_type
-			piece.piece_position = piece_rect
+				if not (is_vertical or is_horizontal):
+					x -= multiplier_x*(increment+i)
+					y = m*x + b
 
-			color = "w" if piece.is_white else "b"
-			image_file = color + str(piece_type) + ".png"
+					x = int(x)
+					y = int(y)
 
-			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
-			self.screen.blit(image_piece, piece_rect)
+					if not is_windows_xp:
+						i_temp = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+						i_temp_1 = i_temp + 1
+						i_temp_2 = i_temp - 1
+						j_temp = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+						j_temp_1 = j_temp + 1
+						j_temp_2 = j_temp - 1
 
-			pygame.display.update()
-			# pygame.time.delay(3)
+						i1_gte_0 = i_temp_1 >= 0
+						i2_gte_0 = i_temp_2 >= 0
+						j1_gte_0 = j_temp_1 >= 0
+						j2_gte_0 = j_temp_2 >= 0
+
+						i1_lte_7 = i_temp_1 <= 7
+						i2_lte_7 = i_temp_2 <= 7
+						j1_lte_7 = j_temp_1 <= 7
+						j2_lte_7 = j_temp_2 <= 7
+
+						self.render_tile(i_temp, j_temp)
+
+						if j1_gte_0 and j1_lte_7:
+							self.render_tile(i_temp, j_temp_1)
+
+							if i1_lte_7 and i1_gte_0:
+								self.render_tile(i_temp_1, j_temp_1)
+							if i2_lte_7 and i2_gte_0:
+								self.render_tile(i_temp_2, j_temp_1)
+
+						if j2_gte_0 and j2_lte_7:
+							self.render_tile(i_temp, j_temp_2)
+							if i1_lte_7 and i1_gte_0:
+								self.render_tile(i_temp_1, j_temp_2)
+							if i2_lte_7 and i2_gte_0:
+								self.render_tile(i_temp_2, j_temp_2)
+
+						if i1_lte_7 and i1_gte_0:
+							self.render_tile(i_temp_1, j_temp)
+						if i2_lte_7 and i2_gte_0:
+							self.render_tile(i_temp_2, j_temp)
+
+					if multiplier_x*x < multiplier_x*destination_coord_x:
+						# print "x", x
+						# print "y", y
+						# print "destination_x", destination_x
+						# print "destination_y", destination_y
+						# print "destination_coord_x", destination_coord_x
+						# print "destination_coord_y", destination_coord_y
+						break
+
+				elif is_vertical:
+					i += 8
+					y -= multiplier*(increment+i)
+					y = int(y)
+
+					if not is_windows_xp:
+						i = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+						j_before = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+						j_after = j_before + multiplier
+
+						if i >= 0 and i <= 7:
+							if j_before >= 0 and j_before <= 7:
+								self.render_tile(i, j_before)
+							if j_after >= 0 and j_after <= 7:
+								self.render_tile(i, j_after)
+
+					if multiplier*y < multiplier*destination_coord_y:
+						break
+				elif is_horizontal:
+					i += 8
+					x -= multiplier*(increment+i)
+
+					if not is_windows_xp:
+						i_before = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+						i_after = i_before + multiplier
+						j = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+						
+						if j >= 0 and j <= 7:
+							if i_before >= 0 and i_before <= 7:
+								self.render_tile(i_before, j)
+							if i_after >= 0 and i_after <= 7:
+								self.render_tile(i_after, j)
+
+					if multiplier*x < multiplier*destination_coord_x:
+						break
+
+				side = Constants.TILE_LENGTH
+				piece_rect = (x, y, side, side)
+				piece_type = piece.piece_type
+				piece.piece_position = piece_rect
+
+				color = "w" if piece.is_white else "b"
+				image_file = color + str(piece_type) + ".png"
+
+				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+				self.screen.blit(image_piece, piece_rect)
+
+				pygame.display.update()
+				clock.tick(frames)
 
 		# Destination
 		self.board[destination_x][destination_y].piece = destination_piece
@@ -2056,6 +2084,8 @@ class Chesselate:
 						destination_move_y = Constants.NUM_MAPPING[board_y]
 						current_move = source_move_x + source_move_y + destination_move_x + destination_move_y
 
+						# print "Raw X:", mouse_pos[0]
+						# print "Raw Y:", mouse_pos[1]
 						self.move_piece(self.source_x, self.source_y, board_x, board_y)
 						has_player_moved = True
 
