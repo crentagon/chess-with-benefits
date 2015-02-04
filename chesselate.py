@@ -11,13 +11,17 @@ class Chesselate:
 	def __init__(self, is_player_white = True, cpu_level = 2000, fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
 		self.animate = False
 
+		# Captured pieces
+		self.user_captured = Stack()
+		self.opponent_captured = Stack()
+
 		# Player color specifics
 		self.is_player_white = is_player_white
 		self.goal_rank = 7 if self.is_player_white else 0
 
 		# Initialize the board and the stack
 		self.board = [[Tile() for i in range(8)] for i in range(8)]
-		self.stack = MoveStack()
+		self.stack = Stack()
 
 		# Important attributes for the FEN notation
 		self.active_turn = 'w'
@@ -548,6 +552,18 @@ class Chesselate:
 			icon_rect = (rect_x, rect_y, size, size)
 			self.screen.blit(image_piece, icon_rect)
 
+		# Render the captured pieces
+		opp_y = Constants.BOARD_BUFFER
+		usr_y = Constants.BOARD_BUFFER+Constants.USER_CAPTURE_BUFFER
+		cap_x = Constants.OUTERBOARD_WIDTH+Constants.BOARD_BUFFER
+		cap_width = Constants.CAPTURED_WIDTH
+		cap_height = Constants.CAPTURED_HEIGHT
+
+		opp_rect = (cap_x, opp_y, cap_width, cap_height)
+		usr_rect = (cap_x, usr_y, cap_width, cap_height)
+		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, opp_rect, 0)
+		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, usr_rect, 0)
+
 		# User is undergoing pawn promotion
 		if self.is_undergoing_promotion:
 
@@ -861,14 +877,34 @@ class Chesselate:
 
 		# pygame.display.update()
 
-	def move_piece(self, source_x, source_y, destination_x, destination_y):	
+	def move_piece(self, source_x, source_y, destination_x, destination_y):
+		# Flag for checking if the move is a capture
+		is_capture = self.board[destination_x][destination_y].piece is not None
+		if is_capture:
+			captured_piece = self.board[destination_x][destination_y].piece
+			captured_color = 'w' if captured_piece.is_white else 'b'
+			active_color = self.active_turn
+
+			if self.is_player_white:
+				if active_color == 'w':
+					self.user_captured.push(captured_color+str(captured_piece.piece_type))
+					self.user_captured.sort()
+				else: 
+					self.opponent_captured.push(captured_color+str(captured_piece.piece_type))
+					self.opponent_captured.sort()
+			else:
+				if active_color == 'w':
+					self.opponent_captured.push(captured_color+str(captured_piece.piece_type))
+					self.opponent_captured.sort()
+				else: 
+					self.user_captured.push(captured_color+str(captured_piece.piece_type))
+					self.user_captured.sort()
+
 		piece = self.board[source_x][source_y].piece
 
 		# Clear last movement
 		self.clear_last_movement()
 
-		# Flag for checking if the move is a capture
-		is_capture = self.board[destination_x][destination_y].piece is not None
 
 		# Move the piece in the game
 		destination_piece = self.board[source_x][source_y].piece
@@ -1049,7 +1085,6 @@ class Chesselate:
 		# Mark the last moved piece
 		self.board[destination_x][destination_y].is_last_movement = True
 		self.board[source_x][source_y].is_last_movement = True
-
 
 		# Half-move clock and full-move clock
 		is_pawn_move = piece.piece_type == Constants.P_PAWN

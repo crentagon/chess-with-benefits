@@ -91,22 +91,25 @@ class StockfishThread(threading.Thread):
 		self.ponder = line[3]
 		self.is_thread_done = True
 
-class MoveStack:
+class Stack:
 
-     def __init__(self):
-         self.container = [] 
+	def __init__(self):
+		self.container = [] 
 
-     def is_empty(self):
-         return self.size() == 0 
+	def is_empty(self):
+		return self.size() == 0 
 
-     def push(self, item):
-         self.container.append(item) 
+	def push(self, item):
+		self.container.append(item) 
 
-     def pop(self):
-         return self.container.pop() 
+	def pop(self):
+		return self.container.pop() 
 
-     def size(self):
-         return len(self.container)
+	def sort(self):
+		self.container.sort()
+
+	def size(self):
+		return len(self.container)
 
 class Constants:
 
@@ -192,6 +195,9 @@ class Constants:
 	SIDEBAR_WIDTH = 55
 	SIDEBAR_BUTTON = 45
 	SIDEBAR_BUTTON_ICON = 40
+	CAPTURED_WIDTH = 225
+	CAPTURED_HEIGHT = 150
+	USER_CAPTURE_BUFFER = 330
 
 	# Colors
 	TRAVERSABLE_BORDER = (10, 80, 100)
