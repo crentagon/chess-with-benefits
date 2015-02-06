@@ -566,11 +566,7 @@ class Chesselate:
 		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, usr_rect, 0)
 		pygame.draw.rect(self.screen, Constants.WHITE, usr_rect, 1)
 
-		"""
-		self.user_captured = Stack()
-		self.opponent_captured = Stack()
-		"""
-
+		# TO-DO: Turn this into a separate method
 		# Opponent's captured pieces
 		cur_max = 3
 		cur_x = cap_x + Constants.MINIBUFFER
@@ -583,7 +579,7 @@ class Chesselate:
 			rect_y = cur_y + (Constants.CAPTURED_SIZE)*j
 			piece_rect = (rect_x, rect_y, side, side)
 
-			image_file = "mini_"+ element + ".png"
+			image_file = "mini_"+ element[0] + ".png"
 
 			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 			self.screen.blit(image_piece, piece_rect)
@@ -592,8 +588,6 @@ class Chesselate:
 			i = 0 if i == cur_max else i+1
 
 		# User's captured pieces
-		cur_max = 3
-		cur_x = cap_x + Constants.MINIBUFFER
 		cur_y = usr_y + Constants.MINIBUFFER
 		side = Constants.CAPTURED_SIZE
 		i = 0
@@ -603,7 +597,7 @@ class Chesselate:
 			rect_y = cur_y + (Constants.CAPTURED_SIZE)*j
 			piece_rect = (rect_x, rect_y, side, side)
 
-			image_file = "mini_"+ element + ".png"
+			image_file = "mini_"+ element[0] + ".png"
 
 			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 			self.screen.blit(image_piece, piece_rect)
@@ -934,24 +928,25 @@ class Chesselate:
 
 			if self.is_player_white:
 				if active_color == 'w':
-					self.user_captured.push(captured_color+str(captured_piece.piece_type))
+					self.user_captured.push([captured_color+str(captured_piece.piece_type), self.fullmove_clock])
 					self.user_captured.sort()
 				else: 
-					self.opponent_captured.push(captured_color+str(captured_piece.piece_type))
+					self.opponent_captured.push([captured_color+str(captured_piece.piece_type), self.fullmove_clock])
 					self.opponent_captured.sort()
 			else:
 				if active_color == 'w':
-					self.opponent_captured.push(captured_color+str(captured_piece.piece_type))
+					self.opponent_captured.push([captured_color+str(captured_piece.piece_type), self.fullmove_clock])
 					self.opponent_captured.sort()
 				else: 
-					self.user_captured.push(captured_color+str(captured_piece.piece_type))
+					self.user_captured.push([captured_color+str(captured_piece.piece_type), self.fullmove_clock])
 					self.user_captured.sort()
+
+			# print "Capture!", self.fullmove_clock
 
 		piece = self.board[source_x][source_y].piece
 
 		# Clear last movement
 		self.clear_last_movement()
-
 
 		# Move the piece in the game
 		destination_piece = self.board[source_x][source_y].piece
@@ -2124,6 +2119,9 @@ class Chesselate:
 
 										fen_string = fen
 										self.convert_fen_to_board(fen)
+										self.opponent_captured.search_and_pop(self.fullmove_clock)
+										self.user_captured.search_and_pop(self.fullmove_clock)
+
 										self.clear_traversable()
 										self.build_threats(self.board)
 										self.render_board()

@@ -108,6 +108,14 @@ class Stack:
 	def sort(self):
 		self.container.sort()
 
+	def search_and_pop(self, fullmove_clock):
+		i = 0
+		for element in self.container:
+			if element[1] == fullmove_clock:
+				self.container.pop(i)
+				break
+			i += 1
+
 	def size(self):
 		return len(self.container)
 
