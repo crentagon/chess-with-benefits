@@ -1870,6 +1870,21 @@ class Chesselate:
 
 	def convert_fen_to_board(self, fen_string):
 
+		board_pieces = {
+			"P": 8,
+			"R": 2,
+			"N": 2,
+			"B": 2,
+			"Q": 1,
+			"K": 1,
+			"p": 8,
+			"r": 2,
+			"n": 2,
+			"b": 2,
+			"q": 1,
+			"k": 1
+		}
+
 		# print ">>> FEN_TO_BOARD:", fen_string
 		# sys.exit(0)
 		self.clear_board()
@@ -1916,11 +1931,32 @@ class Chesselate:
 				    j += element
 				except ValueError:
 					is_piece_player = True if (self.is_player_white and converter[element][1]) or (not self.is_player_white and not converter[element][1]) else False
-
+					board_pieces[element] -= 1
 					self.board[j][7-i].piece = Piece(converter[element][0], converter[element][1], is_piece_player)
 					j += 1
 			i+=1
 			j=0
+
+		for element in board_pieces:	
+			# print element, board_pieces[element]
+			while board_pieces[element] > 0:
+				captured_color = 'w' if converter[element][1] else 'b'
+				if self.is_player_white:
+					if captured_color == 'b':
+						self.user_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
+						self.user_captured.sort()
+					else: 
+						self.opponent_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
+						self.opponent_captured.sort()
+				else:
+					if captured_color == 'b':
+						self.opponent_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
+						self.opponent_captured.sort()
+					else: 
+						self.user_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
+						self.user_captured.sort()
+				board_pieces[element] -= 1
+
 
 	def play(self):
 		self.build_threats(self.board)
@@ -2198,5 +2234,5 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
-	Chesselate(is_player_white=True, cpu_level=2000).play()
+	test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
+	Chesselate(is_player_white=True, cpu_level=2000, fen_string = test).play()
