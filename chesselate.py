@@ -562,7 +562,54 @@ class Chesselate:
 		opp_rect = (cap_x, opp_y, cap_width, cap_height)
 		usr_rect = (cap_x, usr_y, cap_width, cap_height)
 		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, opp_rect, 0)
+		pygame.draw.rect(self.screen, Constants.WHITE, opp_rect, 1)
 		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, usr_rect, 0)
+		pygame.draw.rect(self.screen, Constants.WHITE, usr_rect, 1)
+
+		"""
+		self.user_captured = Stack()
+		self.opponent_captured = Stack()
+		"""
+
+		# Opponent's captured pieces
+		cur_max = 3
+		cur_x = cap_x + Constants.MINIBUFFER
+		cur_y = opp_y + Constants.MINIBUFFER
+		side = Constants.CAPTURED_SIZE
+		i = 0
+		j = 0
+		for element in self.opponent_captured.container:
+			rect_x = cur_x + (Constants.CAPTURED_SIZE)*i
+			rect_y = cur_y + (Constants.CAPTURED_SIZE)*j
+			piece_rect = (rect_x, rect_y, side, side)
+
+			image_file = "mini_"+ element + ".png"
+
+			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+			self.screen.blit(image_piece, piece_rect)
+
+			j = j + 1 if i == cur_max else j
+			i = 0 if i == cur_max else i+1
+
+		# User's captured pieces
+		cur_max = 3
+		cur_x = cap_x + Constants.MINIBUFFER
+		cur_y = usr_y + Constants.MINIBUFFER
+		side = Constants.CAPTURED_SIZE
+		i = 0
+		j = 0
+		for element in self.user_captured.container:
+			rect_x = cur_x + (Constants.CAPTURED_SIZE)*i
+			rect_y = cur_y + (Constants.CAPTURED_SIZE)*j
+			piece_rect = (rect_x, rect_y, side, side)
+
+			image_file = "mini_"+ element + ".png"
+
+			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+			self.screen.blit(image_piece, piece_rect)
+
+			j = j + 1 if i == cur_max else j
+			i = 0 if i == cur_max else i+1
 
 		# User is undergoing pawn promotion
 		if self.is_undergoing_promotion:
@@ -2153,5 +2200,5 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	# test = "6k1/ppp3pp/2n1p3/7P/1PP5/1P4P1/3r3r/R4R1K w ---- - 1 25"
+	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
 	Chesselate(is_player_white=True, cpu_level=2000).play()
