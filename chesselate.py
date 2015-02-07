@@ -528,83 +528,6 @@ class Chesselate:
 		# Render the board background
 		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, (0, 0, Constants.OUTERBOARD_WIDTH, Constants.OUTERBOARD_HEIGHT), 0)
 		
-		# Render the sidebar buttons
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH, 0, Constants.SIDEBAR_WIDTH, Constants.OUTERBOARD_HEIGHT), 0)
-		rect_x = ((Constants.SIDEBAR_WIDTH - Constants.SIDEBAR_BUTTON)/2) + (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH)
-		size = Constants.SIDEBAR_BUTTON
-		sub_rect_x = ((Constants.SIDEBAR_WIDTH - Constants.SIDEBAR_BUTTON_ICON)/2) + (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH)
-		sub_size = Constants.SIDEBAR_BUTTON_ICON
-		i = 0
-
-		for element in self.sidebar_buttons:
-			image_file = element[0]
-			image_text = element[1]
-			image_icon = pygame.image.load(Constants.RESOURCES+image_file)
-
-			# The button
-			rect_y = Constants.BOARD_BUFFER + (size + Constants.BOARD_BUFFER)*i
-			button_rect = (rect_x, rect_y, size, size)
-			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, button_rect, 0)
-
-			# The icon
-			sub_rect_y = rect_y + ((size - sub_size)/2)
-			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
-			icon_rect = (rect_x, rect_y, size, size)
-			self.screen.blit(image_piece, icon_rect)
-
-		# Render the captured pieces
-		opp_y = Constants.BOARD_BUFFER
-		usr_y = Constants.BOARD_BUFFER+Constants.USER_CAPTURE_BUFFER
-		cap_x = Constants.OUTERBOARD_WIDTH+Constants.BOARD_BUFFER
-		cap_width = Constants.CAPTURED_WIDTH
-		cap_height = Constants.CAPTURED_HEIGHT
-
-		opp_rect = (cap_x, opp_y, cap_width, cap_height)
-		usr_rect = (cap_x, usr_y, cap_width, cap_height)
-		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, opp_rect, 0)
-		pygame.draw.rect(self.screen, Constants.WHITE, opp_rect, 1)
-		pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, usr_rect, 0)
-		pygame.draw.rect(self.screen, Constants.WHITE, usr_rect, 1)
-
-		# TO-DO: Turn this into a separate method
-		# Opponent's captured pieces
-		cur_max = 3
-		cur_x = cap_x + Constants.MINIBUFFER
-		cur_y = opp_y + Constants.MINIBUFFER
-		side = Constants.CAPTURED_SIZE
-		i = 0
-		j = 0
-		for element in self.opponent_captured.container:
-			rect_x = cur_x + (Constants.CAPTURED_SIZE)*i
-			rect_y = cur_y + (Constants.CAPTURED_SIZE)*j
-			piece_rect = (rect_x, rect_y, side, side)
-
-			image_file = "mini_"+ element[0] + ".png"
-
-			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
-			self.screen.blit(image_piece, piece_rect)
-
-			j = j + 1 if i == cur_max else j
-			i = 0 if i == cur_max else i+1
-
-		# User's captured pieces
-		cur_y = usr_y + Constants.MINIBUFFER
-		side = Constants.CAPTURED_SIZE
-		i = 0
-		j = 0
-		for element in self.user_captured.container:
-			rect_x = cur_x + (Constants.CAPTURED_SIZE)*i
-			rect_y = cur_y + (Constants.CAPTURED_SIZE)*j
-			piece_rect = (rect_x, rect_y, side, side)
-
-			image_file = "mini_"+ element[0] + ".png"
-
-			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
-			self.screen.blit(image_piece, piece_rect)
-
-			j = j + 1 if i == cur_max else j
-			i = 0 if i == cur_max else i+1
-
 		# User is undergoing pawn promotion
 		if self.is_undergoing_promotion:
 
@@ -638,6 +561,84 @@ class Chesselate:
 			promotion_rect.center = Constants.PROMOTION_COORD
 
 			self.screen.blit(promotion_text, promotion_rect)
+
+		else:
+			# Render the sidebar buttons
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH, 0, Constants.SIDEBAR_WIDTH, Constants.OUTERBOARD_HEIGHT), 0)
+			rect_x = ((Constants.SIDEBAR_WIDTH - Constants.SIDEBAR_BUTTON)/2) + (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH)
+			size = Constants.SIDEBAR_BUTTON
+			sub_rect_x = ((Constants.SIDEBAR_WIDTH - Constants.SIDEBAR_BUTTON_ICON)/2) + (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH)
+			sub_size = Constants.SIDEBAR_BUTTON_ICON
+			i = 0
+
+			for element in self.sidebar_buttons:
+				image_file = element[0]
+				image_text = element[1]
+				image_icon = pygame.image.load(Constants.RESOURCES+image_file)
+
+				# The button
+				rect_y = Constants.BOARD_BUFFER + (size + Constants.BOARD_BUFFER)*i
+				button_rect = (rect_x, rect_y, size, size)
+				pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, button_rect, 0)
+
+				# The icon
+				sub_rect_y = rect_y + ((size - sub_size)/2)
+				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+				icon_rect = (rect_x, rect_y, size, size)
+				self.screen.blit(image_piece, icon_rect)
+
+			# Render the captured pieces
+			opp_y = Constants.BOARD_BUFFER
+			usr_y = Constants.BOARD_BUFFER+Constants.USER_CAPTURE_BUFFER
+			cap_x = Constants.OUTERBOARD_WIDTH+Constants.BOARD_BUFFER
+			cap_width = Constants.CAPTURED_WIDTH
+			cap_height = Constants.CAPTURED_HEIGHT
+
+			opp_rect = (cap_x, opp_y, cap_width, cap_height)
+			usr_rect = (cap_x, usr_y, cap_width, cap_height)
+			pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, opp_rect, 0)
+			pygame.draw.rect(self.screen, Constants.WHITE, opp_rect, 1)
+			pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, usr_rect, 0)
+			pygame.draw.rect(self.screen, Constants.WHITE, usr_rect, 1)
+
+			# TO-DO: Turn this into a separate method
+			# Opponent's captured pieces
+			cur_max = 3
+			cur_x = cap_x + Constants.MINIBUFFER
+			cur_y = opp_y + Constants.MINIBUFFER
+			side = Constants.CAPTURED_SIZE
+			i = 0
+			j = 0
+			for element in self.opponent_captured.container:
+				rect_x = cur_x + (Constants.CAPTURED_SIZE)*i
+				rect_y = cur_y + (Constants.CAPTURED_SIZE)*j
+				piece_rect = (rect_x, rect_y, side, side)
+
+				image_file = "mini_"+ element[0] + ".png"
+
+				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+				self.screen.blit(image_piece, piece_rect)
+
+				j = j + 1 if i == cur_max else j
+				i = 0 if i == cur_max else i+1
+
+			# User's captured pieces
+			cur_y = usr_y + Constants.MINIBUFFER
+			side = Constants.CAPTURED_SIZE
+			i = 0
+			j = 0
+			for element in self.user_captured.container:
+				rect_x = cur_x + (Constants.CAPTURED_SIZE)*i
+				rect_y = cur_y + (Constants.CAPTURED_SIZE)*j
+				piece_rect = (rect_x, rect_y, side, side)
+
+				image_file = "mini_"+ element[0] + ".png"
+
+				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+				self.screen.blit(image_piece, piece_rect)
+
+				j = j + 1 if i == cur_max else j
+				i = 0 if i == cur_max else i+1
 
 		# Render board contents
 		for i in range(8):
@@ -918,7 +919,7 @@ class Chesselate:
 
 		# pygame.display.update()
 
-	def move_piece(self, source_x, source_y, destination_x, destination_y):
+	def move_piece(self, source_x, source_y, destination_x, destination_y, promotion = False):
 		# Flag for checking if the move is a capture
 		is_capture = self.board[destination_x][destination_y].piece is not None
 		if is_capture:
@@ -1123,6 +1124,9 @@ class Chesselate:
 
 		# Destination
 		self.board[destination_x][destination_y].piece = destination_piece
+
+		if promotion:
+			self.board[destination_x][destination_y].piece.piece_type = promotion
 
 		# Mark the last moved piece
 		self.board[destination_x][destination_y].is_last_movement = True
@@ -1850,9 +1854,7 @@ class Chesselate:
 				target_tile_x = Constants.PIECE_MAPPING[self.en_passant[0]]
 				target_tile_y = Constants.PIECE_MAPPING[self.en_passant[1]]
 				
-				factor = 1
-				if not self.is_player_white:
-					factor = -1
+				factor = 1 if self.is_player_white else -1
 
 				if j == target_tile_y - factor and (i == target_tile_x + factor or i == target_tile_x - factor):
 					target_tile = self.board[target_tile_x][target_tile_y]
@@ -1892,7 +1894,7 @@ class Chesselate:
 
 		# No additional processing required
 		self.active_turn = fen[1]
-		self.en_passant_info = fen[3]
+		self.en_passant = fen[3]
 		self.halfmove_clock = int(fen[4])
 		self.fullmove_clock = int(fen[5])
 
@@ -1972,8 +1974,14 @@ class Chesselate:
 		has_player_moved = False
 		has_opponent_moved = False
 
-		is_turn_user = True if self.is_player_white else False
-		is_turn_opponent = False if is_turn_user else True
+		if fen_string == "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1":
+			is_turn_user = True if self.is_player_white else False
+			is_turn_opponent = False if is_turn_user else True
+		else:
+			is_active_turn_white = self.active_turn == 'w'
+			is_turn_user = self.is_player_white == is_active_turn_white
+			is_turn_opponent = False if is_turn_user else True
+
 		thread = None
 
 		while(True):			
@@ -2005,7 +2013,7 @@ class Chesselate:
 				is_turn_user = True
 
 			# Opponent's Turn
-			if not self.debug_mode and is_turn_opponent:
+			if not self.debug_mode and is_turn_opponent and not self.is_undergoing_promotion:
 				print fen_string
 				thread = StockfishThread(fen_string, self.cpu_level)
 
@@ -2024,11 +2032,11 @@ class Chesselate:
 					print cpu_move
 					print ponder
 
-					if cpu_move == '(none)' and ponder == '(none)':
-						print "Stalemate!"
-						time.sleep(2)
-						sys.exit(0)
-					elif cpu_move == '(none)':
+					# if cpu_move == '(none)' and ponder == '(none)':
+					# 	print "Stalemate!"
+					# 	time.sleep(2)
+					# 	sys.exit(0)
+					if cpu_move == '(none)':
 						print "User won!"
 						time.sleep(2)
 						sys.exit(0)
@@ -2037,6 +2045,7 @@ class Chesselate:
 					source_y = Constants.PIECE_MAPPING[cpu_move[1:2]]
 					destination_x = Constants.PIECE_MAPPING[cpu_move[2:3]]
 					destination_y = Constants.PIECE_MAPPING[cpu_move[3:4]]
+					promotion = False
 
 					if len(cpu_move) == 5:
 						promotion = cpu_move[4:5]
@@ -2046,10 +2055,10 @@ class Chesselate:
 							"n": Constants.P_KNIGHT,
 							"q": Constants.P_QUEEN
 						}
-						self.board[destination_x][destination_y].piece.piece_type = promotion_map[promotion]
-
-					else:
-						self.move_piece(source_x, source_y, destination_x, destination_y)
+						promotion = promotion_map[promotion]
+						# self.board[destination_x][destination_y].piece.piece_type = promotion_map[promotion]
+	
+					self.move_piece(source_x, source_y, destination_x, destination_y, promotion)
 
 					has_opponent_moved = True
 					thread.is_thread_done = False
@@ -2116,6 +2125,7 @@ class Chesselate:
 											thread.is_undo_clicked = True
 
 											self.stack.push(element)
+											
 											is_turn_opponent = False
 											is_turn_user = True
 
@@ -2240,5 +2250,5 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
-	Chesselate(is_player_white=True, cpu_level=2000).play()
+	test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
+	Chesselate(is_player_white=False, cpu_level=2000, fen_string = test).play()
