@@ -35,7 +35,7 @@ class Chesselate:
 		self.fullmove_clock = 1
 
 		# Set up the board given the fen_string
-		self.convert_fen_to_board(fen_string)
+		self.convert_fen_to_board(fen_string, True)
 
 		# Game Window information
 		pygame.init()
@@ -941,7 +941,7 @@ class Chesselate:
 					self.user_captured.push([captured_color+str(captured_piece.piece_type), self.fullmove_clock])
 					self.user_captured.sort()
 
-			# print "Capture!", self.fullmove_clock
+			# print ">>> Pushed:", [captured_color+str(captured_piece.piece_type), self.fullmove_clock]
 
 		piece = self.board[source_x][source_y].piece
 
@@ -1868,7 +1868,7 @@ class Chesselate:
 			for j in range(8):
 				self.board[i][j].piece = None
 
-	def convert_fen_to_board(self, fen_string):
+	def convert_fen_to_board(self, fen_string, is_init = False):
 
 		board_pieces = {
 			"P": 8,
@@ -1931,31 +1931,34 @@ class Chesselate:
 				    j += element
 				except ValueError:
 					is_piece_player = True if (self.is_player_white and converter[element][1]) or (not self.is_player_white and not converter[element][1]) else False
-					board_pieces[element] -= 1
+					if is_init:
+						board_pieces[element] -= 1
 					self.board[j][7-i].piece = Piece(converter[element][0], converter[element][1], is_piece_player)
 					j += 1
 			i+=1
 			j=0
 
-		for element in board_pieces:	
-			# print element, board_pieces[element]
-			while board_pieces[element] > 0:
-				captured_color = 'w' if converter[element][1] else 'b'
-				if self.is_player_white:
-					if captured_color == 'b':
-						self.user_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
-						self.user_captured.sort()
-					else: 
-						self.opponent_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
-						self.opponent_captured.sort()
-				else:
-					if captured_color == 'b':
-						self.opponent_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
-						self.opponent_captured.sort()
-					else: 
-						self.user_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
-						self.user_captured.sort()
-				board_pieces[element] -= 1
+		if is_init:
+			for element in board_pieces:	
+				# print element, board_pieces[element]
+				while board_pieces[element] > 0:
+					captured_color = 'w' if converter[element][1] else 'b'
+					if self.is_player_white:
+						if captured_color == 'b':
+							self.user_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
+							self.user_captured.sort()
+						else: 
+							self.opponent_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
+							self.opponent_captured.sort()
+					else:
+						if captured_color == 'b':
+							self.opponent_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
+							self.opponent_captured.sort()
+						else: 
+							self.user_captured.push([captured_color+str(converter[element][0]), self.fullmove_clock])
+							self.user_captured.sort()
+					board_pieces[element] -= 1
+					# print "PUSHED!!!"
 
 
 	def play(self):
@@ -2155,8 +2158,11 @@ class Chesselate:
 
 										fen_string = fen
 										self.convert_fen_to_board(fen)
-										self.opponent_captured.search_and_pop(self.fullmove_clock)
-										self.user_captured.search_and_pop(self.fullmove_clock)
+
+										index = self.fullmove_clock #if self.is_player_white else self.fullmove_clock - 1
+										opp_index = self.fullmove_clock if self.is_player_white else self.fullmove_clock + 1
+										self.opponent_captured.search_and_pop(opp_index)
+										self.user_captured.search_and_pop(index)
 
 										self.clear_traversable()
 										self.build_threats(self.board)
@@ -2234,5 +2240,5 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
-	Chesselate(is_player_white=True, cpu_level=2000, fen_string = test).play()
+	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
+	Chesselate(is_player_white=True, cpu_level=2000).play()

@@ -116,6 +116,12 @@ class Stack:
 				break
 			i += 1
 
+	def print_stack(self):
+		print ">>> Start print"
+		for element in self.container:
+			print ">>>>>>", element
+		print ">>> End print"
+
 	def size(self):
 		return len(self.container)
 
