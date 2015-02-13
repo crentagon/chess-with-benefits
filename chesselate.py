@@ -2004,9 +2004,10 @@ class Chesselate:
 					is_turn_opponent = False
 					is_turn_user = True
 
-				fen_string = self.convert_to_fen()
-				self.stack.push([fen_string, current_move])
-				# print "Pushed:", fen_string
+				if not self.is_undergoing_promotion:
+					fen_string = self.convert_to_fen()
+					self.stack.push([fen_string, current_move])
+					# print "Pushed:", fen_string
 
 			if self.debug_mode:
 				is_turn_opponent = False
