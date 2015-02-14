@@ -23,6 +23,18 @@ class Chesselate:
 		self.board = [[Tile() for i in range(8)] for i in range(8)]
 		self.stack = Stack()
 
+		# HP bars
+		self.user_hp_max = 40
+		self.user_hp_current = 40
+		self.user_hp_current_before = 40
+		self.opponent_hp_max = 40
+		self.opponent_hp_current = 40
+		self.opponent_hp_current_before = 40
+		self.alpha_hp_user = 0
+		self.alpha_hp_opponent = 0 
+		self.hp_user_delta = 0
+		self.hp_opponent_delta = 0 
+
 		# Important attributes for the FEN notation
 		self.active_turn = 'w'
 		self.kingside_white = 'K'
@@ -588,18 +600,20 @@ class Chesselate:
 				self.screen.blit(image_piece, icon_rect)
 
 			# Render the captured pieces
-			opp_y = Constants.BOARD_BUFFER
+			hp_container_height = 20
+			hp_container_width = 35
+			opp_y = Constants.BOARD_BUFFER+hp_container_height
 			usr_y = Constants.BOARD_BUFFER+Constants.USER_CAPTURE_BUFFER
 			cap_x = Constants.OUTERBOARD_WIDTH+Constants.BOARD_BUFFER
 			cap_width = Constants.CAPTURED_WIDTH
 			cap_height = Constants.CAPTURED_HEIGHT
 
-			opp_rect = (cap_x, opp_y, cap_width, cap_height)
-			usr_rect = (cap_x, usr_y, cap_width, cap_height)
-			pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, opp_rect, 0)
-			pygame.draw.rect(self.screen, Constants.WHITE, opp_rect, 1)
-			pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, usr_rect, 0)
-			pygame.draw.rect(self.screen, Constants.WHITE, usr_rect, 1)
+			opp_rect = (cap_x +1, opp_y, cap_width, cap_height)
+			usr_rect = (cap_x +1, usr_y, cap_width, cap_height)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, opp_rect, 0)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, opp_rect, 4)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, usr_rect, 0)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, usr_rect, 4)
 
 			# TO-DO: Turn this into a separate method
 			# Opponent's captured pieces
@@ -639,6 +653,114 @@ class Chesselate:
 
 				j = j + 1 if i == cur_max else j
 				i = 0 if i == cur_max else i+1
+
+			# Render the HP
+			opp_y = Constants.BOARD_BUFFER
+			usr_y = usr_y - hp_container_height
+			hp_container_opponent_rect = (cap_x, opp_y, hp_container_width, hp_container_height)
+			hp_container_user_rect = (cap_x, usr_y, hp_container_width, hp_container_height)
+
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_opponent_rect, 0)
+			# pygame.draw.rect(self.screen, Constants.WHITE, hp_container_opponent_rect, 1)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_user_rect, 0)
+			# pygame.draw.rect(self.screen, Constants.WHITE, hp_container_user_rect, 1)
+
+			font_hp = Constants.RESOURCES+Constants.FONT_HP
+			hp_text = "HP:"
+			basic_font = pygame.font.Font(font_hp, 20)
+
+			hp_text_render = basic_font.render(hp_text, True, Constants.WHITE)
+			hp_text_rect = hp_text_render.get_rect()
+
+			hp_text_rect.centerx = cap_x + 17
+			hp_text_rect.centery = opp_y + 11
+			self.screen.blit(hp_text_render, hp_text_rect)
+
+			hp_text_rect.centery = usr_y + 11
+			self.screen.blit(hp_text_render, hp_text_rect)
+
+			# Render the HP bar
+			hp_border_width = 4
+			hp_bar_height = 18 - (hp_border_width/2)
+			hp_bar_width = 190
+			hp_bar_x = cap_x + hp_container_width
+			hp_bar_y_opp = opp_y + (hp_border_width/2) -1
+			hp_bar_y_user = usr_y + (hp_border_width/2) -1
+
+			hp_current_user = self.user_hp_current 
+			hp_current_user_before = self.user_hp_current_before
+			hp_current_opponent = self.opponent_hp_current
+			hp_current_opponent_before = self.opponent_hp_current_before
+
+			percentage_user = hp_current_user_before*1.0/self.user_hp_max
+			percentage_opponent = hp_current_opponent_before*1.0/self.opponent_hp_max 
+
+			hp_color_user = Constants.HP_GOOD
+			if percentage_user <= 0.25:
+				hp_color_user = Constants.HP_POOR
+			elif percentage_user <= 0.5:
+				hp_color_user = Constants.HP_FAIR
+
+			hp_color_opp = Constants.HP_GOOD
+			if percentage_opponent <= 0.25:
+				hp_color_opp = Constants.HP_POOR
+			elif percentage_opponent <= 0.5:
+				hp_color_opp = Constants.HP_FAIR
+
+			if hp_current_user_before > hp_current_user:
+				self.user_hp_current_before -= 1
+				hp_color_user = Constants.WHITE
+				self.alpha_hp_user = 255
+			elif hp_current_user_before < hp_current_user:
+				self.user_hp_current_before += 1
+				hp_color_user = Constants.WHITE
+				self.alpha_hp_user = 255
+
+			if hp_current_opponent_before > hp_current_opponent:
+				self.opponent_hp_current_before -= 1
+				hp_color_opp = Constants.WHITE
+				self.alpha_hp_opponent = 255
+			elif hp_current_opponent_before < hp_current_opponent:
+				self.opponent_hp_current_before += 1
+				hp_color_opp = Constants.WHITE
+				self.alpha_hp_opponent = 255
+
+			hp_user_rect = (hp_bar_x, hp_bar_y_user, hp_bar_width, hp_bar_height)
+			hp_opponent_rect = (hp_bar_x, hp_bar_y_opp, hp_bar_width, hp_bar_height)
+			hp_user_rect_curr = (hp_bar_x, hp_bar_y_user, hp_bar_width*percentage_user, hp_bar_height)
+			hp_opponent_rect_curr = (hp_bar_x, hp_bar_y_opp, hp_bar_width*percentage_opponent, hp_bar_height)
+
+
+			pygame.draw.rect(self.screen, hp_color_opp, hp_opponent_rect_curr, 0)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_opponent_rect, hp_border_width)
+			pygame.draw.rect(self.screen, hp_color_user, hp_user_rect_curr, 0)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_user_rect, hp_border_width)
+
+			hp_text_user = str(self.user_hp_current_before)+"/"+str(self.user_hp_max)
+			hp_text_opponent = str(self.opponent_hp_current_before)+"/"+str(self.opponent_hp_max)
+
+			font_size = 15
+			# font_hp = "askjhakjshd"
+			basic_font = pygame.font.Font(font_hp, font_size)
+			hp_user = basic_font.render(hp_text_user, True, Constants.SIDEBAR_BUTTON_BG)
+			hp_opponent = basic_font.render(hp_text_opponent, True, Constants.SIDEBAR_BUTTON_BG)
+
+			# hp_user.set_alpha(alpha_hp_user)
+			# hp_opponent.set_alpha(alpha_hp_opponent)
+
+			hp_text_x = hp_bar_x + hp_container_width - (font_size/2)
+			hp_text_y_user = hp_bar_y_user + hp_container_height/2 -1
+			hp_text_y_opp = hp_bar_y_opp + hp_container_height/2 -1
+
+			hp_user_rect = hp_user.get_rect()
+			hp_user_rect.centerx = hp_text_x
+			hp_user_rect.centery = hp_text_y_user
+			hp_opponent_rect = hp_opponent.get_rect()
+			hp_opponent_rect.centerx = hp_text_x
+			hp_opponent_rect.centery = hp_text_y_opp
+
+			self.screen.blit(hp_user, hp_user_rect)
+			self.screen.blit(hp_opponent, hp_opponent_rect)
 
 		# Render board contents
 		for i in range(8):
@@ -708,7 +830,7 @@ class Chesselate:
 				if render_threats:
 					difference = 15
 					alpha = 0
-					basic_font = pygame.font.Font(font_reg, 20)
+					basic_font = pygame.font.Font(font_reg, 25)
 
 					# The opponent is guarding the tile!
 					if cumulative_threat < 0:
@@ -751,7 +873,7 @@ class Chesselate:
 
 						text_rect = threat_text.get_rect()
 						text_rect.centerx = Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*i + 5
-						text_rect.centery = Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*j + 8
+						text_rect.centery = Constants.BOARD_BUFFER+(difference/2)+Constants.TILE_LENGTH*j + 10
 
 						threat_text.set_alpha(alpha_text)
 						self.screen.blit(threat_text, text_rect)
@@ -775,7 +897,7 @@ class Chesselate:
 						num_text = Constants.NUM_MAPPING[i]
 						char_text = Constants.CHAR_MAPPING[7-i]
 
-					basic_font = pygame.font.SysFont(font, 15)
+					basic_font = pygame.font.Font(font, 15)
 					guide_text_char = basic_font.render(char_text, True, Constants.WHITE)
 					guide_text_num = basic_font.render(num_text, True, Constants.WHITE)
 
@@ -921,8 +1043,17 @@ class Chesselate:
 
 	def move_piece(self, source_x, source_y, destination_x, destination_y, promotion = False):
 		# Flag for checking if the move is a capture
+		hp_converter = {
+			0: 1,
+			9: 9,
+			5: 5,
+			3: 3,
+			4: 3,
+			1: 1,
+		}
 		is_capture = self.board[destination_x][destination_y].piece is not None
 		if is_capture:
+
 			captured_piece = self.board[destination_x][destination_y].piece
 			captured_color = 'w' if captured_piece.is_white else 'b'
 			active_color = self.active_turn
@@ -931,16 +1062,21 @@ class Chesselate:
 				if active_color == 'w':
 					self.user_captured.push([captured_color+str(captured_piece.piece_type), self.fullmove_clock])
 					self.user_captured.sort()
+					self.opponent_hp_current -= hp_converter[captured_piece.piece_type]
 				else: 
 					self.opponent_captured.push([captured_color+str(captured_piece.piece_type), self.fullmove_clock])
 					self.opponent_captured.sort()
+					self.user_hp_current -= hp_converter[captured_piece.piece_type]
 			else:
 				if active_color == 'w':
 					self.opponent_captured.push([captured_color+str(captured_piece.piece_type), self.fullmove_clock])
 					self.opponent_captured.sort()
+					self.user_hp_current -= hp_converter[captured_piece.piece_type]
 				else: 
 					self.user_captured.push([captured_color+str(captured_piece.piece_type), self.fullmove_clock])
 					self.user_captured.sort()
+					self.opponent_hp_current -= hp_converter[captured_piece.piece_type]
+
 
 			# print ">>> Pushed:", [captured_color+str(captured_piece.piece_type), self.fullmove_clock]
 
@@ -1127,6 +1263,8 @@ class Chesselate:
 
 		if promotion:
 			self.board[destination_x][destination_y].piece.piece_type = promotion
+			self.opponent_hp_current += (hp_converter[promotion] - 1)
+
 
 		# Mark the last moved piece
 		self.board[destination_x][destination_y].is_last_movement = True
@@ -1871,6 +2009,8 @@ class Chesselate:
 				self.board[i][j].piece = None
 
 	def convert_fen_to_board(self, fen_string, is_init = False):
+		self.user_hp_current = 0
+		self.opponent_hp_current = 0
 
 		board_pieces = {
 			"P": 8,
@@ -1924,6 +2064,21 @@ class Chesselate:
 			"p": [Constants.P_PAWN, False],
 		}
 
+		hp_converter = {
+			"K": 1,
+			"Q": 9,
+			"R": 5,
+			"B": 3,
+			"N": 3,
+			"P": 1,
+			"k": 1,
+			"q": 9,
+			"r": 5,
+			"b": 3,
+			"n": 3,
+			"p": 1,
+		}
+
 		i = 0
 		j = 0
 		for row in rows:
@@ -1936,9 +2091,16 @@ class Chesselate:
 					if is_init:
 						board_pieces[element] -= 1
 					self.board[j][7-i].piece = Piece(converter[element][0], converter[element][1], is_piece_player)
+					if is_piece_player:
+						self.user_hp_current += hp_converter[element]
+					else:
+						self.opponent_hp_current += hp_converter[element]
 					j += 1
 			i+=1
 			j=0
+
+		self.user_hp_current_before = self.user_hp_current
+		self.opponent_hp_current_before = self.opponent_hp_current
 
 		if is_init:
 			for element in board_pieces:	
@@ -2187,6 +2349,15 @@ class Chesselate:
 
 								if promotion != '':
 									self.board[self.source_x][self.source_y].piece.piece_type = promotion
+									hp_converter = {
+										0: 1,
+										9: 9,
+										5: 5,
+										3: 3,
+										4: 3,
+										1: 1,
+									}
+									self.user_hp_current += (hp_converter[promotion] - 1)
 									self.is_board_clickable = True
 									self.is_undergoing_promotion = False
 
@@ -2252,4 +2423,6 @@ class Chesselate:
 
 if __name__ == '__main__':
 	test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
-	Chesselate(is_player_white=False, cpu_level=2000, fen_string = test).play()
+	# test = "r5k1/R7/1P4p1/5p1p/2P5/1P6/3p1PPP/3K4 w ---- - 1 33" #temp test!
+	Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
+	# Chesselate(is_player_white=False, cpu_level=2000).play()

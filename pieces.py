@@ -187,8 +187,9 @@ class Constants:
 	TILE_7 = 6
 	TILE_8 = 7
 
-	FONT = "fonts/Roboto-Light.ttf"
-	FONT_REG = "fonts/Roboto-Medium.ttf"
+	FONT = "fonts/DisposableDroidBB_bld.ttf"
+	FONT_REG = "fonts/DisposableDroidBB_bld.ttf"
+	FONT_HP = "fonts/DisposableDroidBB_bld.ttf"
 
 	# Piece information
 	P_KING = 0
@@ -206,6 +207,8 @@ class Constants:
 	INNERBOARD_WIDTH = 480
 	INNERBOARD_HEIGHT = 480
 	TILE_LENGTH = INNERBOARD_HEIGHT/8
+
+	# Sidebar information
 	SIDEBAR_WIDTH = 55
 	SIDEBAR_BUTTON = 45
 	SIDEBAR_BUTTON_ICON = 40
@@ -220,6 +223,9 @@ class Constants:
 	TRAVERSABLE_SEMI = (100, 50, 255)
 	TRAVERSABLE_COLOR = (120, 200, 240)
 	TRAVERSABLE_MINI = (220, 200, 255)
+	HP_GOOD = (46, 204, 50)
+	HP_FAIR = (230, 126, 34)
+	HP_POOR = (192, 57, 43)
 
 	TRAVERSABLE_SEMIRADIUS = 8
 	TRAVERSABLE_RADIUS = 5
