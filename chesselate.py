@@ -657,26 +657,26 @@ class Chesselate:
 			# Render the HP
 			opp_y = Constants.BOARD_BUFFER
 			usr_y = usr_y - hp_container_height
-			hp_container_opponent_rect = (cap_x, opp_y, hp_container_width, hp_container_height)
-			hp_container_user_rect = (cap_x, usr_y, hp_container_width, hp_container_height)
+			hp_container_opponent_rect = (cap_x + 2, opp_y + 2, hp_container_width, hp_container_height - 5)
+			hp_container_user_rect = (cap_x +2, usr_y +2, hp_container_width, hp_container_height -5)
 
 			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_opponent_rect, 0)
-			# pygame.draw.rect(self.screen, Constants.WHITE, hp_container_opponent_rect, 1)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_opponent_rect, 5)
 			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_user_rect, 0)
-			# pygame.draw.rect(self.screen, Constants.WHITE, hp_container_user_rect, 1)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_user_rect, 5)
 
 			font_hp = Constants.RESOURCES+Constants.FONT_HP
-			hp_text = "HP:"
-			basic_font = pygame.font.Font(font_hp, 20)
+			hp_text = "HP"
+			basic_font = pygame.font.Font(font_hp, 15)
 
-			hp_text_render = basic_font.render(hp_text, True, Constants.WHITE)
+			hp_text_render = basic_font.render(hp_text, True, Constants.CHESSBOARD_DK)
 			hp_text_rect = hp_text_render.get_rect()
 
-			hp_text_rect.centerx = cap_x + 17
-			hp_text_rect.centery = opp_y + 11
+			hp_text_rect.centerx = cap_x + 19
+			hp_text_rect.centery = opp_y + 10
 			self.screen.blit(hp_text_render, hp_text_rect)
 
-			hp_text_rect.centery = usr_y + 11
+			hp_text_rect.centery = usr_y + 10
 			self.screen.blit(hp_text_render, hp_text_rect)
 
 			# Render the HP bar
@@ -730,7 +730,6 @@ class Chesselate:
 			hp_user_rect_curr = (hp_bar_x, hp_bar_y_user, hp_bar_width*percentage_user, hp_bar_height)
 			hp_opponent_rect_curr = (hp_bar_x, hp_bar_y_opp, hp_bar_width*percentage_opponent, hp_bar_height)
 
-
 			pygame.draw.rect(self.screen, hp_color_opp, hp_opponent_rect_curr, 0)
 			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_opponent_rect, hp_border_width)
 			pygame.draw.rect(self.screen, hp_color_user, hp_user_rect_curr, 0)
@@ -761,6 +760,67 @@ class Chesselate:
 
 			self.screen.blit(hp_user, hp_user_rect)
 			self.screen.blit(hp_opponent, hp_opponent_rect)
+
+			# Render the avatars
+			avatar_size = 65
+			avatar_border_width = 4
+			avatar_x = cap_x + cap_width + 4
+			user_avatar_y = hp_bar_y_user + hp_bar_height + 4
+			opp_avatar_y = hp_bar_y_opp + hp_bar_height + 4
+			
+			user_avatar_rect = (avatar_x, user_avatar_y, avatar_size, avatar_size)
+			opp_avatar_rect = (avatar_x, opp_avatar_y, avatar_size, avatar_size)
+
+			opp_avatar_border_rect = (avatar_x - (avatar_border_width/2), opp_avatar_y - (avatar_border_width/2), avatar_size + avatar_border_width, avatar_size + avatar_border_width)
+			user_avatar_border_rect = (avatar_x - (avatar_border_width/2), user_avatar_y - (avatar_border_width/2), avatar_size + avatar_border_width, avatar_size + avatar_border_width)
+
+			image_file_user = "res/avatars/dragonite_sample.png"
+			image_file_opp = "res/avatars/stockfish_sample.png"
+
+			image_user = pygame.image.load(image_file_user)
+			image_opp = pygame.image.load(image_file_opp)
+
+			self.screen.blit(image_user, user_avatar_rect)
+			self.screen.blit(image_opp, opp_avatar_rect)
+
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, opp_avatar_border_rect, avatar_border_width)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, user_avatar_border_rect, avatar_border_width)
+
+			name_width = 65
+			name_height = 15
+			name_x = avatar_x + (avatar_border_width/2)
+			name_user_y = user_avatar_y + avatar_size + (avatar_border_width) 
+			name_opp_y = opp_avatar_y + avatar_size + (avatar_border_width) 
+			name_user_rect = (name_x, name_user_y, name_width, name_height)
+			name_opp_rect = (name_x, name_opp_y, name_width, name_height)
+			name_user_rect_border = (name_x-2, name_user_y, name_width+2, name_height)
+			name_opp_rect_border = (name_x-2, name_opp_y, name_width+2, name_height)
+
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, name_opp_rect)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, name_user_rect)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, name_opp_rect_border, 4)
+			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, name_user_rect_border, 4)
+
+
+			name_opp = "Stockfish"
+			name_user = "Dragonite"
+
+			font_hp = Constants.RESOURCES+Constants.FONT_HP
+			basic_font = pygame.font.Font(font_hp, 15)
+
+			name_user_render = basic_font.render(name_user, True, Constants.WHITE)
+			name_user_rect = name_user_render.get_rect()
+			name_opp_render = basic_font.render(name_opp, True, Constants.WHITE)
+			name_opp_rect = name_opp_render.get_rect()
+
+			name_user_rect.centerx = avatar_x + 33
+			name_user_rect.centery = user_avatar_y + avatar_size + (avatar_border_width*2) + 5
+			name_opp_rect.centerx = avatar_x + 33
+			name_opp_rect.centery = opp_avatar_y + avatar_size + (avatar_border_width*2) + 5
+
+			self.screen.blit(name_user_render, name_user_rect)
+			self.screen.blit(name_opp_render, name_opp_rect)
+
 
 		# Render board contents
 		for i in range(8):
@@ -2422,7 +2482,7 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
+	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
 	# test = "r5k1/R7/1P4p1/5p1p/2P5/1P6/3p1PPP/3K4 w ---- - 1 33" #temp test!
-	Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
-	# Chesselate(is_player_white=False, cpu_level=2000).play()
+	# Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
+	Chesselate(is_player_white=True, cpu_level=2000).play()

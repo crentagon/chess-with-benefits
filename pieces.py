@@ -71,6 +71,7 @@ class StockfishThread(threading.Thread):
 
 		p = Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE)
 		p.stdin.write("position fen "+self.fen_string+"\n")
+		# p.stdin.write("go depth 20\n")
 		p.stdin.write("go movetime "+str(self.process_time)+"\n")
 
 		# print "<YAY>"
