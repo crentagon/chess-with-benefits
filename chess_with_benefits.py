@@ -78,6 +78,12 @@ class Chesselate:
 		self.sidebar_buttons = []
 		self.populate_sidebar()
 
+		# Checks and checkmate
+		self.is_user_check = False
+		self.is_user_checkmate = False
+		self.is_opponent_check = False
+		self.is_opponent_checkmate = False
+
 		self.screen = pygame.display.set_mode(Constants.SCREENSIZE)
 		self.screen.fill(Constants.WHITE)
 		pygame.display.flip()
@@ -115,7 +121,7 @@ class Chesselate:
 			print ""
 
 	def is_check(self, board_input):
-		self.build_threats(board_input)
+		self.build_threats(board_input, peek=True)
 
 		for i in range(8):
 			for j in range(8):
@@ -129,7 +135,7 @@ class Chesselate:
 					else:
 						return False
 
-	def build_threats(self, board_input):
+	def build_threats(self, board_input, peek=False):
 		# Clear threats
 		for i in range(8):
 			for j in range(8):
@@ -361,6 +367,7 @@ class Chesselate:
 								else:
 									dirSW = False
 
+					# This also checks if the King is in checkmate MARKER
 					elif(piece_type == Constants.P_KING):
 						is_i_lte_7 = i+1 <= 7
 						is_i_gte_0 = i-1 >= 0
@@ -370,7 +377,12 @@ class Chesselate:
 						if(is_i_lte_7):
 							target_tile = board_input[i+1][7-j]
 							target_tiles.append(target_tile)
-							
+
+							temp_board = copy.deepcopy(self.board)
+							temp_board[i+1][7-j].set_piece(temp_board[i][j].get_piece())
+							temp_board[i][j].remove_piece()
+							is_check_after_move = self.is_check(temp_board)
+
 							if(is_7j_lte_7):
 								target_tile = board_input[i+1][7-j+1]
 								target_tiles.append(target_tile)
@@ -398,7 +410,7 @@ class Chesselate:
 						if(is_7j_gte_0):
 							target_tile = board_input[i][7-j-1]
 							target_tiles.append(target_tile)
-							
+
 					elif(piece_type == Constants.P_PAWN):
 						is_white = piece.is_white
 						factor = 1 if is_user else -1
@@ -421,12 +433,35 @@ class Chesselate:
 								target_tile = board_input[i-1][7-j-1]
 								target_tiles.append(target_tile)
 
+					is_user_king_detected = False
+					is_opponent_king_detected = False
+
 					if is_user:
 						for element in target_tiles:
 							element.threat_level_user += 1
+
+							is_piece_none = element.piece is None
+							if not is_piece_none and peek is False:
+								is_piece_king = element.piece.piece_type == Constants.P_KING
+								is_piece_opponent = element.piece.is_user is False
+
+								if is_piece_king and is_piece_opponent:
+									self.is_opponent_check = True
+									is_opponent_king_detected = True
+
 					else:
 						for element in target_tiles:
 							element.threat_level_opponent += 1
+
+							is_piece_none = element.piece is None
+							if not is_piece_none and peek is False:
+								is_piece_king = element.piece.piece_type == Constants.P_KING
+								is_piece_user = element.piece.is_user is True
+
+								if is_piece_king and is_piece_user:
+									self.is_user_check = True
+									is_user_king_detected = True
+
 
 	def render_captured(self, x, y, cmax, side, all_captured):
 		i = 0
@@ -553,6 +588,62 @@ class Chesselate:
 			# User's captured pieces
 			cur_y = usr_y + Constants.MINIBUFFER
 			self.render_captured(cur_x, cur_y, cur_max, side, self.user_captured.container)
+
+			# Render opponent checkmate
+			if self.is_opponent_checkmate:
+				rect_x = cap_x + buff
+				rect_y = opp_y + Constants.MINIBUFFER
+				rect_w = cap_width
+				rect_h = int(rect_w*2.0/3.0)
+				image_file = "checkmate.png"
+
+				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
+				piece_rect = image_piece.get_rect()
+				piece_rect = piece_rect.move((rect_x, rect_y))
+				self.screen.blit(image_piece, piece_rect)
+
+			# Render opponent check
+			elif self.is_opponent_check:
+				rect_x = cap_x + buff
+				rect_y = opp_y + Constants.MINIBUFFER
+				rect_w = cap_width
+				rect_h = int(rect_w*2.0/3.0)
+				image_file = "check.png"
+
+				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
+				piece_rect = image_piece.get_rect()
+				piece_rect = piece_rect.move((rect_x, rect_y))
+				self.screen.blit(image_piece, piece_rect)
+
+			# Render user checkmate
+			if self.is_user_checkmate:
+				rect_x = cap_x + buff
+				rect_y = usr_y + Constants.MINIBUFFER
+				rect_w = cap_width
+				rect_h = int(rect_w*2.0/3.0)
+				image_file = "checkmate.png"
+
+				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
+				piece_rect = image_piece.get_rect()
+				piece_rect = piece_rect.move((rect_x, rect_y))
+				self.screen.blit(image_piece, piece_rect)
+
+			# Render user check
+			elif self.is_user_check:
+				rect_x = cap_x + buff
+				rect_y = usr_y + Constants.MINIBUFFER
+				rect_w = cap_width
+				rect_h = int(rect_w*2.0/3.0)
+				image_file = "check.png"
+
+				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
+				piece_rect = image_piece.get_rect()
+				piece_rect = piece_rect.move((rect_x, rect_y))
+				self.screen.blit(image_piece, piece_rect)
 
 			# Render the HP text
 			border = Constants.HP_TEXT_BORDER
@@ -987,8 +1078,8 @@ class Chesselate:
 				temp_y = temp_y * temp_y
 				increment = abs(math.pow(((temp_x)+(temp_x)), 0.5)/frames)
 
-			is_windows_xp = False
 			clock = pygame.time.Clock()
+
 			while True:
 
 				if not (is_vertical or is_horizontal):
@@ -998,31 +1089,34 @@ class Chesselate:
 					x = int(x)
 					y = int(y)
 
-					if not is_windows_xp:
-						i_temp = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-						i_temp_1 = i_temp + 1
-						i_temp_2 = i_temp - 1
-						j_temp = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-						j_temp_1 = j_temp + 1
-						j_temp_2 = j_temp - 1
+					i_temp = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					i_temp_1 = i_temp + 1
+					i_temp_2 = i_temp - 1
+					j_temp = (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					j_temp_1 = j_temp + 1
+					j_temp_2 = j_temp - 1
 
-						i_temp = int(i_temp)
-						i_temp_1 = int(i_temp_1)
-						i_temp_2 = int(i_temp_2)
-						j_temp = int(j_temp)
-						j_temp_1 = int(j_temp_1)
-						j_temp_2 = int(j_temp_2)
+					i_temp = int(i_temp)
+					i_temp_1 = int(i_temp_1)
+					i_temp_2 = int(i_temp_2)
+					j_temp = int(j_temp)
+					j_temp_1 = int(j_temp_1)
+					j_temp_2 = int(j_temp_2)
 
-						i1_gte_0 = i_temp_1 >= 0
-						i2_gte_0 = i_temp_2 >= 0
-						j1_gte_0 = j_temp_1 >= 0
-						j2_gte_0 = j_temp_2 >= 0
+					i1_gte_0 = i_temp_1 >= 0
+					i2_gte_0 = i_temp_2 >= 0
+					j1_gte_0 = j_temp_1 >= 0
+					j2_gte_0 = j_temp_2 >= 0
 
-						i1_lte_7 = i_temp_1 <= 7
-						i2_lte_7 = i_temp_2 <= 7
-						j1_lte_7 = j_temp_1 <= 7
-						j2_lte_7 = j_temp_2 <= 7
+					i1_lte_7 = i_temp_1 <= 7
+					i2_lte_7 = i_temp_2 <= 7
+					j1_lte_7 = j_temp_1 <= 7
+					j2_lte_7 = j_temp_2 <= 7
 
+					i_withinrange = i_temp >= 0 and i_temp <= 7
+					j_withinrange = j_temp >= 0 and j_temp <= 7
+
+					if i_withinrange and j_withinrange:
 						self.render_tile(i_temp, j_temp)
 						if i1_lte_7 and i1_gte_0:
 							self.render_tile(i_temp_1, j_temp)
@@ -1051,16 +1145,15 @@ class Chesselate:
 					y -= multiplier*(increment)
 					y = int(y)
 
-					if not is_windows_xp:
-						i = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-						j_before = 7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-						j_after = j_before + multiplier
+					i = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					j_before = (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					j_after = j_before + multiplier
 
-						if i >= 0 and i <= 7:
-							if j_before >= 0 and j_before <= 7:
-								self.render_tile(i, j_before)
-							if j_after >= 0 and j_after <= 7:
-								self.render_tile(i, j_after)
+					if i >= 0 and i <= 7:
+						if j_before >= 0 and j_before <= 7:
+							self.render_tile(i, j_before)
+						if j_after >= 0 and j_after <= 7:
+							self.render_tile(i, j_after)
 
 					if multiplier*y < multiplier*destination_coord_y:
 						break
@@ -1068,16 +1161,15 @@ class Chesselate:
 
 					x -= multiplier*(increment)
 
-					if not is_windows_xp:
-						i_before = int((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH if self.is_player_white else 7-((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH))
-						i_after = int(i_before + multiplier)
-						j = int(7-((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH) if not self.is_player_white else (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-						
-						if j >= 0 and j <= 7:
-							if i_before >= 0 and i_before <= 7:
-								self.render_tile(i_before, j)
-							if i_after >= 0 and i_after <= 7:
-								self.render_tile(i_after, j)
+					i_before = int((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+					i_after = int(i_before + multiplier)
+					j = int((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+					
+					if j >= 0 and j <= 7:
+						if i_before >= 0 and i_before <= 7:
+							self.render_tile(i_before, j)
+						if i_after >= 0 and i_after <= 7:
+							self.render_tile(i_after, j)
 
 					if multiplier*x < multiplier*destination_coord_x:
 						break
@@ -1962,6 +2054,9 @@ class Chesselate:
 					board_pieces[element] -= 1
 					# print "PUSHED!!!"
 
+	def game_over(self):
+		while True:
+			self.render_board()
 
 	def play(self):
 		self.build_threats(self.board)
@@ -1988,6 +2083,8 @@ class Chesselate:
 			self.render_board()
 			
 			if has_player_moved or has_opponent_moved:
+				self.is_user_check = False
+				self.is_opponent_check = False
 				self.clear_traversable()
 				self.build_threats(self.board)
 				self.render_board()
@@ -2039,9 +2136,11 @@ class Chesselate:
 					# 	time.sleep(2)
 					# 	sys.exit(0)
 					if cpu_move == '(none)':
+						self.is_opponent_checkmate = True
 						print "User won!"
-						time.sleep(2)
-						sys.exit(0)
+						self.game_over()
+						# time.sleep(2)
+						# sys.exit(0)
 
 					source_x = Constants.PIECE_MAPPING[cpu_move[:1]]
 					source_y = Constants.PIECE_MAPPING[cpu_move[1:2]]
@@ -2068,9 +2167,10 @@ class Chesselate:
 						self.clear_traversable()
 						self.build_threats(self.board)
 						self.render_board()
-						print "Stockfish won!"
-						time.sleep(2)
-						sys.exit(0)
+						self.is_opponent_checkmate = True
+						self.game_over()
+						# time.sleep(2)
+						# sys.exit(0)
 
 			events = pygame.event.get()
 			for event in events: 
@@ -2246,7 +2346,8 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
+	# test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+	test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
 	# test = "r5k1/R7/1P4p1/5p1p/2P5/1P6/3p1PPP/3K4 w ---- - 1 33" #temp test!
-	# Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
-	Chesselate(is_player_white=True, cpu_level=2000).play()
+	Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
+	# Chesselate(is_player_white=False, cpu_level=2000).play()
