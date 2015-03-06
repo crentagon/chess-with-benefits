@@ -378,11 +378,6 @@ class Chesselate:
 							target_tile = board_input[i+1][7-j]
 							target_tiles.append(target_tile)
 
-							temp_board = copy.deepcopy(self.board)
-							temp_board[i+1][7-j].set_piece(temp_board[i][j].get_piece())
-							temp_board[i][j].remove_piece()
-							is_check_after_move = self.is_check(temp_board)
-
 							if(is_7j_lte_7):
 								target_tile = board_input[i+1][7-j+1]
 								target_tiles.append(target_tile)
@@ -2347,7 +2342,7 @@ class Chesselate:
 
 if __name__ == '__main__':
 	# test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-	test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
+	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
 	# test = "r5k1/R7/1P4p1/5p1p/2P5/1P6/3p1PPP/3K4 w ---- - 1 33" #temp test!
-	Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
-	# Chesselate(is_player_white=False, cpu_level=2000).play()
+	# Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
+	Chesselate(is_player_white=False, cpu_level=2000).play()
