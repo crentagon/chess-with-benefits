@@ -2266,6 +2266,9 @@ class Chesselate:
 										fen_string = fen
 										self.convert_fen_to_board(fen)
 
+										self.is_user_check = False
+										self.is_opponent_check = False
+
 										index = self.fullmove_clock #if self.is_player_white else self.fullmove_clock - 1
 										opp_index = self.fullmove_clock if self.is_player_white else self.fullmove_clock + 1
 										self.opponent_captured.search_and_pop(opp_index)
