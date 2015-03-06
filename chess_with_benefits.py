@@ -2162,7 +2162,8 @@ class Chesselate:
 						self.clear_traversable()
 						self.build_threats(self.board)
 						self.render_board()
-						self.is_opponent_checkmate = True
+						self.is_user_checkmate = True
+						print "Stockfish won!"
 						self.game_over()
 						# time.sleep(2)
 						# sys.exit(0)
