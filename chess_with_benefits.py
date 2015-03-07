@@ -79,7 +79,9 @@ class Chesselate:
 		self.populate_sidebar()
 
 		# Checks and checkmate
+		self.is_stalemate = False
 		self.is_user_check = False
+		self.is_50_move_rule = False
 		self.is_user_checkmate = False
 		self.is_opponent_check = False
 		self.is_opponent_checkmate = False
@@ -584,13 +586,16 @@ class Chesselate:
 			cur_y = usr_y + Constants.MINIBUFFER
 			self.render_captured(cur_x, cur_y, cur_max, side, self.user_captured.container)
 
-			# Render opponent checkmate
-			if self.is_opponent_checkmate:
-				rect_x = cap_x + buff
-				rect_y = opp_y + Constants.MINIBUFFER
-				rect_w = cap_width
-				rect_h = int(rect_w*2.0/3.0)
-				image_file = "checkmate.png"
+			# Constants for this portion: x-coordinate, width and height
+			rect_x = cap_x + buff
+			rect_w = cap_width
+			rect_h = int(rect_w*2.0/3.0)
+
+			# Render stalemate
+			if self.is_stalemate or self.is_50_move_rule:
+				image_file = "stalemate.png" if self.is_stalemate else "50moverule.png"
+
+				rect_y = opp_y + Constants.MINIBUFFER*3
 
 				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
@@ -598,13 +603,7 @@ class Chesselate:
 				piece_rect = piece_rect.move((rect_x, rect_y))
 				self.screen.blit(image_piece, piece_rect)
 
-			# Render opponent check
-			elif self.is_opponent_check:
-				rect_x = cap_x + buff
-				rect_y = opp_y + Constants.MINIBUFFER
-				rect_w = cap_width
-				rect_h = int(rect_w*2.0/3.0)
-				image_file = "check.png"
+				rect_y = usr_y + Constants.MINIBUFFER*3
 
 				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
@@ -612,33 +611,30 @@ class Chesselate:
 				piece_rect = piece_rect.move((rect_x, rect_y))
 				self.screen.blit(image_piece, piece_rect)
 
-			# Render user checkmate
-			if self.is_user_checkmate:
-				rect_x = cap_x + buff
-				rect_y = usr_y + Constants.MINIBUFFER
-				rect_w = cap_width
-				rect_h = int(rect_w*2.0/3.0)
-				image_file = "checkmate.png"
+			else:
+				# Render opponent check or checkmate
+				if self.is_opponent_checkmate or self.is_opponent_check:
+					rect_y = opp_y + Constants.MINIBUFFER*3
+					
+					image_file = "checkmate.png" if self.is_opponent_checkmate else "check.png"
 
-				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
-				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
-				piece_rect = image_piece.get_rect()
-				piece_rect = piece_rect.move((rect_x, rect_y))
-				self.screen.blit(image_piece, piece_rect)
+					image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+					image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
+					piece_rect = image_piece.get_rect()
+					piece_rect = piece_rect.move((rect_x, rect_y))
+					self.screen.blit(image_piece, piece_rect)
 
-			# Render user check
-			elif self.is_user_check:
-				rect_x = cap_x + buff
-				rect_y = usr_y + Constants.MINIBUFFER
-				rect_w = cap_width
-				rect_h = int(rect_w*2.0/3.0)
-				image_file = "check.png"
 
-				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
-				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
-				piece_rect = image_piece.get_rect()
-				piece_rect = piece_rect.move((rect_x, rect_y))
-				self.screen.blit(image_piece, piece_rect)
+				elif self.is_user_check or self.is_user_checkmate:
+					rect_y = usr_y + Constants.MINIBUFFER*3
+
+					image_file = "checkmate.png" if self.is_user_checkmate else "check.png"
+
+					image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+					image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
+					piece_rect = image_piece.get_rect()
+					piece_rect = piece_rect.move((rect_x, rect_y))
+					self.screen.blit(image_piece, piece_rect)
 
 			# Render the HP text
 			border = Constants.HP_TEXT_BORDER
@@ -2049,9 +2045,52 @@ class Chesselate:
 					board_pieces[element] -= 1
 					# print "PUSHED!!!"
 
-	def game_over(self):
+	def endgame_check(self, fen_string):
+		is_started = False
 		while True:
-			self.render_board()
+
+			if not is_started:
+				thread = StalemateThread(fen_string)
+				thread.start()
+				is_started = True
+
+			if thread is not None and thread.is_thread_done is not None and thread.is_thread_done:
+				thread.join()
+
+				if thread.is_stalemate:
+					self.is_stalemate = True
+					print "Stalemate!"					
+					self.game_over()
+					return
+
+				elif thread.is_checkmate:
+					if self.active_turn == 'w':
+						if self.is_player_white:
+							self.is_user_checkmate = True
+						else:
+							self.is_opponent_checkmate = True
+
+					elif self.active_turn == 'b':
+						if self.is_player_white:
+							self.is_opponent_checkmate = True
+						else:
+							self.is_user_checkmate = True
+
+					print "Checkmate!"
+					self.game_over()
+					return
+
+				elif self.halfmove_clock >= 100:
+					self.is_50_move_rule = True
+					print "50-move rule!"
+					self.game_over()
+					return
+				return
+
+	def game_over(self):
+		self.render_board()
+		time.sleep(20)
+		sys.exit(0)
 
 	def play(self):
 		self.build_threats(self.board)
@@ -2080,7 +2119,7 @@ class Chesselate:
 			if has_player_moved or has_opponent_moved:
 				self.is_user_check = False
 				self.is_opponent_check = False
-				self.clear_traversable()
+				self.clear_traversable()				
 				self.build_threats(self.board)
 				self.render_board()
 
@@ -2099,7 +2138,9 @@ class Chesselate:
 				if not self.is_undergoing_promotion:
 					fen_string = self.convert_to_fen()
 					self.stack.push([fen_string, current_move])
+					self.endgame_check(fen_string) # Check if there is a stalemate or checkmate
 					print "After:", fen_string
+
 
 			if self.debug_mode:
 				is_turn_opponent = False
@@ -2130,10 +2171,10 @@ class Chesselate:
 					# 	print "Stalemate!"
 					# 	time.sleep(2)
 					# 	sys.exit(0)
-					if cpu_move == '(none)':
-						self.is_opponent_checkmate = True
-						print "User won!"
-						self.game_over()
+					# if cpu_move == '(none)':
+					# 	self.is_opponent_checkmate = True
+					# 	print "User won!"
+					# 	self.game_over()
 						# time.sleep(2)
 						# sys.exit(0)
 
@@ -2162,9 +2203,9 @@ class Chesselate:
 						self.clear_traversable()
 						self.build_threats(self.board)
 						self.render_board()
-						self.is_user_checkmate = True
-						print "Stockfish won!"
-						self.game_over()
+						# self.is_user_checkmate = True
+						# print "Stockfish won!"
+						# self.game_over()
 						# time.sleep(2)
 						# sys.exit(0)
 
@@ -2266,8 +2307,11 @@ class Chesselate:
 										fen_string = fen
 										self.convert_fen_to_board(fen)
 
+										self.is_stalemate = False
 										self.is_user_check = False
+										self.is_user_checkmate = False
 										self.is_opponent_check = False
+										self.is_opponent_checkmate = False
 
 										index = self.fullmove_clock #if self.is_player_white else self.fullmove_clock - 1
 										opp_index = self.fullmove_clock if self.is_player_white else self.fullmove_clock + 1
@@ -2345,8 +2389,10 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
-	# test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
+	# test = "7k/5R2/8/6R1/5B2/8/8/7K b ---- - 0 1" #stalemate for black
+	# test = "7k/5R2/8/6R1/8/8/8/2B4K w ---- - 0 1" #stalemate for black (bug! must be checkmate, not check.)
+	# test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" #gamestart
+	test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
 	# test = "r5k1/R7/1P4p1/5p1p/2P5/1P6/3p1PPP/3K4 w ---- - 1 33" #temp test!
-	# Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
-	Chesselate(is_player_white=False, cpu_level=2000).play()
+	Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
+	# Chesselate(is_player_white=False, cpu_level=2000).play()
