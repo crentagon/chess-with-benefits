@@ -67,6 +67,14 @@ class Chesselate:
 		# Board stuff
 		self.is_board_clickable = True
 		self.temp_board = [[Tile() for i in range(8)] for i in range(8)]
+		self.currmove_source_x = 0
+		self.currmove_source_y = 0
+		self.currmove_destination_x = 0
+		self.currmove_destination_y = 0
+		self.last_source_x = 0
+		self.last_source_y = 0
+		self.last_destination_x = 0
+		self.last_destination_y = 0
 
 		# Right panel buttons
 		self.promotions = {}
@@ -894,6 +902,12 @@ class Chesselate:
 			coord_buffer = side*(1-decrease)/2
 			pygame.draw.rect(self.screen, Constants.JUST_MOVED, (rect_x+coord_buffer, rect_y+coord_buffer, side*decrease, side*decrease), thickness)
 
+		if tile.is_current_movement:
+			thickness = Constants.LAST_MOVEMENT_BORDER_THICKNESS
+			decrease = Constants.LAST_MOVEMENT_DECREASE_FACTOR
+			coord_buffer = side*(1-decrease)/2
+			pygame.draw.rect(self.screen, Constants.CURR_MOVEMENT, (rect_x+coord_buffer, rect_y+coord_buffer, side*decrease, side*decrease), thickness)
+
 		threat_level_user = tile.threat_level_user
 		threat_level_opponent = tile.threat_level_opponent
 		cumulative_threat = threat_level_user - threat_level_opponent
@@ -1017,6 +1031,20 @@ class Chesselate:
 					self.user_captured.sort()
 					self.opponent_hp_current -= hp_converter[captured_piece.piece_type]
 
+			# Update FEN Notation for castling if captured piece is a rook
+			if captured_piece.piece_type == Constants.P_ROOK:
+				if destination_x == Constants.TILE_H:
+					if captured_piece.is_white:
+						self.kingside_white = '-'
+					else:
+						self.kingside_black = '-'
+				elif destination_x == Constants.TILE_A:
+					if captured_piece.is_white:
+						self.queenside_white = '-'
+					else:
+						self.queenside_black = '-'
+
+
 		piece = self.board[source_x][source_y].piece
 
 		# Clear last movement
@@ -1039,14 +1067,16 @@ class Chesselate:
 				destination_coord_x = ((7 - destination_x)*Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
 				destination_coord_y = (destination_y * Constants.TILE_LENGTH) + Constants.BOARD_BUFFER
 
+			# print "(", source_coord_x, source_coord_y, ")-->(", destination_coord_x, destination_coord_y, ")"
+
 			is_vertical = destination_coord_x - source_coord_x == 0
 			is_horizontal = destination_coord_y - source_coord_y == 0
 
 			m = 0
 			b = 0
 			if not (is_vertical or is_horizontal):
-				m = (destination_coord_y - source_coord_y)/(destination_coord_x - source_coord_x)
-				b = destination_coord_y - (m * destination_coord_x)
+				m = (destination_coord_y - source_coord_y)*1.0/(destination_coord_x - source_coord_x)
+				b = destination_coord_y*1.0 - (m*1.0 * destination_coord_x)
 
 			x = source_coord_x
 			y = source_coord_y
@@ -1186,10 +1216,14 @@ class Chesselate:
 			self.board[destination_x][destination_y].piece.piece_type = promotion
 			self.opponent_hp_current += (hp_converter[promotion] - 1)
 
-
 		# Mark the last moved piece
 		self.board[destination_x][destination_y].is_last_movement = True
 		self.board[source_x][source_y].is_last_movement = True
+
+		self.last_source_x = source_x
+		self.last_source_y = source_y
+		self.last_destination_x = destination_x
+		self.last_destination_y = destination_y
 
 		# Half-move clock and full-move clock
 		is_pawn_move = piece.piece_type == Constants.P_PAWN
@@ -1222,6 +1256,28 @@ class Chesselate:
 		else:
 			self.en_passant = '-'
 
+		# If it's a king movement, update FEN notation
+		if piece.piece_type == Constants.P_KING:
+			if piece.is_white:
+				self.kingside_white = '-'
+				self.queenside_white = '-'
+			else:
+				self.kingside_black = '-'
+				self.queenside_black = '-'
+
+		# If it's a rook movement, update FEN notation
+		if piece.piece_type == Constants.P_ROOK:
+			if source_x == Constants.TILE_H:
+				if piece.is_white:
+					self.kingside_white = '-'
+				else:
+					self.kingside_black = '-'
+			elif source_x == Constants.TILE_A:
+				if piece.is_white:
+					self.queenside_white = '-'
+				else:
+					self.queenside_black = '-'
+
 		# Check if it's a castle. If yes, move the rook as well
 		if piece.piece_type == Constants.P_KING and abs(difference_x) == 2:
 			# Kingside castle:
@@ -1236,15 +1292,6 @@ class Chesselate:
 				
 			self.board[rook_destination][destination_y].piece = self.board[rook_source][destination_y].piece
 			self.board[rook_source][destination_y].remove_piece()
-
-			# Update the FEN notation to bar the side from castling again
-			if piece.is_white:
-				self.kingside_white = '-'
-				self.queenside_white = '-'
-
-			else:
-				self.kingside_black = '-'
-				self.queenside_black = '-'
 
 	def convert_to_fen(self):
 
@@ -1920,9 +1967,8 @@ class Chesselate:
 					target_tile.is_traversable = True
 
 	def clear_last_movement(self):
-		for x in range(8):
-			for y in range(8):
-				self.board[x][y].is_last_movement = False
+		self.board[self.last_source_x][self.last_source_y].is_last_movement = False
+		self.board[self.last_destination_x][self.last_destination_y].is_last_movement = False
 
 	def clear_board(self):
 		for i in range(8):
@@ -2092,6 +2138,10 @@ class Chesselate:
 		time.sleep(20)
 		sys.exit(0)
 
+	def clear_current_movement(self):
+		self.board[self.currmove_source_x][self.currmove_source_y].is_current_movement = False
+		self.board[self.currmove_destination_x][self.currmove_destination_y].is_current_movement = False
+
 	def play(self):
 		self.build_threats(self.board)
 		
@@ -2146,7 +2196,7 @@ class Chesselate:
 				is_turn_opponent = False
 				is_turn_user = True
 
-			# Opponent's Turn
+			# CPU Opponent's Turn
 			if not self.debug_mode and is_turn_opponent and not self.is_undergoing_promotion:
 				print fen_string
 				thread = StockfishThread(fen_string, self.cpu_level)
@@ -2154,60 +2204,68 @@ class Chesselate:
 				thread.start()
 				is_turn_opponent = False
 
-			if thread is not None and thread.is_thread_done is not None and thread.is_thread_done:
+			if thread is not None:
 
-				thread.join()
+				if thread.current_move is not None:
+					cpu_current_move = thread.current_move
 
-				if not thread.is_undo_clicked:
-					cpu_move = thread.cpu_move
-					current_move = cpu_move
-					ponder = thread.ponder
+					if len(cpu_current_move) == 4:
+						currmove_source_x = Constants.PIECE_MAPPING[cpu_current_move[:1]]
+						currmove_source_y = Constants.PIECE_MAPPING[cpu_current_move[1:2]]
+						currmove_destination_x = Constants.PIECE_MAPPING[cpu_current_move[2:3]]
+						currmove_destination_y = Constants.PIECE_MAPPING[cpu_current_move[3:4]]
 
-					print cpu_move
-					print ponder
+						is_source_x_equal = currmove_source_x == self.currmove_source_x
+						is_source_y_equal = currmove_source_y == self.currmove_source_y
+						is_destination_x_equal = currmove_destination_x == self.currmove_destination_x
+						is_destination_y_equal = currmove_destination_y == self.currmove_destination_y
 
-					# TO-DO: Condition for Stalemate
-					# if cpu_move == '(none)' and ponder == '(none)':
-					# 	print "Stalemate!"
-					# 	time.sleep(2)
-					# 	sys.exit(0)
-					# if cpu_move == '(none)':
-					# 	self.is_opponent_checkmate = True
-					# 	print "User won!"
-					# 	self.game_over()
-						# time.sleep(2)
-						# sys.exit(0)
+						if not (is_source_y_equal and is_source_x_equal and is_destination_y_equal and is_destination_x_equal):
+							self.clear_current_movement()
 
-					source_x = Constants.PIECE_MAPPING[cpu_move[:1]]
-					source_y = Constants.PIECE_MAPPING[cpu_move[1:2]]
-					destination_x = Constants.PIECE_MAPPING[cpu_move[2:3]]
-					destination_y = Constants.PIECE_MAPPING[cpu_move[3:4]]
-					promotion = False
+							self.currmove_source_x = currmove_source_x 
+							self.currmove_source_y = currmove_source_y
+							self.currmove_destination_x = currmove_destination_x
+							self.currmove_destination_y = currmove_destination_y
 
-					if len(cpu_move) == 5:
-						promotion = cpu_move[4:5]
-						promotion_map = {
-							"r": Constants.P_ROOK,
-							"b": Constants.P_BISHOP,
-							"n": Constants.P_KNIGHT,
-							"q": Constants.P_QUEEN
-						}
-						promotion = promotion_map[promotion]
-	
-					self.move_piece(source_x, source_y, destination_x, destination_y, promotion)
+							self.board[currmove_source_x][currmove_source_y].is_current_movement = True
+							self.board[currmove_destination_x][currmove_destination_y].is_current_movement = True
 
-					has_opponent_moved = True
-					thread.is_thread_done = False
+				if thread.is_thread_done is not None and thread.is_thread_done:
 
-					if ponder == '(none)':
-						self.clear_traversable()
-						self.build_threats(self.board)
-						self.render_board()
-						# self.is_user_checkmate = True
-						# print "Stockfish won!"
-						# self.game_over()
-						# time.sleep(2)
-						# sys.exit(0)
+					thread.join()
+					self.clear_current_movement()
+
+					if not thread.is_undo_clicked:
+						cpu_move = thread.cpu_move
+						current_move = cpu_move
+						ponder = thread.ponder
+
+						print cpu_move
+						print ponder
+
+						source_x = Constants.PIECE_MAPPING[cpu_move[:1]]
+						source_y = Constants.PIECE_MAPPING[cpu_move[1:2]]
+						destination_x = Constants.PIECE_MAPPING[cpu_move[2:3]]
+						destination_y = Constants.PIECE_MAPPING[cpu_move[3:4]]
+						promotion = False
+
+						if len(cpu_move) == 5:
+							promotion = cpu_move[4:5]
+							promotion_map = {
+								"r": Constants.P_ROOK,
+								"b": Constants.P_BISHOP,
+								"n": Constants.P_KNIGHT,
+								"q": Constants.P_QUEEN
+							}
+							promotion = promotion_map[promotion]
+		
+						self.move_piece(source_x, source_y, destination_x, destination_y, promotion)
+
+						has_opponent_moved = True
+						thread.is_thread_done = False
+
+					thread = None
 
 			events = pygame.event.get()
 			for event in events: 
@@ -2318,6 +2376,7 @@ class Chesselate:
 										self.opponent_captured.search_and_pop(opp_index)
 										self.user_captured.search_and_pop(index)
 
+										self.clear_current_movement()
 										self.clear_traversable()
 										self.build_threats(self.board)
 										self.render_board()
@@ -2389,10 +2448,13 @@ class Chesselate:
 				# 	print event
 
 if __name__ == '__main__':
+	# test = "rnb1kbnr/p1p1pppp/1p6/3q4/3P4/2N5/PPP2PPP/R1BQKBNR b KQkq - 1 4" #castling bug
+	# test = "1kR5/1r4pp/3Rpn2/pP2p3/P3P3/5P1N/4N1PP/1K6 b ---- - 0 26" #castling bug 2.0
 	# test = "7k/5R2/8/6R1/5B2/8/8/7K b ---- - 0 1" #stalemate for black
 	# test = "7k/5R2/8/6R1/8/8/8/2B4K w ---- - 0 1" #stalemate for black (bug! must be checkmate, not check.)
 	# test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" #gamestart
-	test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
+	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
 	# test = "r5k1/R7/1P4p1/5p1p/2P5/1P6/3p1PPP/3K4 w ---- - 1 33" #temp test!
-	Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
-	# Chesselate(is_player_white=False, cpu_level=2000).play()
+	# test = "rnbqkb1r/pppppppp/5n2/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1" # knightbug
+	# Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
+	Chesselate(is_player_white=True, cpu_level=2000).play()

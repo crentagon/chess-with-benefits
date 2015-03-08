@@ -44,6 +44,7 @@ class Tile:
 		self.threat_level_opponent = threat_level_opponent
 		self.is_traversable = False
 		self.is_last_movement = False
+		self.is_current_movement = False
 
 	def get_piece(self):
 		return self.piece
@@ -102,6 +103,7 @@ class StockfishThread(threading.Thread):
 		self.is_thread_done = False
 		self.is_undo_clicked = False
 
+		self.current_move = ''
 		self.cpu_move = ''
 		self.ponder = ''
 
@@ -119,6 +121,12 @@ class StockfishThread(threading.Thread):
 
 		while p.poll() is None:
 			line = p.stdout.readline()
+
+			currmove = line.split("\r")
+			currmove = line.split(" ")
+			if len(currmove) > 18:
+				self.current_move = currmove[17]
+
 			if line[0] == 'b': break
 			# print line,
 
@@ -304,6 +312,7 @@ class Constants:
 	RED =   (255,   0,   0)
 	BLUE =  (  0,   0, 255)
 	JUST_MOVED = (180, 120, 255)
+	CURR_MOVEMENT = (100, 240, 140)
 
 	# Others
 	RESOURCES = "res/"
