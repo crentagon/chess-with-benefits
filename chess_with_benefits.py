@@ -16,7 +16,7 @@ class Chesselate:
 		self.image_file_user = "res/avatars/dragonite_sample.png"
 		self.image_file_opp = "res/avatars/stockfish_sample.png"
 		self.name_opp = "Stockfish"
-		self.name_user = "Dragonite"
+		self.name_user = "Player"
 
 		# Captured pieces
 		self.user_captured = Stack()
@@ -84,6 +84,7 @@ class Chesselate:
 
 		# Sidebar buttons
 		self.sidebar_buttons = []
+		self.aftergame_options = []
 		self.populate_sidebar()
 
 		# Checks and checkmate
@@ -93,6 +94,7 @@ class Chesselate:
 		self.is_user_checkmate = False
 		self.is_opponent_check = False
 		self.is_opponent_checkmate = False
+		self.is_game_over = False
 
 		self.screen = pygame.display.set_mode(Constants.SCREENSIZE)
 		self.screen.fill(Constants.WHITE)
@@ -101,6 +103,11 @@ class Chesselate:
 	def populate_sidebar(self):
 		self.sidebar_buttons.append(["sidebar_undo.png", "Undo Move", "undo"])
 		self.sidebar_buttons.append(["sidebar_undo.png", "Undo Move2", "undo2"])
+
+		self.aftergame_options.append(["Undo Last Move", "undo"])
+		self.aftergame_options.append(["Review Game", "review"])
+		self.aftergame_options.append(["Play Again", "replay"])
+		self.aftergame_options.append(["Main Menu", "main"])
 
 	def print_board(self):
 		print "==piece_types=="
@@ -377,7 +384,7 @@ class Chesselate:
 								else:
 									dirSW = False
 
-					# This also checks if the King is in checkmate MARKER
+					# This also checks if the King is in checkmate
 					elif(piece_type == Constants.P_KING):
 						is_i_lte_7 = i+1 <= 7
 						is_i_gte_0 = i-1 >= 0
@@ -484,6 +491,21 @@ class Chesselate:
 			j = j + 1 if i == cmax else j
 			i = 0 if i == cmax else i+1
 
+	def write_text(self, font_text, font_color, font_size, x, y):
+		# Prepate the fonts
+		font = Constants.RESOURCES+Constants.FONT_REG
+		pygame_font = pygame.font.Font(font, font_size)
+
+		# Prepare the text
+		text = font_text
+		text_render = pygame_font.render(text, True, font_color)
+		text_rect = text_render.get_rect()
+
+		# Render the text for the opponent
+		text_rect.centerx = x
+		text_rect.centery = y
+		self.screen.blit(text_render, text_rect)		
+
 	def render_board(self):
 		self.screen.fill(Constants.BG)
 		font = Constants.RESOURCES+Constants.FONT
@@ -529,6 +551,73 @@ class Chesselate:
 			promotion_rect.center = Constants.PROMOTION_COORD
 			self.screen.blit(promotion_text, promotion_rect)
 
+		# Game overrrr
+		elif self.is_game_over:
+			
+			# Determine the winner
+			color_winner = "Stalemate"
+			if self.is_user_checkmate:
+				color_winner = "Black" if self.is_player_white else "White"
+			else:
+				color_winner = "White" if self.is_player_white else "Black"
+
+			game_over_text = "Good game."
+			game_winner = color_winner+" wins by checkmate!" if not self.is_stalemate else "It's a stalemate!"
+
+			# Options after game
+			board_buffer = Constants.BOARD_BUFFER
+
+			# Render the game over text
+			rect_w = Constants.AFTERGAME_WIDTH
+			rect_h = Constants.AFTERGAME_HEIGHT
+			rect_x = Constants.AFTERGAME_COORD[0]
+
+			font_text = game_over_text
+			font_color = Constants.CHESSBOARD_WH
+			font_size = Constants.GAMEOVER_FONT_SIZE
+			font_x = Constants.AFTERGAME_COORD[0] + (rect_w/2)
+			font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT*2)
+
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			# Render the winner text
+			font_text = game_winner
+			font_color = Constants.CHESSBOARD_WH
+			font_size = Constants.GAMEOVER_FONT_SIZE
+			font_x = Constants.AFTERGAME_COORD[0] + (rect_w/2)
+			font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT*1.5)
+
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			if self.is_50_move_rule:
+				# Render the text
+				font_text = "That is, by the 50-move rule!"
+				font_color = Constants.CHESSBOARD_WH
+				font_size = Constants.GAMEOVER_FONT_SIZE
+				font_x = Constants.AFTERGAME_COORD[0] + (rect_w/2)
+				font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT)
+
+				self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			i = 0
+			for element in self.aftergame_options:
+				# Render the rectangular buttons
+				rect_y = Constants.AFTERGAME_COORD[1] + (rect_h + board_buffer)*i
+				rect = (rect_x, rect_y, rect_w, rect_h)
+				pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, rect, 0)
+				pygame.draw.rect(self.screen, Constants.CHESSBOARD_DK, rect, 1)
+
+				font_text = self.aftergame_options[i][0]
+				font_color = Constants.CHESSBOARD_DK
+				font_size = Constants.ENDGAME_FONT_SIZE
+				font_x = (rect_w/2) + rect_x
+				font_y = (rect_h/2) + rect_y
+
+				self.write_text(font_text, font_color, font_size, font_x, font_y)
+				i = i + 1
+
+			# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close gme clicked
+
 		# If the user isn't undergoing promotion
 		else:
 			# Render the sidebar
@@ -553,6 +642,7 @@ class Chesselate:
 				rect_y = Constants.BOARD_BUFFER + (size + Constants.BOARD_BUFFER)*i
 				button_rect = (rect_x, rect_y, size, size)
 				pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, button_rect, 0)
+				pygame.draw.rect(self.screen, Constants.CHESSBOARD_DK, button_rect, 1)
 
 				# The icon
 				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
@@ -2105,8 +2195,8 @@ class Chesselate:
 
 				if thread.is_stalemate:
 					self.is_stalemate = True
+					self.is_game_over = True
 					print "Stalemate!"					
-					self.game_over()
 					return
 
 				elif thread.is_checkmate:
@@ -2122,14 +2212,14 @@ class Chesselate:
 						else:
 							self.is_user_checkmate = True
 
+					self.is_game_over = True
 					print "Checkmate!"
-					self.game_over()
 					return
 
 				elif self.halfmove_clock >= 100:
 					self.is_50_move_rule = True
+					self.is_game_over = True
 					print "50-move rule!"
-					self.game_over()
 					return
 				return
 
@@ -2185,7 +2275,7 @@ class Chesselate:
 					is_turn_opponent = False
 					is_turn_user = True
 
-				if not self.is_undergoing_promotion:
+				if not (self.is_undergoing_promotion or self.is_game_over):
 					fen_string = self.convert_to_fen()
 					self.stack.push([fen_string, current_move])
 					self.endgame_check(fen_string) # Check if there is a stalemate or checkmate
@@ -2197,7 +2287,7 @@ class Chesselate:
 				is_turn_user = True
 
 			# CPU Opponent's Turn
-			if not self.debug_mode and is_turn_opponent and not self.is_undergoing_promotion:
+			if not self.debug_mode and is_turn_opponent and not (self.is_undergoing_promotion or self.is_game_over):
 				print fen_string
 				thread = StockfishThread(fen_string, self.cpu_level)
 
@@ -2298,89 +2388,112 @@ class Chesselate:
 					# The user clicked somewhere else!
 					else:
 						# Is the user clicking on the sidebar?
+						action = ''
 						if mouse_pos[0] >= (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH):
 							index = 65536
 							if mouse_pos[1] % (Constants.SIDEBAR_BUTTON) >= Constants.BOARD_BUFFER:
 								index = (mouse_pos[1]/Constants.SIDEBAR_BUTTON)
 
 							if index < len(self.sidebar_buttons):
-								if self.sidebar_buttons[index][2] == 'undo':
-									# Cannot undo if stack only has one element
-									if self.stack.size() > 1:
-										# After an undo, it'll always be your turn unless it's the first move
-										self.active_turn = 'w' if self.is_player_white else 'b'
+								action = self.sidebar_buttons[index][2]
+							
 
-										# print has_player_moved
-										# sys.exit(0)
+						# Is the game over and the user is clicking on the game over options?
+						elif self.is_game_over:
+							# Check if mouse_x is within range
+							lower_bound = Constants.AFTERGAME_COORD[0]
+							upper_bound = Constants.AFTERGAME_COORD[0] + Constants.AFTERGAME_WIDTH
+							if mouse_pos[0] >= lower_bound and mouse_pos[0] <= upper_bound:
+								# Check where mouse_y is clicking
+								index = 65536
+								if mouse_pos[1] >= Constants.AFTERGAME_COORD[1]:
+									neutralized = mouse_pos[1]-Constants.AFTERGAME_COORD[1]
+									index = (neutralized/(Constants.AFTERGAME_HEIGHT+Constants.BOARD_BUFFER))
 
-										# If the player has just moved, we pop twice
-										if not is_turn_user:
-											self.stack.pop()
-											element = self.stack.pop()
-											fen = element[0]
+								if index < len(self.aftergame_options):
+									self.is_game_over = False
+									action = self.aftergame_options[index][1]
+
+						if action == 'undo':
+							# Cannot undo if stack only has one element
+							if self.stack.size() > 1:
+								# After an undo, it'll always be your turn unless it's the first move
+								self.active_turn = 'w' if self.is_player_white else 'b'
+
+								# print has_player_moved
+								# sys.exit(0)
+
+								# If the player has just moved, we pop twice
+								if not is_turn_user:
+									self.stack.pop()
+									element = self.stack.pop()
+									fen = element[0]
+
+									if thread is not None:
+										thread.is_undo_clicked = True
+
+									self.stack.push(element)
+									
+									is_turn_opponent = False
+									is_turn_user = True
+
+								# If the opponent has just moved...
+								else:
+									# If it's the very first move, we push it again.
+									if self.stack.size() == 2:
+										self.stack.pop()
+										element = self.stack.pop()
+										fen = element[0]
+										# print "Popped thrice?", fen
+
+										is_turn_opponent = False
+										is_turn_user = True
+
+										self.stack.push(element)
+										# print "Pushed*:", fen
+
+										if not self.is_player_white:
+											self.active_turn = 'w'
+											is_turn_opponent = True
+											is_turn_user = False
+										elif thread is not None:
 											thread.is_undo_clicked = True
 
-											self.stack.push(element)
-											
-											is_turn_opponent = False
-											is_turn_user = True
+									else:
+										# ...we pop thrice.
+										self.stack.pop()
+										self.stack.pop()
+										element = self.stack.pop()
+										fen = element[0]
+										# print "Popped thrice?", fen
 
-										# If the opponent has just moved...
-										else:
-											# If it's the very first move, we push it again.
-											if self.stack.size() == 2:
-												self.stack.pop()
-												element = self.stack.pop()
-												fen = element[0]
-												# print "Popped thrice?", fen
+										is_turn_opponent = False
+										is_turn_user = True
 
-												is_turn_opponent = False
-												is_turn_user = True
-
-												self.stack.push(element)
-												# print "Pushed*:", fen
-
-												if not self.is_player_white:
-													self.active_turn = 'w'
-													is_turn_opponent = True
-													is_turn_user = False
-												else:
-													thread.is_undo_clicked = True
-
-											else:
-												# ...we pop thrice.
-												self.stack.pop()
-												self.stack.pop()
-												element = self.stack.pop()
-												fen = element[0]
-												# print "Popped thrice?", fen
-
-												is_turn_opponent = False
-												is_turn_user = True
-
-												self.stack.push(element)
-												# print "Pushed*:", fen
+										self.stack.push(element)
+										# print "Pushed*:", fen
 
 
-										fen_string = fen
-										self.convert_fen_to_board(fen)
+								fen_string = fen
+								self.convert_fen_to_board(fen)
 
-										self.is_stalemate = False
-										self.is_user_check = False
-										self.is_user_checkmate = False
-										self.is_opponent_check = False
-										self.is_opponent_checkmate = False
+								self.is_stalemate = False
+								self.is_user_check = False
+								self.is_user_checkmate = False
+								self.is_opponent_check = False
+								self.is_opponent_checkmate = False
+								self.is_50_move_rule = False
 
-										index = self.fullmove_clock #if self.is_player_white else self.fullmove_clock - 1
-										opp_index = self.fullmove_clock if self.is_player_white else self.fullmove_clock + 1
-										self.opponent_captured.search_and_pop(opp_index)
-										self.user_captured.search_and_pop(index)
+								index = self.fullmove_clock #if self.is_player_white else self.fullmove_clock - 1
+								opp_index = self.fullmove_clock if self.is_player_white else self.fullmove_clock + 1
+								self.opponent_captured.search_and_pop(opp_index)
+								self.user_captured.search_and_pop(index)
 
-										self.clear_current_movement()
-										self.clear_traversable()
-										self.build_threats(self.board)
-										self.render_board()
-										self.clear_last_movement()
+								self.clear_current_movement()
+								self.clear_traversable()
+								self.build_threats(self.board)
+								self.render_board()
+								self.clear_last_movement()
 
 						# Is the user clicking on the promotion buttons?
 						for i in range(4):
@@ -2450,11 +2563,12 @@ class Chesselate:
 if __name__ == '__main__':
 	# test = "rnb1kbnr/p1p1pppp/1p6/3q4/3P4/2N5/PPP2PPP/R1BQKBNR b KQkq - 1 4" #castling bug
 	# test = "1kR5/1r4pp/3Rpn2/pP2p3/P3P3/5P1N/4N1PP/1K6 b ---- - 0 26" #castling bug 2.0
-	# test = "7k/5R2/8/6R1/5B2/8/8/7K b ---- - 0 1" #stalemate for black
+	# test = "7k/5R2/8/6R1/5B2/8/8/7K w ---- - 0 1" #stalemate for black
 	# test = "7k/5R2/8/6R1/8/8/8/2B4K w ---- - 0 1" #stalemate for black (bug! must be checkmate, not check.)
 	# test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" #gamestart
 	# test = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 b ---- - 0 65" #promotion test!
+	# test = "6RQ/8/5p2/2p2k2/7K/8/6r1/5q2 b ---- - 7 69" #one move away from checkmate
 	# test = "r5k1/R7/1P4p1/5p1p/2P5/1P6/3p1PPP/3K4 w ---- - 1 33" #temp test!
 	# test = "rnbqkb1r/pppppppp/5n2/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1" # knightbug
 	# Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
-	Chesselate(is_player_white=True, cpu_level=2000).play()
+	Chesselate(is_player_white=False, cpu_level=2000).play()
