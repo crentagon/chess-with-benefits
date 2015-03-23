@@ -2238,6 +2238,7 @@ class Chesselate:
 		fen_string = self.convert_to_fen()
 		current_move = ''
 		self.stack.push([fen_string, current_move])
+		lol = 0
 		# print "Pushed:", fen_string
 
 		has_player_moved = False
@@ -2290,8 +2291,10 @@ class Chesselate:
 			if not self.debug_mode and is_turn_opponent and not (self.is_undergoing_promotion or self.is_game_over):
 				print fen_string
 				thread = StockfishThread(fen_string, self.cpu_level)
+				lol = lol + 1
 
 				thread.start()
+				print "THREAD: ", threading.current_thread(), "[[[", str(lol), "]]]"
 				is_turn_opponent = False
 
 			if thread is not None:
