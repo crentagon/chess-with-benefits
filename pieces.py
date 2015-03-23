@@ -138,6 +138,9 @@ class StockfishThread(threading.Thread):
 		self.ponder = line[3]
 		self.is_thread_done = True
 
+		print "Exiting from thread."
+		sys.exit(0)
+
 class Stack:
 
 	def __init__(self):
