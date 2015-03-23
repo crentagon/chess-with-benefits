@@ -2238,7 +2238,6 @@ class Chesselate:
 		fen_string = self.convert_to_fen()
 		current_move = ''
 		self.stack.push([fen_string, current_move])
-		lol = 0
 		# print "Pushed:", fen_string
 
 		has_player_moved = False
@@ -2291,10 +2290,8 @@ class Chesselate:
 			if not self.debug_mode and is_turn_opponent and not (self.is_undergoing_promotion or self.is_game_over):
 				print fen_string
 				thread = StockfishThread(fen_string, self.cpu_level)
-				lol = lol + 1
 
 				thread.start()
-				print "THREAD: ", threading.current_thread(), "[[[", str(lol), "]]]"
 				is_turn_opponent = False
 
 			if thread is not None:
@@ -2576,18 +2573,3 @@ if __name__ == '__main__':
 	# Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
 	Chesselate(is_player_white=False, cpu_level=2000).play()
 
-"""
-Traceback (most recent call last):
-Exception in thread Thread-255:
-Traceback (most recent call last):
-  File "C:\Python27\lib\threading.py", line 530, in __bootstrap_inner
-  File "K:\Code\Chess With Benefits\pieces.py", line 112, in run
-  File "C:\Python27\lib\subprocess.py", line 688, in __init__
-OSError: [Errno 24] Too many open files
-
-  File "chess_with_benefits.py", line 2574, in <module>
-  File "chess_with_benefits.py", line 2257, in play
-  File "chess_with_benefits.py", line 755, in render_board
-IOError: unable to read font filename
-...I thought you're destroying the threads??? 8'D
-"""

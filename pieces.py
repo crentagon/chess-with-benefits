@@ -1,6 +1,8 @@
 import threading
-import os, sys
+import os, sys, signal
+import subprocess
 from subprocess import *
+import psutil
 
 class Piece:
 
@@ -109,15 +111,19 @@ class StockfishThread(threading.Thread):
 
 	def run(self):
 
-		p = Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE)
+		p = subprocess.Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE)
 		p.stdin.write("position fen "+self.fen_string+"\n")
-		# p.stdin.write("go depth 20\n")
 		p.stdin.write("go movetime "+str(self.process_time)+"\n")
 
+		# Debugging code ignore pls:
+		# p.stdin.write("go depth 20\n")
 		# print "<YAY>"
 		# print "position fen "+self.fen_string
 		# print "go movetime "+str(self.process_time)
 		# print "</YAY>"
+		# print "PID", p.pid
+		# p.stdin.write("quit\n")
+		# subprocess.call(['taskkill', '/F', '/T', '/PID', str(p.pid)])
 
 		while p.poll() is None:
 			line = p.stdout.readline()
@@ -128,7 +134,7 @@ class StockfishThread(threading.Thread):
 				self.current_move = currmove[17]
 
 			if line[0] == 'b': break
-			# print line,
+			# print line
 
 		# Retrieving the best move
 		line = line.split("\r")
@@ -138,8 +144,8 @@ class StockfishThread(threading.Thread):
 		self.ponder = line[3]
 		self.is_thread_done = True
 
-		print "Exiting from thread."
-		sys.exit(0)
+		subprocess.Popen("taskkill /T /F /IM stockfish_14053109_32bit.exe")
+		
 
 class Stack:
 
