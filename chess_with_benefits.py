@@ -2572,3 +2572,19 @@ if __name__ == '__main__':
 	# test = "rnbqkb1r/pppppppp/5n2/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1" # knightbug
 	# Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
 	Chesselate(is_player_white=False, cpu_level=2000).play()
+
+"""
+Traceback (most recent call last):
+Exception in thread Thread-255:
+Traceback (most recent call last):
+  File "C:\Python27\lib\threading.py", line 530, in __bootstrap_inner
+  File "K:\Code\Chess With Benefits\pieces.py", line 112, in run
+  File "C:\Python27\lib\subprocess.py", line 688, in __init__
+OSError: [Errno 24] Too many open files
+
+  File "chess_with_benefits.py", line 2574, in <module>
+  File "chess_with_benefits.py", line 2257, in play
+  File "chess_with_benefits.py", line 755, in render_board
+IOError: unable to read font filename
+...I thought you're destroying the threads??? 8'D
+"""
