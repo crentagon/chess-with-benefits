@@ -317,8 +317,10 @@ def run(self):
 		hp_opponent_rect_curr = (hp_bar_x, hp_bar_y_opp, hp_bar_width*percentage_opponent, hp_bar_height)
 
 		# Rendering the bars
+		pygame.draw.rect(self.screen, Constants.HP_BG, hp_opponent_rect, 0)
 		pygame.draw.rect(self.screen, hp_color_opp, hp_opponent_rect_curr, 0)
 		pygame.draw.rect(self.screen, Constants.BG_BORDERS, hp_opponent_rect, hp_border_width)
+		pygame.draw.rect(self.screen, Constants.HP_BG, hp_user_rect, 0)
 		pygame.draw.rect(self.screen, hp_color_user, hp_user_rect_curr, 0)
 		pygame.draw.rect(self.screen, Constants.BG_BORDERS, hp_user_rect, hp_border_width)
 
