@@ -176,12 +176,15 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 				i = (x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
 				j_before = (y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
 				j_after = j_before + multiplier
+				j_after2 = j_before - multiplier
 
 				if i >= 0 and i <= 7:
 					if j_before >= 0 and j_before <= 7:
 						self.render_tile(i, j_before)
 					if j_after >= 0 and j_after <= 7:
 						self.render_tile(i, j_after)
+					if j_after2 >= 0 and j_after2 <= 7:
+						self.render_tile(i, j_after2)
 
 				if multiplier*y < multiplier*destination_coord_y:
 					break
@@ -191,6 +194,7 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 
 				i_before = int((x - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
 				i_after = int(i_before + multiplier)
+				i_after2 = int(i_before - multiplier)
 				j = int((y - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
 				
 				if j >= 0 and j <= 7:
@@ -199,6 +203,9 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 						# self.board[i_before][j].is_current_movement = True
 					if i_after >= 0 and i_after <= 7:
 						self.render_tile(i_after, j)
+						# self.board[i_after][j].is_current_movement = True
+					if i_after2 >= 0 and i_after2 <= 7:
+						self.render_tile(i_after2, j)
 						# self.board[i_after][j].is_current_movement = True
 
 				if multiplier*x < multiplier*destination_coord_x:

@@ -161,10 +161,10 @@ def run(self):
 
 		opp_rect = (cap_x + buff, opp_y, cap_width, cap_height)
 		usr_rect = (cap_x + buff, usr_y, cap_width, cap_height)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, opp_rect, 0)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, opp_rect, border)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, usr_rect, 0)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, usr_rect, border)
+		pygame.draw.rect(self.screen, Constants.BG_CAPTURED, opp_rect, 0)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, opp_rect, border)
+		pygame.draw.rect(self.screen, Constants.BG_CAPTURED, usr_rect, 0)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, usr_rect, border)
 
 		# Render captured pieces
 		cur_max = 3
@@ -235,20 +235,20 @@ def run(self):
 		# Render the opponent's HP text board
 		opp_y = Constants.BOARD_BUFFER
 		hp_container_opponent_rect = (cap_x + buff, opp_y + buff, hp_container_width, hp_container_height - border)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_opponent_rect, 0)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_opponent_rect, border)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, hp_container_opponent_rect, 0)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, hp_container_opponent_rect, border)
 		
 		# Render the user's HP text board
 		usr_y = usr_y - hp_container_height
 		hp_container_user_rect = (cap_x + buff, usr_y + buff, hp_container_width, hp_container_height - border)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_user_rect, 0)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_container_user_rect, border)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, hp_container_user_rect, 0)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, hp_container_user_rect, border)
 
 		# Render the text, "HP"
 		font_hp = Constants.RESOURCES+Constants.FONT_HP
 		basic_font = pygame.font.Font(font_hp, Constants.HP_TEXT_FONT_SIZE)
 		hp_text = "HP"
-		hp_text_render = basic_font.render(hp_text, True, Constants.CHESSBOARD_DK)
+		hp_text_render = basic_font.render(hp_text, True, Constants.WHITE)
 		hp_text_rect = hp_text_render.get_rect()
 
 		# Render "HP" for the opponent
@@ -318,9 +318,9 @@ def run(self):
 
 		# Rendering the bars
 		pygame.draw.rect(self.screen, hp_color_opp, hp_opponent_rect_curr, 0)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_opponent_rect, hp_border_width)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, hp_opponent_rect, hp_border_width)
 		pygame.draw.rect(self.screen, hp_color_user, hp_user_rect_curr, 0)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, hp_user_rect, hp_border_width)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, hp_user_rect, hp_border_width)
 
 		# Rendering "32/40" for the HP
 		hp_text_user = str(self.user_hp_current_before)+"/"+str(self.user_hp_max)
@@ -328,8 +328,8 @@ def run(self):
 
 		font_size = Constants.HP_TEXT_FONT_SIZE
 		basic_font = pygame.font.Font(font_hp, font_size)
-		hp_user = basic_font.render(hp_text_user, True, Constants.SIDEBAR_BUTTON_BG)
-		hp_opponent = basic_font.render(hp_text_opponent, True, Constants.SIDEBAR_BUTTON_BG)
+		hp_user = basic_font.render(hp_text_user, True, Constants.BG_BORDERS)
+		hp_opponent = basic_font.render(hp_text_opponent, True, Constants.BG_BORDERS)
 
 		hp_text_x = hp_bar_x + hp_container_width - (font_size/2)
 		hp_text_y_user = hp_bar_y_user + hp_container_height/2 -1
@@ -371,8 +371,8 @@ def run(self):
 		self.screen.blit(image_opp, opp_avatar_rect)
 
 		# Render the borders
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, opp_avatar_border_rect, avatar_border_width)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, user_avatar_border_rect, avatar_border_width)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, opp_avatar_border_rect, avatar_border_width)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, user_avatar_border_rect, avatar_border_width)
 
 		# Player names
 		name_width = Constants.NAME_WIDTH
@@ -385,10 +385,10 @@ def run(self):
 		name_user_rect_border = (name_x-2, name_user_y, name_width+2, name_height)
 		name_opp_rect_border = (name_x-2, name_opp_y, name_width+2, name_height)
 
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, name_opp_rect)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, name_user_rect)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, name_opp_rect_border, avatar_border_width)
-		pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, name_user_rect_border, avatar_border_width)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, name_opp_rect)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, name_user_rect)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, name_opp_rect_border, avatar_border_width)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, name_user_rect_border, avatar_border_width)
 
 		name_opp = self.name_opp
 		name_user = self.name_user
