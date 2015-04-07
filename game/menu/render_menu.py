@@ -26,52 +26,63 @@ def run(self):
 	font = Constants.RESOURCES+Constants.FONT
 
 	# Draw the left button: Single Player
-	button_coords = [(100,50),(325,50),(375,100),(375,400),(325,450),(100,450),(50,400),(50,100)]
 	color = Constants.SINGLE_PLAYER_BUTTON
 	border_color = Constants.BLACK
-	center_1 = (100,100)
-	center_2 = (100,400)
-	center_3 = (326,100)
-	center_4 = (326,400)
 	border_width = 10
-	border_width_circle = int(border_width*4.0/10.0)
-	radius = 50
+	center_x = 213
+	center_y = 250
+	width = 326
+	height = 400
+	radius = 20
 
-	draw_main_menu_button(self, button_coords, color,
-		border_color, center_1, center_2, center_3, center_4,
-		border_width, border_width_circle, radius)
+	draw_button(self, center_x, center_y, width, height, radius, color, border_color, border_width)
 
 	# Draw the right button: Two-Player
-	button_coords = [(700,450),(475,450),(425,400),(425,100),(475,50),(700,50),(750,100),(750,400)]
-	center_1 = (700,100)
-	center_2 = (700,400)
-	center_3 = (476,100)
-	center_4 = (476,400)
-	border_width = 10
-	border_width_circle = int(border_width*4.0/10.0)
-	radius = 50
-
-	draw_main_menu_button(self, button_coords, color,
-		border_color, center_1, center_2, center_3, center_4,
-		border_width, border_width_circle, radius)
+	center_x = 577
+	draw_button(self, center_x, center_y, width, height, radius, color, border_color, border_width)
 
 	# Screen update
 	pygame.display.flip()
 
-def draw_main_menu_button(self, button_coords, color,
-	border_color, center_1, center_2, center_3, center_4,
-	border_width, border_width_circle, radius):
+def draw_button(self, center_x, center_y, width, height, radius, color, border_color, border_width):
+	half_width = width/2
+	half_height = height/2
+
+	# Octagon points: x-coordinates
+	midright_x = center_x + half_width - radius
+	midleft_x = center_x - half_width + radius
+	right_x = center_x + half_width
+	left_x = center_x - half_width
+
+	# Octagon points: y-coordinates
+	midbottom_y = center_y + half_height - radius
+	midtop_y = center_y - half_height + radius
+	bottom_y = center_y + half_height
+	top_y = center_y - half_height
+
+	# Octagon points
+	point_1 = (midleft_x, top_y)
+	point_2 = (midright_x, top_y)
+	point_3 = (right_x, midtop_y)
+	point_4 = (right_x, midbottom_y)
+	point_5 = (midright_x, bottom_y)
+	point_6 = (midleft_x, bottom_y)
+	point_7 = (left_x, midbottom_y)
+	point_8 = (left_x, midtop_y)
+	button_coords = [point_1, point_2, point_3, point_4, point_5, point_6, point_7, point_8] 
+
+	border_width_circle = int(border_width*2.0/5.0)
 
 	# Border of the button
 	pygame.draw.polygon(self.screen, border_color, button_coords, border_width)
-	pygame.gfxdraw.filled_circle(self.screen, center_1[0], center_1[1], radius+border_width_circle, border_color)
-	pygame.gfxdraw.filled_circle(self.screen, center_2[0], center_2[1], radius+border_width_circle, border_color)
-	pygame.gfxdraw.filled_circle(self.screen, center_3[0], center_3[1], radius+border_width_circle, border_color)
-	pygame.gfxdraw.filled_circle(self.screen, center_4[0], center_4[1], radius+border_width_circle, border_color)
+	pygame.gfxdraw.filled_circle(self.screen, midleft_x, midtop_y, radius+border_width_circle, border_color)
+	pygame.gfxdraw.filled_circle(self.screen, midright_x, midtop_y, radius+border_width_circle, border_color)
+	pygame.gfxdraw.filled_circle(self.screen, midleft_x, midbottom_y, radius+border_width_circle, border_color)
+	pygame.gfxdraw.filled_circle(self.screen, midright_x, midbottom_y, radius+border_width_circle, border_color)
 
 	# Button color
 	pygame.draw.polygon(self.screen, color, button_coords)
-	pygame.draw.circle(self.screen, color, center_1, radius)
-	pygame.draw.circle(self.screen, color, center_2, radius)
-	pygame.draw.circle(self.screen, color, center_3, radius)
-	pygame.draw.circle(self.screen, color, center_4, radius)
+	pygame.draw.circle(self.screen, color, (midleft_x, midtop_y), radius)
+	pygame.draw.circle(self.screen, color, (midright_x, midtop_y), radius)
+	pygame.draw.circle(self.screen, color, (midleft_x, midbottom_y), radius)
+	pygame.draw.circle(self.screen, color, (midright_x, midbottom_y), radius)
