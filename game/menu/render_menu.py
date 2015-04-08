@@ -1,6 +1,7 @@
+import pygame, time
 from pygame import gfxdraw
 from constants import *
-import pygame, time
+from button import Button
 
 def run(self):
 
@@ -20,12 +21,14 @@ def run(self):
 				Send message to this: "Found you a player!"
 				
 	"""
+	# All buttons
+	buttons = []
 
 	# Screen fill
 	self.screen.fill(Constants.BG)
 	font = Constants.RESOURCES+Constants.FONT
 
-	# Draw the left button: Single Player
+	# Set up the left button: Single Player
 	color = Constants.SINGLE_PLAYER_BUTTON
 	border_color = Constants.BLACK
 	border_width = 10
@@ -34,55 +37,26 @@ def run(self):
 	width = 326
 	height = 400
 	radius = 20
+	command = "main_single"
+	
+	display_text = "Single Player"
+	font = Constants.RESOURCES+Constants.FONT
+	font_size = 30
+	font_color = Constants.WHITE
 
-	draw_button(self, center_x, center_y, width, height, radius, color, border_color, border_width)
-
-	# Draw the right button: Two-Player
+	buttons.append(Button(center_x, center_y, width, height, radius, color,
+		border_color, border_width, self.screen, command,
+		display_text=display_text, font=font, font_size=font_size, font_color=font_color))
+	
+	# Set up the right-button: Two Player
 	center_x = 577
-	draw_button(self, center_x, center_y, width, height, radius, color, border_color, border_width)
+	command = "main_multi"
+	buttons.append(Button(center_x, center_y, width, height, radius, color,
+		border_color, border_width, self.screen, command))
 
+	# Draw all the possible buttons
+	for button in buttons:
+		button.draw_button()
+	
 	# Screen update
 	pygame.display.flip()
-
-def draw_button(self, center_x, center_y, width, height, radius, color, border_color, border_width):
-	half_width = width/2
-	half_height = height/2
-
-	# Octagon points: x-coordinates
-	midright_x = center_x + half_width - radius
-	midleft_x = center_x - half_width + radius
-	right_x = center_x + half_width
-	left_x = center_x - half_width
-
-	# Octagon points: y-coordinates
-	midbottom_y = center_y + half_height - radius
-	midtop_y = center_y - half_height + radius
-	bottom_y = center_y + half_height
-	top_y = center_y - half_height
-
-	# Octagon points
-	point_1 = (midleft_x, top_y)
-	point_2 = (midright_x, top_y)
-	point_3 = (right_x, midtop_y)
-	point_4 = (right_x, midbottom_y)
-	point_5 = (midright_x, bottom_y)
-	point_6 = (midleft_x, bottom_y)
-	point_7 = (left_x, midbottom_y)
-	point_8 = (left_x, midtop_y)
-	button_coords = [point_1, point_2, point_3, point_4, point_5, point_6, point_7, point_8] 
-
-	border_width_circle = int(border_width*2.0/5.0)
-
-	# Border of the button
-	pygame.draw.polygon(self.screen, border_color, button_coords, border_width)
-	pygame.gfxdraw.filled_circle(self.screen, midleft_x, midtop_y, radius+border_width_circle, border_color)
-	pygame.gfxdraw.filled_circle(self.screen, midright_x, midtop_y, radius+border_width_circle, border_color)
-	pygame.gfxdraw.filled_circle(self.screen, midleft_x, midbottom_y, radius+border_width_circle, border_color)
-	pygame.gfxdraw.filled_circle(self.screen, midright_x, midbottom_y, radius+border_width_circle, border_color)
-
-	# Button color
-	pygame.draw.polygon(self.screen, color, button_coords)
-	pygame.draw.circle(self.screen, color, (midleft_x, midtop_y), radius)
-	pygame.draw.circle(self.screen, color, (midright_x, midtop_y), radius)
-	pygame.draw.circle(self.screen, color, (midleft_x, midbottom_y), radius)
-	pygame.draw.circle(self.screen, color, (midright_x, midbottom_y), radius)
