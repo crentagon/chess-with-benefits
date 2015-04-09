@@ -19,6 +19,23 @@ class StockfishThread(threading.Thread):
 
 	def run(self):
 
+		"""
+		CPU Level 		Move Time 		Depth 		UCI Level
+		--------- 		--------- 		----- 		---------
+		1 (1.0)			50				1 			3
+		2 (1.5)			100 			2 			6
+		3 (2.0)			150 			3 			9
+		4 (2.5)			200 			4 			11
+		5 (3.0)			250 			6 			14
+		6 (3.5)			300 			8 			17
+		7 (4.0)			350 			10 			19
+		8 (4.5) 		400 			12 			20
+		9 (5.0) 		1000 			16 			20
+		10 (5.5) 		2000 			20 			10
+		11 (6.0) 		4000 			24 			20
+		12 (6.5) 		8000 			28 			20
+		"""
+
 		p = subprocess.Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE)
 		p.stdin.write("position fen "+self.fen_string+"\n")
 
@@ -29,6 +46,9 @@ class StockfishThread(threading.Thread):
 		depth = cpu_level if cpu_level < 5 else (cpu_level - ((2 + (3*octa_factor))))*(2*quad_factor)
 		uci_level = cpu_level*3 - ((cpu_level-1)/3) if cpu_level < 8 else 20
 		move_time = cpu_level*50 if cpu_level <= 8 else (2**(cpu_level - 9))*1000
+
+		print "setoption name Skill Level value "+str(uci_level)
+		print "go depth "+str(depth)+" movetime "+str(move_time)
 
 		p.stdin.write("setoption name Skill Level value "+str(uci_level)+"\n")
 		p.stdin.write("go depth "+str(depth)+" movetime "+str(move_time)+"\n")

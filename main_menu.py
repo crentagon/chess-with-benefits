@@ -1,4 +1,4 @@
-# from game_start import *
+from game_start import *
 from game.menu import (
 	initialize,
 	play,
@@ -12,6 +12,9 @@ class MainMenu:
 
 	def render_menu(self):
 		render_menu.run(self)
+
+	def start_game_ai(self):
+		Chesselate(self.screen, is_player_white=self.is_player_white, cpu_level=self.cpu_level).play()
 
 	def play(self):
 		play.run(self)

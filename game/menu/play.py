@@ -35,3 +35,6 @@ def run(self):
 
 				elif active_command == 'minus_difficulty' and self.cpu_level > 1:
 					self.cpu_level -= 1
+
+				elif active_command == 'start_game_ai':
+					self.start_game_ai()

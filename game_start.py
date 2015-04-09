@@ -18,8 +18,8 @@ from game.chess import (
 
 class Chesselate:
 
-	def __init__(self, is_player_white = True, cpu_level = 5, fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
-		initialize.run(self, is_player_white, cpu_level, fen_string)
+	def __init__(self, screen, is_player_white = True, cpu_level = 5, fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
+		initialize.run(self, screen, is_player_white, cpu_level, fen_string)
 
 	def populate_sidebar(self):
 		populate_sidebar.run(self)

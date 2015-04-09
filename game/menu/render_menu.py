@@ -147,6 +147,24 @@ def run(self):
 		# Set up the half-white half-black button
 
 		# Start game button
+		color = Constants.SINGLE_PLAYER_BUTTON
+		border_color = Constants.BLACK
+		border_width = 10
+		center_x = 575
+		center_y = 425
+		width = 300
+		height = 50
+		radius = 10
+		command = "start_game_ai"
+		
+		display_text = "Start Game"
+		font = Constants.RESOURCES+Constants.FONT
+		font_size = 50
+		font_color = Constants.WHITE
+
+		self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+			border_color, border_width, self.screen, command,
+			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
 
 		# Set up the back button
 

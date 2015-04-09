@@ -3,7 +3,7 @@ from stack import *
 from constants import *
 import pygame
 
-def run(self, is_player_white, cpu_level, fen_string):
+def run(self, screen, is_player_white, cpu_level, fen_string):
 	# Move piece animations
 	self.animate = True
 
@@ -48,8 +48,6 @@ def run(self, is_player_white, cpu_level, fen_string):
 	self.convert_fen_to_board(fen_string, True)
 
 	# Game Window information
-	pygame.init()
-	pygame.display.set_caption("Chess with Benefits")
 	self.clock = pygame.time.Clock()
 
 	# Source move
@@ -91,6 +89,5 @@ def run(self, is_player_white, cpu_level, fen_string):
 	self.is_opponent_checkmate = False
 	self.is_game_over = False
 
-	self.screen = pygame.display.set_mode(Constants.SCREENSIZE)
-	self.screen.fill(Constants.WHITE)
+	self.screen = screen
 	pygame.display.flip()
