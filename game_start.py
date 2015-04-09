@@ -18,7 +18,7 @@ from game.chess import (
 
 class Chesselate:
 
-	def __init__(self, is_player_white = True, cpu_level = 2000, fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
+	def __init__(self, is_player_white = True, cpu_level = 5, fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
 		initialize.run(self, is_player_white, cpu_level, fen_string)
 
 	def populate_sidebar(self):
@@ -83,6 +83,6 @@ class Chesselate:
 	# test = "6RQ/8/5p2/2p2k2/7K/8/6r1/5q2 b ---- - 7 69" #one move away from checkmate
 	# test = "r5k1/R7/1P4p1/5p1p/2P5/1P6/3p1PPP/3K4 w ---- - 1 33" #temp test!
 	# test = "rnbqkb1r/pppppppp/5n2/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1" # knightbug
-	# Chesselate(is_player_white=False, cpu_level=2000, fen_string=test).play()
-	# Chesselate(is_player_white=True, cpu_level=2000).play()
+	# Chesselate(is_player_white=False, cpu_level=5, fen_string=test).play()
+	# Chesselate(is_player_white=False, cpu_level=12).play()
 

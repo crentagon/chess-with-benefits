@@ -140,10 +140,24 @@ class Constants:
 	SIDEBAR_BUTTON_BG = (0, 19, 24)
 	SIDEBAR_BG = (0, 29, 36)
 
+	# Main menu
 	BG = (225, 225, 225)
-	SINGLE_PLAYER_BUTTON = (200, 100, 100)
-	SINGLE_PLAYER_BUTTON_DK = (150, 100, 100)
+	SINGLE_PLAYER_BUTTON = (200, 28, 28)
+	SINGLE_PLAYER_BUTTON_DK = (180, 28, 28)
+	TWO_PLAYER_BUTTON = (28, 28, 200)
+	TWO_PLAYER_BUTTON_DK = (28, 28, 180)
 	BG_CAPTURED = (1, 48, 56)
+
+	# Single-player
+	CPU_LEVEL_BG = (32,32,32)
+	LEVEL_COLORS = {
+		0: (80,80,220),
+		1: (0,191,232),
+		2: (23,206,45),
+		3: (213,181,3),
+		4: (227,89,5),
+		5: (227,5,5)
+	}
 	
 	WHITE = (255, 255, 255)
 	BLACK = (  0,   0,   0)

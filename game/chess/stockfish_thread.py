@@ -5,11 +5,11 @@ from subprocess import *
 
 class StockfishThread(threading.Thread):
 
-	def __init__(self, fen_string, process_time):
+	def __init__(self, fen_string, cpu_level):
 
 		super(StockfishThread, self).__init__()
 		self.fen_string = fen_string
-		self.process_time = process_time
+		self.cpu_level = cpu_level
 		self.is_thread_done = False
 		self.is_undo_clicked = False
 
@@ -21,17 +21,17 @@ class StockfishThread(threading.Thread):
 
 		p = subprocess.Popen( ["stockfish_14053109_32bit.exe"], stdin=PIPE, stdout=PIPE)
 		p.stdin.write("position fen "+self.fen_string+"\n")
-		p.stdin.write("go movetime "+str(self.process_time)+"\n")
 
-		# Debugging code ignore pls:
-		# p.stdin.write("go depth 20\n")
-		# print "<YAY>"
-		# print "position fen "+self.fen_string
-		# print "go movetime "+str(self.process_time)
-		# print "</YAY>"
-		# print "PID", p.pid
-		# p.stdin.write("quit\n")
-		# subprocess.call(['taskkill', '/F', '/T', '/PID', str(p.pid)])
+		cpu_level = self.cpu_level
+		quad_factor = (cpu_level - 1)/4
+		octa_factor = quad_factor/2
+
+		depth = cpu_level if cpu_level < 5 else (cpu_level - ((2 + (3*octa_factor))))*(2*quad_factor)
+		uci_level = cpu_level*3 - ((cpu_level-1)/3) if cpu_level < 8 else 20
+		move_time = cpu_level*50 if cpu_level <= 8 else (2**(cpu_level - 9))*1000
+
+		p.stdin.write("setoption name Skill Level value "+str(uci_level)+"\n")
+		p.stdin.write("go depth "+str(depth)+" movetime "+str(move_time)+"\n")
 
 		while p.poll() is None:
 			line = p.stdout.readline()

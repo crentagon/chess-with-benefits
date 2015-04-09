@@ -16,7 +16,8 @@ class Button:
 		self.color = color 					# button color
 		self.border_color = border_color 	# border color
 		self.border_width = border_width 	# border width
-
+		self.command = command
+		
 		# Pygame screen
 		self.screen = screen
 
@@ -112,4 +113,25 @@ class Button:
 
 
 	def is_button_pressed(self, x, y):
-		pass
+		# Set the half-width and half-height
+		half_width = self.width/2
+		half_height = self.height/2
+
+		# Octagon points: x-coordinates
+		right_x = self.center_x + half_width
+		left_x = self.center_x - half_width
+
+		# Octagon points: y-coordinates
+		bottom_y = self.center_y + half_height
+		top_y = self.center_y - half_height
+
+		# Checker for is button pressed
+		is_x_coord = x <= right_x and x >= left_x
+		is_y_coord = y >= top_y and y <= bottom_y
+
+		if is_x_coord and is_y_coord:
+			return True
+		return False
+
+	def get_command(self):
+		return self.command
