@@ -4,6 +4,7 @@ from game.menu import (
 	play,
 	render_menu
 )
+import random
 
 class MainMenu:
 
@@ -14,7 +15,14 @@ class MainMenu:
 		render_menu.run(self)
 
 	def start_game_ai(self):
-		Chesselate(self.screen, is_player_white=self.is_player_white, cpu_level=self.cpu_level).play()
+		is_white = True
+		if self.user_color[self.user_color_active] == 'Black':
+			is_white = False
+		elif self.user_color[self.user_color_active] == 'Random':
+			is_white = True if random.randint(0,1) else False
+
+		self.location = Chesselate(self.screen, is_player_white=is_white, cpu_level=self.cpu_level).play()
+		print "Location:", self.location
 
 	def play(self):
 		play.run(self)

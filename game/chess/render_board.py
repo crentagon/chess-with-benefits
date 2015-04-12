@@ -111,8 +111,6 @@ def run(self):
 			self.write_text(font_text, font_color, font_size, font_x, font_y)
 			i = i + 1
 
-		# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close gme clicked
-
 	# If the user isn't undergoing promotion
 	else:
 		# Render the sidebar

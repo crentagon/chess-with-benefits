@@ -140,11 +140,61 @@ def run(self):
 		char_rect.centery = 52
 		self.screen.blit(text_char, char_rect)
 
-		# Set up the white button
+		# Set up the color-choosing:
+		# Set up minus-color button
+		color = Constants.SINGLE_PLAYER_BUTTON
+		border_color = Constants.BLACK
+		border_width = 10
+		center_x = 100
+		center_y = 175
+		width = 50
+		height = 50
+		radius = 2
+		command = "minus_color"
+		
+		display_text = "<"
+		font = Constants.RESOURCES+Constants.FONT
+		font_size = 45
+		font_color = Constants.WHITE
 
-		# Set up the black button
+		self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+			border_color, border_width, self.screen, command,
+			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
 
-		# Set up the half-white half-black button
+		# Set up plus-color button
+		center_x = 700
+		center_y = 175
+		command = "plus_color"
+		
+		display_text = ">"
+
+		self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+			border_color, border_width, self.screen, command,
+			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
+
+		# Set up the textbox in the middle
+		# Set up the textbox border
+		color_index = self.user_color_active
+		text_color = Constants.PLAY_AS_WHITE_TEXT
+		bg_color = Constants.PLAY_AS_WHITE_BG
+		if color_index == 1:
+			text_color = Constants.PLAY_AS_BLACK_TEXT
+			bg_color = Constants.PLAY_AS_BLACK_BG
+		elif color_index == 2:
+			text_color = Constants.PLAY_AS_RANDOM_TEXT
+			bg_color = Constants.PLAY_AS_RANDOM_BG
+
+		border_width = 9
+		hp_border_rectangle = (125, 151, 550, 50)
+		pygame.draw.rect(self.screen, bg_color, hp_border_rectangle, 0)
+		pygame.draw.rect(self.screen, border_color, hp_border_rectangle, border_width)
+
+		# Set up the text
+		text_char = basic_font.render(self.user_color[color_index], True, text_color)
+		char_rect = text_char.get_rect()
+		char_rect.centerx = 400
+		char_rect.centery = 175
+		self.screen.blit(text_char, char_rect)
 
 		# Start game button
 		color = Constants.SINGLE_PLAYER_BUTTON

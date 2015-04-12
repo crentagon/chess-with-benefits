@@ -265,6 +265,14 @@ def run(self):
 							self.render_board()
 							self.clear_last_movement()
 
+					elif action == 'main_menu':
+						# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close game clicked
+						return 'main_menu'
+
+					elif action == 'play_again':
+						# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close game clicked
+						return 'single_player_menu' # Return 'two_player_search_menu' instead if two-player
+
 					# Is the user clicking on the promotion buttons?
 					for i in range(4):
 						if self.is_undergoing_promotion and self.promotions[i].pressed(mouse_pos):

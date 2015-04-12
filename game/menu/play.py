@@ -36,5 +36,11 @@ def run(self):
 				elif active_command == 'minus_difficulty' and self.cpu_level > 1:
 					self.cpu_level -= 1
 
+				elif active_command == 'plus_color' and self.user_color_active < 2:
+					self.user_color_active += 1
+
+				elif active_command == 'minus_color' and self.user_color_active > 0:
+					self.user_color_active -= 1
+
 				elif active_command == 'start_game_ai':
 					self.start_game_ai()

@@ -70,7 +70,7 @@ class Chesselate:
 		render_board.run(self)
 
 	def play(self):
-		play.run(self)
+		return play.run(self)
 
 # if __name__ == '__main__':
 	# pass

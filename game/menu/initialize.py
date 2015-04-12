@@ -16,6 +16,7 @@ def run(self):
 
 	# Single player info
 	self.cpu_level = 5
-	self.is_player_white = True
+	self.user_color = ['White', 'Black', 'Random']
+	self.user_color_active = 0
 
 	pygame.display.flip()

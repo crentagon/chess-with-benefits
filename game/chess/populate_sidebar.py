@@ -5,5 +5,5 @@ def run(self):
 
 	self.aftergame_options.append(["Undo Last Move", "undo"])
 	self.aftergame_options.append(["Review Game", "undo"])
-	self.aftergame_options.append(["Play Again", "undo"])
-	self.aftergame_options.append(["Main Menu", "undo"])
+	self.aftergame_options.append(["Play Again", "play_again"])
+	self.aftergame_options.append(["Main Menu", "main_menu"])
