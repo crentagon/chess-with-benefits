@@ -5,7 +5,7 @@ import sys
 
 class ChessServer:
 
-	def __init__(self, host='localhost', port=28888, bufsize=1024):
+	def __init__(self, host='25.36.74.136', port=8888, bufsize=1024):
 		self.host = host
 		self.port = port
 		self.bufsize = bufsize

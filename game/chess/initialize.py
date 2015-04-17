@@ -3,9 +3,11 @@ from stack import *
 from constants import *
 import pygame
 
-def run(self, screen, is_player_white, cpu_level, fen_string):
+def run(self, screen, is_player_white, is_two_player, cpu_level, fen_string, listener, speaker):
 	# Move piece animations
 	self.animate = True
+	self.is_animating = False
+	self.is_board_changed = False
 
 	# Avatars and names
 	self.image_file_user = "res/avatars/dragonite_sample.png"
@@ -75,11 +77,6 @@ def run(self, screen, is_player_white, cpu_level, fen_string):
 	# Debug mode: Disables opponent's moves
 	self.debug_mode = False
 
-	# Sidebar buttons
-	self.sidebar_buttons = []
-	self.aftergame_options = []
-	self.populate_sidebar()
-
 	# Checks and checkmate
 	self.is_stalemate = False
 	self.is_user_check = False
@@ -88,6 +85,21 @@ def run(self, screen, is_player_white, cpu_level, fen_string):
 	self.is_opponent_check = False
 	self.is_opponent_checkmate = False
 	self.is_game_over = False
+
+	# Forfeit
+	# self.is_forfeitting = False
+	# self.is_forfeit = False
+
+	# Two player inits
+	self.is_two_player = is_two_player
+	self.listener = listener
+	self.speaker = speaker
+	self.move_string = ''
+
+	# Sidebar buttons
+	self.sidebar_buttons = []
+	self.aftergame_options = []
+	self.populate_sidebar()
 
 	self.screen = screen
 	pygame.display.flip()

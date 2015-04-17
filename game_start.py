@@ -18,8 +18,10 @@ from game.chess import (
 
 class Chesselate:
 
-	def __init__(self, screen, is_player_white = True, cpu_level = 5, fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
-		initialize.run(self, screen, is_player_white, cpu_level, fen_string)
+	def __init__(self, screen, is_player_white = True, is_two_player = False, cpu_level = 5,
+		fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", listener=None, speaker=None):
+		# fen_string = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 w ---- - 0 65" # promotion test
+		initialize.run(self, screen, is_player_white, is_two_player, cpu_level, fen_string, listener, speaker)
 
 	def populate_sidebar(self):
 		populate_sidebar.run(self)
@@ -61,7 +63,7 @@ class Chesselate:
 		convert_fen_to_board.run(self, fen_string, is_init)
 
 	def render_tile(self, i, j):
-		render_tile.run(self, i, j)
+		return render_tile.run(self, i, j)
 
 	def write_text(self, font_text, font_color, font_size, x, y):
 		write_text.run(self, font_text, font_color, font_size, x, y)

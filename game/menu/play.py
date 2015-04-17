@@ -1,3 +1,4 @@
+from pygame.locals import *
 from constants import *
 import pygame
 import sys
@@ -24,11 +25,30 @@ def run(self):
 					if button.is_button_pressed(x_coord, y_coord):
 						active_command = button.get_command()
 
+				self.active_textbox_index = 0
+				for index, textbox in enumerate(self.textboxes):
+					if textbox.is_textbox_active(x_coord, y_coord):
+						print "Textbox is being clicked! is_active:", textbox.is_active
+						textbox.ask()
+
+						if index == 0:
+							self.host = textbox.get_message()
+						elif index == 1:
+							self.port = textbox.get_message()
+
+						break
+					else:
+						print "Textbox NOT being clicked! is_active:", textbox.is_active
+					self.active_textbox_index += 1
+
 				if active_command == 'main_single':
 					self.location = 'single_player_menu'
 
 				elif active_command == 'main_two_player':
-					self.location = 'two_player_search_menu'
+					self.location = 'two_player_menu_screen_ip'
+
+				elif active_command == 'two_player_connect':
+					self.location = 'two_player_menu_screen_connecting'
 
 				elif active_command == 'plus_difficulty' and self.cpu_level < 12:
 					self.cpu_level += 1
@@ -44,3 +64,6 @@ def run(self):
 
 				elif active_command == 'start_game_ai':
 					self.start_game_ai()
+
+				elif active_command == 'start_game_two_player':
+					self.setup_two_player()

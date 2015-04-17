@@ -34,7 +34,8 @@ def run(self, i, j):
 	rect_x = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*i
 	rect_y = Constants.BOARD_BUFFER+Constants.TILE_LENGTH*j
 	side = Constants.TILE_LENGTH
-	pygame.draw.rect(self.screen, tile_color, (rect_x, rect_y, side, side), 0)
+	dirty_rect = (rect_x, rect_y, side, side)
+	pygame.draw.rect(self.screen, tile_color, dirty_rect, 0)
 
 	if tile.is_last_movement:
 		thickness = Constants.LAST_MOVEMENT_BORDER_THICKNESS
@@ -55,7 +56,7 @@ def run(self, i, j):
 	if(piece is not None):
 
 		# Render the pieces
-		piece_rect = (rect_x, rect_y, side, side)
+		piece_rect = dirty_rect
 		piece_type = piece.piece_type
 		piece.piece_position = piece_rect
 
@@ -135,3 +136,5 @@ def run(self, i, j):
 		pygame.gfxdraw.filled_circle(self.screen, circle_x, circle_y, Constants.TRAVERSABLE_RADIUS, Constants.TRAVERSABLE_BORDER)
 		pygame.gfxdraw.filled_circle(self.screen, circle_x, circle_y, Constants.TRAVERSABLE_SEMIRADIUS, Constants.TRAVERSABLE_SEMI)
 		pygame.gfxdraw.filled_circle(self.screen, circle_x, circle_y, Constants.TRAVERSABLE_MINIRADIUS, Constants.TRAVERSABLE_MINI)
+
+	return dirty_rect

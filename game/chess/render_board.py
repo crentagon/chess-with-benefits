@@ -49,6 +49,9 @@ def run(self):
 
 	# Game overrrr
 	elif self.is_game_over:
+		if self.is_two_player:
+			self.speaker.send_message('GAME_OVER')
+
 		# Determine the winner
 		color_winner = "Stalemate"
 		if self.is_user_checkmate:
@@ -270,6 +273,9 @@ def run(self):
 		hp_current_opponent = self.opponent_hp_current
 		hp_current_opponent_before = self.opponent_hp_current_before
 
+		hp_current_user = 40 if hp_current_user > 40 else hp_current_user
+		hp_current_opponent = 40 if hp_current_opponent > 40 else hp_current_opponent
+
 		# HP bar: percentage
 		percentage_user = hp_current_user_before*1.0/self.user_hp_max
 		percentage_opponent = hp_current_opponent_before*1.0/self.opponent_hp_max 
@@ -289,21 +295,26 @@ def run(self):
 			hp_color_opp = Constants.HP_FAIR
 
 		# HP while increasing/decreasing (user)
+		self.is_animating = False
 		if hp_current_user_before > hp_current_user:
+			self.is_animating = True
 			self.user_hp_current_before -= 1
 			hp_color_user = Constants.WHITE
 			self.alpha_hp_user = 255
 		elif hp_current_user_before < hp_current_user:
+			self.is_animating = True
 			self.user_hp_current_before += 1
 			hp_color_user = Constants.WHITE
 			self.alpha_hp_user = 255
 
 		# HP while increasing/decreasing (opponent)
 		if hp_current_opponent_before > hp_current_opponent:
+			self.is_animating = True
 			self.opponent_hp_current_before -= 1
 			hp_color_opp = Constants.WHITE
 			self.alpha_hp_opponent = 255
 		elif hp_current_opponent_before < hp_current_opponent:
+			self.is_animating = True
 			self.opponent_hp_current_before += 1
 			hp_color_opp = Constants.WHITE
 			self.alpha_hp_opponent = 255

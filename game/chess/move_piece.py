@@ -109,6 +109,7 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 		clock = pygame.time.Clock()
 
 		while True:
+			dirty_rects = []
 
 			if not (is_vertical or is_horizontal):
 				x -= multiplier_x*(increment)
@@ -145,26 +146,26 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 				j_withinrange = j_temp >= 0 and j_temp <= 7
 
 				if i_withinrange and j_withinrange:
-					self.render_tile(i_temp, j_temp)
+					dirty_rects.append(self.render_tile(i_temp, j_temp))
 					if i1_lte_7 and i1_gte_0:
-						self.render_tile(i_temp_1, j_temp)
+						dirty_rects.append(self.render_tile(i_temp_1, j_temp))
 					if i2_lte_7 and i2_gte_0:
-						self.render_tile(i_temp_2, j_temp)
+						dirty_rects.append(self.render_tile(i_temp_2, j_temp))
 
 					if j1_gte_0 and j1_lte_7:
-						self.render_tile(i_temp, j_temp_1)
+						dirty_rects.append(self.render_tile(i_temp, j_temp_1))
 
 						if i1_lte_7 and i1_gte_0:
-							self.render_tile(i_temp_1, j_temp_1)
+							dirty_rects.append(self.render_tile(i_temp_1, j_temp_1))
 						if i2_lte_7 and i2_gte_0:
-							self.render_tile(i_temp_2, j_temp_1)
+							dirty_rects.append(self.render_tile(i_temp_2, j_temp_1))
 
 					if j2_gte_0 and j2_lte_7:
-						self.render_tile(i_temp, j_temp_2)
+						dirty_rects.append(self.render_tile(i_temp, j_temp_2))
 						if i1_lte_7 and i1_gte_0:
-							self.render_tile(i_temp_1, j_temp_2)
+							dirty_rects.append(self.render_tile(i_temp_1, j_temp_2))
 						if i2_lte_7 and i2_gte_0:
-							self.render_tile(i_temp_2, j_temp_2)
+							dirty_rects.append(self.render_tile(i_temp_2, j_temp_2))
 
 				if multiplier_x*x < multiplier_x*destination_coord_x:
 					break
@@ -180,11 +181,11 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 
 				if i >= 0 and i <= 7:
 					if j_before >= 0 and j_before <= 7:
-						self.render_tile(i, j_before)
+						dirty_rects.append(self.render_tile(i, j_before))
 					if j_after >= 0 and j_after <= 7:
-						self.render_tile(i, j_after)
+						dirty_rects.append(self.render_tile(i, j_after))
 					if j_after2 >= 0 and j_after2 <= 7:
-						self.render_tile(i, j_after2)
+						dirty_rects.append(self.render_tile(i, j_after2))
 
 				if multiplier*y < multiplier*destination_coord_y:
 					break
@@ -199,13 +200,13 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 				
 				if j >= 0 and j <= 7:
 					if i_before >= 0 and i_before <= 7:
-						self.render_tile(i_before, j)
+						dirty_rects.append(self.render_tile(i_before, j))
 						# self.board[i_before][j].is_current_movement = True
 					if i_after >= 0 and i_after <= 7:
-						self.render_tile(i_after, j)
+						dirty_rects.append(self.render_tile(i_after, j))
 						# self.board[i_after][j].is_current_movement = True
 					if i_after2 >= 0 and i_after2 <= 7:
-						self.render_tile(i_after2, j)
+						dirty_rects.append(self.render_tile(i_after2, j))
 						# self.board[i_after][j].is_current_movement = True
 
 				if multiplier*x < multiplier*destination_coord_x:
@@ -222,8 +223,8 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 			self.screen.blit(image_piece, piece_rect)
 
-			pygame.display.update()
-			clock.tick(240)
+			pygame.display.update(dirty_rects)
+			clock.tick(180)
 
 	# Destination
 	self.board[destination_x][destination_y].piece = destination_piece

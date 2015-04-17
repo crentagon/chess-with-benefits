@@ -1,74 +1,6 @@
 import os
 
 class Constants:
-
-	PIECE_MAPPING = {
-		'a': 0,
-		'b': 1,
-		'c': 2,
-		'd': 3,
-		'e': 4,
-		'f': 5,
-		'g': 6,
-		'h': 7,
-		'1': 0,
-		'2': 1,
-		'3': 2,
-		'4': 3,
-		'5': 4,
-		'6': 5,
-		'7': 6,
-		'8': 7
-	}
-
-	CHAR_MAPPING = {
-		0: 'a',
-		1: 'b',
-		2: 'c',
-		3: 'd',
-		4: 'e',
-		5: 'f',
-		6: 'g',
-		7: 'h'
-	}
-
-	NUM_MAPPING = {
-		0: '1',
-		1: '2',
-		2: '3',
-		3: '4',
-		4: '5',
-		5: '6',
-		6: '7',
-		7: '8',
-	}
-
-	# Tile information
-	TILE_A = 0
-	TILE_B = 1
-	TILE_C = 2
-	TILE_D = 3
-	TILE_E = 4
-	TILE_F = 5
-	TILE_G = 6
-	TILE_H = 7
-		
-	TILE_1 = 0
-	TILE_2 = 1
-	TILE_3 = 2
-	TILE_4 = 3
-	TILE_5 = 4
-	TILE_6 = 5
-	TILE_7 = 6
-	TILE_8 = 7
-
-	# Piece information
-	P_KING = 0
-	P_PAWN = 1
-	P_ROOK = 5
-	P_QUEEN = 9
-	P_KNIGHT = 3
-	P_BISHOP = 4
 	
 	# The base directory is two folders up
 	BASE_DIR = os.path.join( os.path.dirname( __file__ ), '../../' )
@@ -79,13 +11,7 @@ class Constants:
 	FONT_HP = "fonts/DisposableDroidBB_bld.ttf"
 
 	# Board information
-	PROMOTION_COORD = (650, 125)
-	SCREENSIZE = [800, 500]
-	OUTERBOARD_WIDTH = 500
-	OUTERBOARD_HEIGHT = 500
-	INNERBOARD_WIDTH = 480
-	INNERBOARD_HEIGHT = 480
-	TILE_LENGTH = INNERBOARD_HEIGHT/8
+	SCREENSIZE = [400, 400]
 
 	# Sidebar information
 	SIDEBAR_WIDTH = 55

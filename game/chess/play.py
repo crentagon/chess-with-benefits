@@ -23,16 +23,19 @@ def run(self):
 		is_turn_opponent = False if is_turn_user else True
 
 	thread = None
+	self.is_board_changed = True
 
 	while(True):			
-		self.render_board()
-		
+		if self.is_board_changed or self.is_animating:
+			self.render_board()
+			self.is_board_changed = False
+
 		if has_player_moved or has_opponent_moved:
 			self.is_user_check = False
 			self.is_opponent_check = False
 			self.clear_traversable()				
 			self.build_threats(self.board)
-			self.render_board()
+			self.is_board_changed = True
 
 			if has_player_moved:
 				self.active_turn = 'b' if self.is_player_white else 'w'
@@ -57,61 +60,90 @@ def run(self):
 			is_turn_user = True
 
 		# CPU Opponent's Turn
-		if not self.debug_mode and is_turn_opponent and not (self.is_undergoing_promotion or self.is_game_over):
-			print fen_string
-			thread = StockfishThread(fen_string, self.cpu_level)
+		if not self.is_two_player:
+			if not self.debug_mode and is_turn_opponent and not (self.is_undergoing_promotion or self.is_game_over):
+				print fen_string
+				thread = StockfishThread(fen_string, self.cpu_level)
 
-			thread.start()
-			is_turn_opponent = False
+				thread.start()
+				is_turn_opponent = False
 
-		if thread is not None:
+			if thread is not None:
 
-			if thread.current_move is not None:
-				cpu_current_move = thread.current_move
+				if thread.current_move is not None:
+					cpu_current_move = thread.current_move
 
-				if len(cpu_current_move) == 4:
-					currmove_source_x = Constants.PIECE_MAPPING[cpu_current_move[:1]]
-					currmove_source_y = Constants.PIECE_MAPPING[cpu_current_move[1:2]]
-					currmove_destination_x = Constants.PIECE_MAPPING[cpu_current_move[2:3]]
-					currmove_destination_y = Constants.PIECE_MAPPING[cpu_current_move[3:4]]
+					if len(cpu_current_move) == 4:
+						currmove_source_x = Constants.PIECE_MAPPING[cpu_current_move[:1]]
+						currmove_source_y = Constants.PIECE_MAPPING[cpu_current_move[1:2]]
+						currmove_destination_x = Constants.PIECE_MAPPING[cpu_current_move[2:3]]
+						currmove_destination_y = Constants.PIECE_MAPPING[cpu_current_move[3:4]]
 
-					is_source_x_equal = currmove_source_x == self.currmove_source_x
-					is_source_y_equal = currmove_source_y == self.currmove_source_y
-					is_destination_x_equal = currmove_destination_x == self.currmove_destination_x
-					is_destination_y_equal = currmove_destination_y == self.currmove_destination_y
+						is_source_x_equal = currmove_source_x == self.currmove_source_x
+						is_source_y_equal = currmove_source_y == self.currmove_source_y
+						is_destination_x_equal = currmove_destination_x == self.currmove_destination_x
+						is_destination_y_equal = currmove_destination_y == self.currmove_destination_y
 
-					if not (is_source_y_equal and is_source_x_equal and is_destination_y_equal and is_destination_x_equal):
-						self.clear_current_movement()
+						if not (is_source_y_equal and is_source_x_equal and is_destination_y_equal and is_destination_x_equal):
+							self.clear_current_movement()
 
-						self.currmove_source_x = currmove_source_x 
-						self.currmove_source_y = currmove_source_y
-						self.currmove_destination_x = currmove_destination_x
-						self.currmove_destination_y = currmove_destination_y
+							self.currmove_source_x = currmove_source_x 
+							self.currmove_source_y = currmove_source_y
+							self.currmove_destination_x = currmove_destination_x
+							self.currmove_destination_y = currmove_destination_y
 
-						self.board[currmove_source_x][currmove_source_y].is_current_movement = True
-						self.board[currmove_destination_x][currmove_destination_y].is_current_movement = True
+							self.board[currmove_source_x][currmove_source_y].is_current_movement = True
+							self.board[currmove_destination_x][currmove_destination_y].is_current_movement = True
 
-			if thread.is_thread_done is not None and thread.is_thread_done:
+				if thread.is_thread_done is not None and thread.is_thread_done:
 
-				thread.join()
-				self.clear_current_movement()
+					thread.join()
+					self.clear_current_movement()
 
-				if not thread.is_undo_clicked:
-					cpu_move = thread.cpu_move
-					current_move = cpu_move
-					ponder = thread.ponder
+					if not thread.is_undo_clicked:
+						cpu_move = thread.cpu_move
+						current_move = cpu_move
+						ponder = thread.ponder
 
-					print cpu_move
-					print ponder
+						print cpu_move
+						print ponder
 
-					source_x = Constants.PIECE_MAPPING[cpu_move[:1]]
-					source_y = Constants.PIECE_MAPPING[cpu_move[1:2]]
-					destination_x = Constants.PIECE_MAPPING[cpu_move[2:3]]
-					destination_y = Constants.PIECE_MAPPING[cpu_move[3:4]]
+						source_x = Constants.PIECE_MAPPING[cpu_move[:1]]
+						source_y = Constants.PIECE_MAPPING[cpu_move[1:2]]
+						destination_x = Constants.PIECE_MAPPING[cpu_move[2:3]]
+						destination_y = Constants.PIECE_MAPPING[cpu_move[3:4]]
+						promotion = False
+
+						if len(cpu_move) == 5:
+							promotion = cpu_move[4:5]
+							promotion_map = {
+								"r": Constants.P_ROOK,
+								"b": Constants.P_BISHOP,
+								"n": Constants.P_KNIGHT,
+								"q": Constants.P_QUEEN
+							}
+							promotion = promotion_map[promotion]
+
+						self.move_piece(source_x, source_y, destination_x, destination_y, promotion)
+
+						has_opponent_moved = True
+						thread.is_thread_done = False
+
+					thread = None
+
+		# Wait for the human opponent's turn
+		else:
+			message = self.listener.get_message()
+			if message:
+				if message != 'GAME_OVER':
+					source_x = Constants.PIECE_MAPPING[message[:1]]
+					source_y = Constants.PIECE_MAPPING[message[1:2]]
+					destination_x = Constants.PIECE_MAPPING[message[2:3]]
+					destination_y = Constants.PIECE_MAPPING[message[3:4]]
 					promotion = False
 
-					if len(cpu_move) == 5:
-						promotion = cpu_move[4:5]
+					if len(message) == 5:
+						promotion = message[4:5]
 						promotion_map = {
 							"r": Constants.P_ROOK,
 							"b": Constants.P_BISHOP,
@@ -121,15 +153,20 @@ def run(self):
 						promotion = promotion_map[promotion]
 
 					self.move_piece(source_x, source_y, destination_x, destination_y, promotion)
-
 					has_opponent_moved = True
-					thread.is_thread_done = False
+				else:
+					print "Got message", message
+					return "main_menu"
 
-				thread = None
-
-		events = pygame.event.get()
-		for event in events: 
-			if event.type == pygame.QUIT: 
+		for event in pygame.event.get(): 
+			self.is_board_changed = True
+			
+			if event.type == pygame.QUIT:
+				if self.is_two_player:
+					print "Sending GAME_OVER"
+					self.speaker.send_message("GAME_OVER")
+					self.listener.close()
+				print "Exiting."
 				sys.exit(0)
 
 			# User's turn
@@ -243,7 +280,6 @@ def run(self):
 									self.stack.push(element)
 									# print "Pushed*:", fen
 
-
 							fen_string = fen
 							self.convert_fen_to_board(fen)
 
@@ -262,8 +298,8 @@ def run(self):
 							self.clear_current_movement()
 							self.clear_traversable()
 							self.build_threats(self.board)
-							self.render_board()
 							self.clear_last_movement()
+							self.is_board_changed = True
 
 					elif action == 'main_menu':
 						# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close game clicked
@@ -292,6 +328,16 @@ def run(self):
 								self.is_board_clickable = True
 								self.is_undergoing_promotion = False
 
+								if self.is_two_player:
+									letter_converter = {
+										9: 'q',
+										5: 'r',
+										4: 'b',
+										3: 'n'
+									}
+									self.move_string += letter_converter[promotion]
+									self.speaker.send_message(self.move_string)
+
 							has_player_moved = True
 							break
 
@@ -314,14 +360,15 @@ def run(self):
 				# Looks like user clicked on a traversable tile
 				if is_traversable:						
 					self.clear_traversable()
-					source_move_x = Constants.CHAR_MAPPING[self.source_x]
-					source_move_y = Constants.NUM_MAPPING[self.source_y]
-					destination_move_x = Constants.CHAR_MAPPING[board_x]
-					destination_move_y = Constants.NUM_MAPPING[board_y]
-					current_move = source_move_x + source_move_y + destination_move_x + destination_move_y
-
 					self.move_piece(self.source_x, self.source_y, board_x, board_y)
 					has_player_moved = True
+
+					if self.is_two_player:
+						source_move_x = Constants.CHAR_MAPPING[self.source_x]
+						source_move_y = Constants.NUM_MAPPING[self.source_y]
+						destination_move_x = Constants.CHAR_MAPPING[board_x]
+						destination_move_y = Constants.NUM_MAPPING[board_y]
+						self.move_string = source_move_x + source_move_y + destination_move_x + destination_move_y
 
 					# Pawn promotion
 					if board_y == self.goal_rank and self.board[board_x][board_y].piece.piece_type == Constants.P_PAWN:
@@ -329,6 +376,9 @@ def run(self):
 						self.is_undergoing_promotion = True
 						self.source_x = board_x
 						self.source_y = board_y
+					else:
+						if self.is_two_player:
+							self.speaker.send_message(self.move_string)
 
 				# User clicked on tile that is not traversable? We cool as long as user didn't click on its own piece.
 				else:
