@@ -13,7 +13,7 @@ def run(self):
 	self.screen.fill(Constants.WHITE)
 	self.buttons = []
 	self.textboxes = []
-	self.active_textbox_index = 0
+	self.active_textbox_index = -1
 	self.location = 'main_menu'
 
 	# Single player info
@@ -28,5 +28,6 @@ def run(self):
 	self.client_socket = None
 	self.client_speaker_thread = None
 	self.client_listener_thread = None
+	self.is_connection_error = False
 
 	pygame.display.flip()

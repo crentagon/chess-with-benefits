@@ -2,7 +2,8 @@ from game_start import *
 from game.menu import (
 	initialize,
 	play,
-	render_menu
+	render_menu,
+	write_text
 )
 import random, sys
 
@@ -13,6 +14,9 @@ class MainMenu:
 
 	def render_menu(self):
 		render_menu.run(self)
+
+	def write_text(self, font_text, font_color, font_size, x, y):
+		write_text.run(self, font_text, font_color, font_size, x, y)
 
 	def is_player_white(self):
 		is_white = True

@@ -25,10 +25,11 @@ def run(self):
 					if button.is_button_pressed(x_coord, y_coord):
 						active_command = button.get_command()
 
-				self.active_textbox_index = 0
+				self.active_textbox_index = -1
 				for index, textbox in enumerate(self.textboxes):
 					if textbox.is_textbox_active(x_coord, y_coord):
 						print "Textbox is being clicked! is_active:", textbox.is_active
+						self.active_textbox_index = index
 						textbox.ask()
 
 						if index == 0:
@@ -39,7 +40,7 @@ def run(self):
 						break
 					else:
 						print "Textbox NOT being clicked! is_active:", textbox.is_active
-					self.active_textbox_index += 1
+
 
 				if active_command == 'main_single':
 					self.location = 'single_player_menu'

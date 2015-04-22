@@ -113,13 +113,15 @@ def run(self):
 		# Set up the numbers
 		basic_font = pygame.font.Font(font, 30)
 		text = ["1", "2", "3", "4", "5", "6"]
+		y = 90
+		font_size = 30
+		font_color = Constants.BLACK
 
 		for i in range(0, len(text)):
-			text_char = basic_font.render(text[i], True, Constants.BLACK)
-			char_rect = text_char.get_rect()
-			char_rect.centerx = (120 + (550/(2*len(text)))) + i*(550/len(text))
-			char_rect.centery = 90
-			self.screen.blit(text_char, char_rect)
+			font_text = text[i]
+			x = (120 + (550/(2*len(text)))) + i*(550/len(text))
+
+			self.write_text(font_text, font_color, font_size, x, y)
 
 		# Set up the text: 1-2: Elementary, 3-4: Easy, 5-6: Standard, 7-8: Challenging, 9-11: Brain Freeze, 12: Mind Breaker
 		cpu_level = self.cpu_level
@@ -136,13 +138,12 @@ def run(self):
 		elif cpu_level <= 11:
 			flavor_text = 'Extreme'
 
-		display_text = "Lv "+str(1+(cpu_level-1)*0.5)+": "+flavor_text
+		font_text = "Lv "+str(1+(cpu_level-1)*0.5)+": "+flavor_text
+		font_color = Constants.WHITE
+		x = 400
+		y = 52
 
-		text_char = basic_font.render(display_text, True, Constants.WHITE)
-		char_rect = text_char.get_rect()
-		char_rect.centerx = 400
-		char_rect.centery = 52
-		self.screen.blit(text_char, char_rect)
+		self.write_text(font_text, font_color, font_size, x, y)
 
 		# Set up the color-choosing:
 		# Set up minus-color button
@@ -179,13 +180,13 @@ def run(self):
 		# Set up the textbox in the middle
 		# Set up the textbox border
 		color_index = self.user_color_active
-		text_color = Constants.PLAY_AS_WHITE_TEXT
+		font_color = Constants.PLAY_AS_WHITE_TEXT
 		bg_color = Constants.PLAY_AS_WHITE_BG
 		if color_index == 1:
-			text_color = Constants.PLAY_AS_BLACK_TEXT
+			font_color = Constants.PLAY_AS_BLACK_TEXT
 			bg_color = Constants.PLAY_AS_BLACK_BG
 		elif color_index == 2:
-			text_color = Constants.PLAY_AS_RANDOM_TEXT
+			font_color = Constants.PLAY_AS_RANDOM_TEXT
 			bg_color = Constants.PLAY_AS_RANDOM_BG
 
 		border_width = 9
@@ -194,11 +195,11 @@ def run(self):
 		pygame.draw.rect(self.screen, border_color, hp_border_rectangle, border_width)
 
 		# Set up the text
-		text_char = basic_font.render(self.user_color[color_index], True, text_color)
-		char_rect = text_char.get_rect()
-		char_rect.centerx = 400
-		char_rect.centery = 175
-		self.screen.blit(text_char, char_rect)
+		font_text = self.user_color[color_index]
+		font_size = 30
+		x = 400
+		y = 175
+		self.write_text(font_text, font_color, font_size, x, y)
 
 		# Start game button
 		color = Constants.SINGLE_PLAYER_BUTTON
@@ -222,9 +223,32 @@ def run(self):
 
 		# Set up the back button
 
-	# TO-DO: Ask for the IP address to connect to MARKER
+	# Ask for the IP address to connect to
 	elif self.location == 'two_player_menu_screen_ip':
-		# Set up the top textbox: IP Address
+		# Set up the form:
+		font_text = "IP Address:"
+		font_color = Constants.BLACK
+		font_size = 40
+		x = 245
+		y = 75
+		self.write_text(font_text, font_color, font_size, x, y)
+
+		font_text = "Port:"
+		font_color = Constants.BLACK
+		x = 190
+		y = 225
+		self.write_text(font_text, font_color, font_size, x, y)
+
+		# Unable to connect to the server
+		if self.is_connection_error:
+			font_size = 30
+			font_text = "Unfortunately, the server isn't noticing you..."
+			font_color = Constants.RED
+			x = 400
+			y = 350
+			self.write_text(font_text, font_color, font_size, x, y)
+
+		# Set up the top textboxs:
 		color = Constants.SINGLE_PLAYER_BUTTON
 		border_color = Constants.BLACK
 		border_width = 10
@@ -243,16 +267,6 @@ def run(self):
 		font_size=font_size, font_color=font_color, textbox_bg=textbox_bg, border_color=border_color,
 		border_width=1, message=self.host))
 
-		display_text = "IP Address:"
-		font_color = Constants.BLACK
-		basic_font = pygame.font.Font(font, 40)
-
-		text_char = basic_font.render(display_text, True, font_color)
-		char_rect = text_char.get_rect()
-		char_rect.centerx = 245
-		char_rect.centery = 75
-		self.screen.blit(text_char, char_rect)
-
 		center_y = 250
 		length = 5
 
@@ -260,17 +274,7 @@ def run(self):
 		font_size=font_size, font_color=font_color, textbox_bg=textbox_bg, border_color=border_color,
 		border_width=1, message=str(self.port)))
 
-		display_text = "Port:"
-		font_color = Constants.BLACK
-		basic_font = pygame.font.Font(font, 40)
-
-		text_char = basic_font.render(display_text, True, font_color)
-		char_rect = text_char.get_rect()
-		char_rect.centerx = 190
-		char_rect.centery = 225
-		self.screen.blit(text_char, char_rect)
-
-		# Set up the right-button: Two Player
+		# Set up the connect button
 		color = Constants.SINGLE_PLAYER_BUTTON
 		border_color = Constants.BLACK
 		border_width = 10
@@ -280,7 +284,7 @@ def run(self):
 		height = 50
 		radius = 10
 		command = "two_player_connect"
-		
+
 		display_text = "Connect"
 		font = Constants.RESOURCES+Constants.FONT
 		font_size = 50
@@ -291,31 +295,32 @@ def run(self):
 			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
 
 	elif self.location == 'two_player_menu_screen_connecting':
+
 		host = self.host
 		port = self.port
 		addr = (host, port)
 		
-		font_color = Constants.WAIT_COLOR[int(time.time())%2]
-		wait_text = "Connecting..."
+		font_color = Constants.BLACK
+		font_text = "Connecting..."
+		font_size = 40
+		x = 400
+		y = 60
+		self.write_text(font_text, font_color, font_size, x, y)
+		pygame.display.update()
+		time.sleep(2)
 
-		basic_font = pygame.font.Font(font, 40)
-		text_char = basic_font.render(wait_text, True, font_color)
-		char_rect = text_char.get_rect()
-		char_rect.centerx = 400
-		char_rect.centery = 60
-		self.screen.blit(text_char, char_rect)
-
-		# Connect to the server
-		self.client_socket = socket(AF_INET, SOCK_STREAM)
-		self.client_socket.connect(addr)
-		self.is_connected = True
-		print "Connection successful."
-
-		# TO-DO: Unable to connect to the server
-		# try:
-		# except:
-		# 	print "Exception!"
-		# 	self.location = 'main_menu'
+		# TO-DO: Conenct to the server.
+		try:
+			self.is_connection_error = False
+			self.client_socket = socket(AF_INET, SOCK_STREAM)
+			self.client_socket.connect(addr)
+			self.is_connected = True
+			print "Connection successful."
+		except:
+			print "Exception!"
+			self.is_connection_error = True
+			self.location = 'two_player_menu_screen_ip'
+			return
 
 		# Run the listener thread
 		self.client_listener_thread = ChessClientListenerThread(self.client_socket)
@@ -325,30 +330,23 @@ def run(self):
 		self.client_speaker_thread = ChessClientSpeakerThread(self.client_socket)
 		self.client_speaker_thread.start()
 
-		display_text = "Connected!"
 		font_color = Constants.BLUE
-		basic_font = pygame.font.Font(font, 50)
-
-		text_char = basic_font.render(display_text, True, font_color)
-		char_rect = text_char.get_rect()
-		char_rect.centerx = 400
-		char_rect.centery = 200
-		self.screen.blit(text_char, char_rect)
-
+		font_text = "Connected!"
+		font_size = 50
+		x = 400
+		y = 200
+		self.write_text(font_text, font_color, font_size, x, y)
 		self.location = 'two_player_menu_screen_waiting'
 
 	# Waiting for the other player
 	elif self.location == 'two_player_menu_screen_waiting':
 
 		font_color = Constants.WAIT_COLOR[int(time.time()*4)%4]
-		wait_text = "Waiting for opponent to connect..."
-
-		basic_font = pygame.font.Font(font, 40)
-		text_char = basic_font.render(wait_text, True, font_color)
-		char_rect = text_char.get_rect()
-		char_rect.centerx = 400
-		char_rect.centery = 60
-		self.screen.blit(text_char, char_rect)
+		font_text = "Waiting for opponent to connect..."
+		font_size = 40
+		x = 400
+		y = 60
+		self.write_text(font_text, font_color, font_size, x, y)
 
 		message = self.client_listener_thread.get_message()
 		if message == 'ready-first':	
@@ -359,14 +357,11 @@ def run(self):
 	# The second person to connect waits for the first player to choose the settings
 	elif self.location == 'two_player_menu_screen_waiting_color':
 		font_color = Constants.WAIT_COLOR[int(time.time()*3)%3]
-		wait_text = "Waiting for opponent to set the color and rules..."
-
-		basic_font = pygame.font.Font(font, 30)
-		text_char = basic_font.render(wait_text, True, font_color)
-		char_rect = text_char.get_rect()
-		char_rect.centerx = 400
-		char_rect.centery = 60
-		self.screen.blit(text_char, char_rect)
+		font_text = "Waiting for opponent to set the color and rules..."
+		font_size = 30
+		x = 400
+		y = 60
+		self.write_text(font_text, font_color, font_size, x, y)
 
 		message = self.client_listener_thread.get_message()
 		if message:
@@ -413,13 +408,13 @@ def run(self):
 		# Set up the textbox in the middle
 		# Set up the textbox border
 		color_index = self.user_color_active
-		text_color = Constants.PLAY_AS_WHITE_TEXT
+		font_color = Constants.PLAY_AS_WHITE_TEXT
 		bg_color = Constants.PLAY_AS_WHITE_BG
 		if color_index == 1:
-			text_color = Constants.PLAY_AS_BLACK_TEXT
+			font_color = Constants.PLAY_AS_BLACK_TEXT
 			bg_color = Constants.PLAY_AS_BLACK_BG
 		elif color_index == 2:
-			text_color = Constants.PLAY_AS_RANDOM_TEXT
+			font_color = Constants.PLAY_AS_RANDOM_TEXT
 			bg_color = Constants.PLAY_AS_RANDOM_BG
 
 		border_width = 9
@@ -428,11 +423,11 @@ def run(self):
 		pygame.draw.rect(self.screen, border_color, hp_border_rectangle, border_width)
 
 		# Set up the text
-		text_char = basic_font.render(self.user_color[color_index], True, text_color)
-		char_rect = text_char.get_rect()
-		char_rect.centerx = 400
-		char_rect.centery = 50
-		self.screen.blit(text_char, char_rect)
+		font_text = self.user_color[color_index]
+		font_size = 45
+		x = 400
+		y = 50
+		self.write_text(font_text, font_color, font_size, x, y)
 
 		# Start game button
 		color = Constants.SINGLE_PLAYER_BUTTON
@@ -460,7 +455,9 @@ def run(self):
 
 	# Draw all the textboxes
 	for index, textbox in enumerate(self.textboxes):
-		textbox.is_active = True if index == self.active_textbox_index else False
+		# textbox.is_active = False
+		# if self.active_textbox_index >= 0:
+			# textbox.is_active = True if index == self.active_textbox_index else False
 		textbox.draw_textbox()
 	
 	# Screen update

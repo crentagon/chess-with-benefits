@@ -48,9 +48,10 @@ class InputBox():
 		rect = (x, y, w, h)
 
 		border_color = self.border_color if not self.is_active else (255,0,0)
+		border_width = self.border_width if not self.is_active else int(self.border_width*2)
 
 		pygame.draw.rect(self.screen, self.textbox_bg, rect, 0)
-		pygame.draw.rect(self.screen, self.border_color, rect, self.border_width)
+		pygame.draw.rect(self.screen, border_color, rect, border_width)
 
 		message = self.message
 
@@ -64,6 +65,7 @@ class InputBox():
 
 	def ask(self, question=''):
 		self.draw_textbox()
+		pygame.display.update()
 
 		while self.is_active:
 			inkey = self.get_key()
@@ -82,6 +84,7 @@ class InputBox():
 		return self.message
 
 	def is_textbox_active(self, x, y):
+		self.is_active = False
 
 		# X-coordinates
 		right_x = self.center_x + self.width
@@ -96,10 +99,10 @@ class InputBox():
 		is_y_coord = y >= top_y and y <= bottom_y
 
 		if is_x_coord and is_y_coord:
+			print "Got in line 100 of inputbox.py, message:", self.message
 			self.is_active = True
 			return True
 
-		self.is_active = False
 		return False
 
 
