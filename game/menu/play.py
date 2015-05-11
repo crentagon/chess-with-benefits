@@ -2,6 +2,7 @@ from pygame.locals import *
 from constants import *
 import pygame
 import sys
+import re
 
 #play
 def run(self):
@@ -41,6 +42,7 @@ def run(self):
 					else:
 						print "Textbox NOT being clicked! is_active:", textbox.is_active
 
+				p = re.compile('set_avatar_(.*)')
 
 				if active_command == 'main_single':
 					self.location = 'single_player_menu'
@@ -66,5 +68,11 @@ def run(self):
 				elif active_command == 'start_game_ai':
 					self.start_game_ai()
 
-				elif active_command == 'start_game_two_player':
-					self.setup_two_player()
+				elif active_command == 'start_game_player_a':
+					self.start_game_player_a()
+
+				elif active_command == 'start_game_player_b':
+					self.start_game_player_b()
+
+				elif p.match(active_command):
+					self.image_id = int(active_command[11:])

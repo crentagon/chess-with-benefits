@@ -3,6 +3,7 @@ from socket import *
 from time import ctime
 import time
 import sys
+import re
 
 class ServerThread(threading.Thread):
 
@@ -33,12 +34,21 @@ class ServerThread(threading.Thread):
 		client_socket_a.send("ready-first")
 		client_socket_b.send("ready")
 
+		# First player says "READY!"
 		color_a = client_socket_a.recv(bufsize)
 		self.broadcast_message("Sending to socket_b:" + str(color_a))
 		client_socket_b.send(color_a)
 
-		white_client = client_socket_a if color_a == 'white' else client_socket_b
-		black_client = client_socket_a if color_a == 'black' else client_socket_b
+		# Second player says "READY!"
+		ready_b = client_socket_b.recv(bufsize)
+		client_socket_a.send(ready_b)
+
+		# Check color
+		is_white = re.compile('white_(.*)')
+		is_white = is_white.match(color_a)
+
+		white_client = client_socket_a if is_white else client_socket_b
+		black_client = client_socket_a if not is_white else client_socket_b
 
 		while self.is_server_running:
 			# White's move

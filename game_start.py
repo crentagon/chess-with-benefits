@@ -18,10 +18,12 @@ from game.chess import (
 
 class Chesselate:
 
-	def __init__(self, screen, is_player_white = True, is_two_player = False, cpu_level = 5,
-		fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", listener=None, speaker=None):
-		# fen_string = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 w ---- - 0 65" # promotion test
-		initialize.run(self, screen, is_player_white, is_two_player, cpu_level, fen_string, listener, speaker)
+	def __init__(self, screen, is_player_white = True, is_two_player = False, cpu_level = 5, img_user = 1, img_opponent = 99,
+		name_user="Player", name_opponent="Opponent", fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+		listener=None, speaker=None):
+		
+		initialize.run(self, screen, is_player_white, is_two_player, cpu_level, img_user, img_opponent,
+			name_user, name_opponent, fen_string, listener, speaker)
 
 	def populate_sidebar(self):
 		populate_sidebar.run(self)

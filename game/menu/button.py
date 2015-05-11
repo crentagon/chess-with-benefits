@@ -31,6 +31,10 @@ class Button:
 
 		# Image information
 		self.image_filename = image_filename
+		self.image_w = image_w
+		self.image_h = image_h
+		self.image_x = image_x
+		self.image_y = image_y
 
 	def draw_button(self):
 		# Set the half-width and half-height
@@ -99,13 +103,17 @@ class Button:
 			image_piece = pygame.image.load(self.image_filename)
 
 			# Transform height and width, if specified
+			center_x = self.center_x
+			center_y = self.center_y
 			if self.image_w!='' and self.image_h!='':
 				image_piece = pygame.transform.scale(image_piece, (self.image_w,self.image_h))
+				center_x = self.center_x - (self.image_w/2)
+				center_y = self.center_y - (self.image_h/2)
 
 			# Position the center
 			piece_rect = image_piece.get_rect()
-			rect_x = self.center_x if self.image_x=='' else self.image_x
-			rect_y = self.center_y if self.image_y=='' else self.image_y
+			rect_x = center_x if self.image_x=='' else self.image_x
+			rect_y = center_y if self.image_y=='' else self.image_y
 			piece_rect = piece_rect.move((rect_x, rect_y))
 
 			# Render image

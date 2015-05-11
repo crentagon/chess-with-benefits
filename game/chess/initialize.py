@@ -3,17 +3,19 @@ from stack import *
 from constants import *
 import pygame
 
-def run(self, screen, is_player_white, is_two_player, cpu_level, fen_string, listener, speaker):
+def run(self, screen, is_player_white, is_two_player, cpu_level, img_user, img_opponent,
+	name_user, name_opponent, fen_string, listener, speaker):
+
 	# Move piece animations
 	self.animate = True
 	self.is_animating = False
 	self.is_board_changed = False
 
 	# Avatars and names
-	self.image_file_user = "res/avatars/dragonite_sample.png"
-	self.image_file_opp = "res/avatars/stockfish_sample.png"
-	self.name_opp = "Stockfish"
-	self.name_user = "Player"
+	self.image_file_user = "res/avatars/char-"+str(img_user)+".png"
+	self.image_file_opp = "res/avatars/char-"+str(img_opponent)+".png"
+	self.name_opp = name_opponent
+	self.name_user = name_user
 
 	# Captured pieces
 	self.user_captured = Stack()
