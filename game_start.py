@@ -1,5 +1,5 @@
 from game.chess import (
-	populate_sidebar,
+	populate_lists,
 	build_threats,
 	is_check,
 	render_captured,
@@ -23,8 +23,8 @@ class Chesselate:
 		# fen_string = "7R/7P/5p2/2p3k1/8/7K/1pr5/8 w ---- - 0 65" # promotion test
 		initialize.run(self, screen, is_player_white, is_two_player, cpu_level, fen_string, listener, speaker)
 
-	def populate_sidebar(self):
-		populate_sidebar.run(self)
+	def populate_lists(self):
+		populate_lists.run(self)
 
 	def build_threats(self, board_input, peek=False):
 		build_threats.run(self, board_input, peek)

@@ -3,7 +3,7 @@ import pygame
 
 def run(self, font_text, font_color, font_size, x, y):
 	# Prepate the fonts
-	font = Constants.RESOURCES+Constants.FONT_REG
+	font = Constants.RESOURCES+Constants.FONT
 	pygame_font = pygame.font.Font(font, font_size)
 
 	# Prepare the text

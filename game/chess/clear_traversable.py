@@ -1,8 +1,7 @@
 # clear_traversable
 def clear_traversable(self):
-	for x in range(8):
-		for y in range(8):
-			self.board[x][y].is_traversable = False
+	for element in self.traversable:
+		element.is_traversable = False
 
 # clear_board
 def clear_board(self):

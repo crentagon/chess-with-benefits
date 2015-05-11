@@ -31,8 +31,7 @@ def run(self):
 			self.is_board_changed = False
 
 		if has_player_moved or has_opponent_moved:
-			self.is_user_check = False
-			self.is_opponent_check = False
+			self.board_status = 'in_game'
 			self.clear_traversable()				
 			self.build_threats(self.board)
 			self.is_board_changed = True
@@ -49,7 +48,7 @@ def run(self):
 				is_turn_opponent = False
 				is_turn_user = True
 
-			if not (self.is_undergoing_promotion or self.is_game_over):
+			if not (self.board_status == 'promoting' or self.is_game_over[self.board_status]):
 				fen_string = self.convert_to_fen()
 				self.stack.push([fen_string, current_move])
 				self.endgame_check(fen_string) # Check if there is a stalemate or checkmate
@@ -61,7 +60,7 @@ def run(self):
 
 		# CPU Opponent's Turn
 		if not self.is_two_player:
-			if not self.debug_mode and is_turn_opponent and not (self.is_undergoing_promotion or self.is_game_over):
+			if not self.debug_mode and is_turn_opponent and not (self.board_status == 'promoting' or self.is_game_over[self.board_status]):
 				print fen_string
 				thread = StockfishThread(fen_string, self.cpu_level)
 
@@ -73,6 +72,7 @@ def run(self):
 				if thread.current_move is not None:
 					cpu_current_move = thread.current_move
 
+					# Current move
 					if len(cpu_current_move) == 4:
 						currmove_source_x = Constants.PIECE_MAPPING[cpu_current_move[:1]]
 						currmove_source_y = Constants.PIECE_MAPPING[cpu_current_move[1:2]]
@@ -206,7 +206,7 @@ def run(self):
 						
 
 					# Is the game over and the user is clicking on the game over options?
-					elif self.is_game_over:
+					elif self.is_game_over[self.board_status]:
 						# Check if mouse_x is within range
 						lower_bound = Constants.AFTERGAME_COORD[0]
 						upper_bound = Constants.AFTERGAME_COORD[0] + Constants.AFTERGAME_WIDTH
@@ -283,12 +283,7 @@ def run(self):
 							fen_string = fen
 							self.convert_fen_to_board(fen)
 
-							self.is_stalemate = False
-							self.is_user_check = False
-							self.is_user_checkmate = False
-							self.is_opponent_check = False
-							self.is_opponent_checkmate = False
-							self.is_50_move_rule = False
+							self.board_status = 'in_game'
 
 							index = self.fullmove_clock #if self.is_player_white else self.fullmove_clock - 1
 							opp_index = self.fullmove_clock if self.is_player_white else self.fullmove_clock + 1
@@ -311,7 +306,7 @@ def run(self):
 
 					# Is the user clicking on the promotion buttons?
 					for i in range(4):
-						if self.is_undergoing_promotion and self.promotions[i].pressed(mouse_pos):
+						if self.board_status == 'promoting' and self.promotions[i].pressed(mouse_pos):
 							promotion = self.promotions[i].piece_type
 
 							if promotion != '':
@@ -326,7 +321,7 @@ def run(self):
 								}
 								self.user_hp_current += (hp_converter[promotion] - 1)
 								self.is_board_clickable = True
-								self.is_undergoing_promotion = False
+								self.board_status = 'in_game'
 
 								if self.is_two_player:
 									letter_converter = {
@@ -373,7 +368,7 @@ def run(self):
 					# Pawn promotion
 					if board_y == self.goal_rank and self.board[board_x][board_y].piece.piece_type == Constants.P_PAWN:
 						self.is_board_clickable = False
-						self.is_undergoing_promotion = True
+						self.board_status = 'promoting'
 						self.source_x = board_x
 						self.source_y = board_y
 					else:

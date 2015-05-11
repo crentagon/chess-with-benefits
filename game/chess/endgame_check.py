@@ -14,31 +14,20 @@ def run(self, fen_string):
 			thread.join()
 
 			if thread.is_stalemate:
-				self.is_stalemate = True
-				self.is_game_over = True
-				print "Stalemate!"					
+				self.board_status = 'stalemate'			
 				return
 
 			elif thread.is_checkmate:
 				if self.active_turn == 'w':
-					if self.is_player_white:
-						self.is_user_checkmate = True
-					else:
-						self.is_opponent_checkmate = True
+					self.board_status = 'user_checkmate' if self.is_player_white else 'opponent_checkmate'
 
 				elif self.active_turn == 'b':
-					if self.is_player_white:
-						self.is_opponent_checkmate = True
-					else:
-						self.is_user_checkmate = True
+					self.board_status = 'opponent_checkmate' if self.is_player_white else 'user_checkmate'
 
-				self.is_game_over = True
-				print "Checkmate!"
 				return
 
 			elif self.halfmove_clock >= 100:
-				self.is_50_move_rule = True
-				self.is_game_over = True
-				print "50-move rule!"
+				self.board_status = '50_move_rule'
 				return
+				
 			return

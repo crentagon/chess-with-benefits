@@ -42,7 +42,6 @@ def run(self, screen, is_player_white, is_two_player, cpu_level, fen_string, lis
 	self.queenside_white = 'Q'
 	self.queenside_black = 'q'
 	self.en_passant = '-'
-	self.is_undergoing_promotion = False
 	self.halfmove_clock = 0
 	self.fullmove_clock = 1
 
@@ -77,18 +76,11 @@ def run(self, screen, is_player_white, is_two_player, cpu_level, fen_string, lis
 	# Debug mode: Disables opponent's moves
 	self.debug_mode = False
 
-	# Checks and checkmate
-	self.is_stalemate = False
-	self.is_user_check = False
-	self.is_50_move_rule = False
-	self.is_user_checkmate = False
-	self.is_opponent_check = False
-	self.is_opponent_checkmate = False
-	self.is_game_over = False
-
-	# Forfeit
-	# self.is_forfeitting = False
-	# self.is_forfeit = False
+	# Board statuses:
+	# 'in_game', 'stalemate', 'user_check', 'user_checkmate',
+	# 'opponent_check', 'opponent_checkmate', '50_move_rule',
+	# 'forfeit', 'promoting'
+	self.board_status = 'in_game'
 
 	# Two player inits
 	self.is_two_player = is_two_player
@@ -96,10 +88,12 @@ def run(self, screen, is_player_white, is_two_player, cpu_level, fen_string, lis
 	self.speaker = speaker
 	self.move_string = ''
 
-	# Sidebar buttons
-	self.sidebar_buttons = []
+	# Lists
 	self.aftergame_options = []
-	self.populate_sidebar()
+	self.sidebar_buttons = []
+	self.is_game_over = {}
+	self.traversable = []
+	self.populate_lists()
 
 	self.screen = screen
 	pygame.display.flip()

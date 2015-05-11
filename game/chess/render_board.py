@@ -16,7 +16,7 @@ def run(self):
 	pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, rect, 0)
 
 	# User is undergoing pawn promotion
-	if self.is_undergoing_promotion:
+	if self.board_status == 'promoting':
 
 		# Promotion button setup
 		promotionable_pieces = [Constants.P_KNIGHT, Constants.P_BISHOP, Constants.P_ROOK, Constants.P_QUEEN]
@@ -47,20 +47,20 @@ def run(self):
 		promotion_rect.center = Constants.PROMOTION_COORD
 		self.screen.blit(promotion_text, promotion_rect)
 
-	# Game overrrr
-	elif self.is_game_over:
+	# Game over
+	elif self.is_game_over[self.board_status]:
 		if self.is_two_player:
 			self.speaker.send_message('GAME_OVER')
 
 		# Determine the winner
 		color_winner = "Stalemate"
-		if self.is_user_checkmate:
+		if self.board_status == 'user_checkmate':
 			color_winner = "Black" if self.is_player_white else "White"
 		else:
 			color_winner = "White" if self.is_player_white else "Black"
 
 		game_over_text = "Good game."
-		game_winner = color_winner+" wins by checkmate!" if not self.is_stalemate else "It's a stalemate!"
+		game_winner = color_winner+" wins by checkmate!" if not self.board_status == 'stalemate' else "It's a stalemate!"
 
 		# Options after game
 		board_buffer = Constants.BOARD_BUFFER
@@ -87,7 +87,7 @@ def run(self):
 
 		self.write_text(font_text, font_color, font_size, font_x, font_y)
 
-		if self.is_50_move_rule:
+		if self.board_status == '50_move_rule':
 			# Render the text
 			font_text = "That is, by the 50-move rule!"
 			font_color = Constants.CHESSBOARD_WH
@@ -99,6 +99,7 @@ def run(self):
 
 		i = 0
 		for element in self.aftergame_options:
+
 			# Render the rectangular buttons
 			rect_y = Constants.AFTERGAME_COORD[1] + (rect_h + board_buffer)*i
 			rect = (rect_x, rect_y, rect_w, rect_h)
@@ -186,8 +187,8 @@ def run(self):
 		rect_h = int(rect_w*2.0/3.0)
 
 		# Render stalemate
-		if self.is_stalemate or self.is_50_move_rule:
-			image_file = "stalemate.png" if self.is_stalemate else "50moverule.png"
+		if self.board_status == 'stalemate' or self.board_status == '50_move_rule':
+			image_file = "stalemate.png" if self.board_status == 'stalemate' else "50moverule.png"
 
 			rect_y = opp_y + Constants.MINIBUFFER*3
 
@@ -207,10 +208,10 @@ def run(self):
 
 		else:
 			# Render opponent check or checkmate
-			if self.is_opponent_checkmate or self.is_opponent_check:
+			if self.board_status == 'opponent_checkmate' or self.board_status == 'opponent_check':
 				rect_y = opp_y + Constants.MINIBUFFER*3
 				
-				image_file = "checkmate.png" if self.is_opponent_checkmate else "check.png"
+				image_file = "checkmate.png" if self.board_status == 'opponent_checkmate' else "check.png"
 
 				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))
@@ -218,10 +219,10 @@ def run(self):
 				piece_rect = piece_rect.move((rect_x, rect_y))
 				self.screen.blit(image_piece, piece_rect)
 
-			elif self.is_user_check or self.is_user_checkmate:
+			elif self.board_status == 'user_checkmate' or self.board_status == 'user_check':
 				rect_y = usr_y + Constants.MINIBUFFER*3
 
-				image_file = "checkmate.png" if self.is_user_checkmate else "check.png"
+				image_file = "checkmate.png" if self.board_status == 'user_checkmate' else "check.png"
 
 				image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 				image_piece = pygame.transform.scale(image_piece, (rect_w,rect_h))

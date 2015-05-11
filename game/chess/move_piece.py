@@ -51,7 +51,6 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 				else:
 					self.queenside_black = '-'
 
-
 	piece = self.board[source_x][source_y].piece
 
 	# Clear last movement

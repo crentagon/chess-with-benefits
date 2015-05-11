@@ -1,7 +1,8 @@
 from constants import *
 import copy
 
-def run(self, i, j):	
+def run(self, i, j):
+	self.traversable = []
 	self.clear_traversable()
 
 	piece = self.board[i][j].piece
@@ -32,7 +33,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 
 			if(is_7j_gt_1):
 				target_tile = self.board[i-1][j-2]
@@ -43,7 +44,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 										
 		if(is_i_lt_7):
 			if(is_7j_lt_6):
@@ -55,7 +56,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 					
 			if(is_7j_gt_1):
 				target_tile = self.board[i+1][j-2]						
@@ -66,7 +67,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 
 		if(is_i_gt_1):
 			if(is_7j_lt_7):
@@ -78,7 +79,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 					
 			if(is_7j_gt_0):
 				target_tile = self.board[i-2][j-1]
@@ -89,7 +90,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 					
 
 		if(is_i_lt_6):
@@ -102,7 +103,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 					
 			if(is_7j_gt_0):
 				target_tile = self.board[i+2][j-1]
@@ -113,7 +114,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 						
 	elif piece.piece_type == Constants.P_BISHOP:
 		dirNE = True
@@ -138,7 +139,7 @@ def run(self, i, j):
 
 					if (target_tile.piece == None or target_tile.piece.is_user == False):
 						if not is_check_after_move:
-							target_tile.is_traversable = True
+							self.traversable.append(target_tile)
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirNE = False
 					else:
@@ -156,7 +157,7 @@ def run(self, i, j):
 
 					if (target_tile.piece == None or target_tile.piece.is_user == False):
 						if not is_check_after_move:
-							target_tile.is_traversable = True
+							self.traversable.append(target_tile)
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirSE = False
 					else:
@@ -175,7 +176,7 @@ def run(self, i, j):
 
 					if (target_tile.piece == None or target_tile.piece.is_user == False):
 						if not is_check_after_move:
-							target_tile.is_traversable = True
+							self.traversable.append(target_tile)
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirNW = False
 					else:
@@ -193,7 +194,7 @@ def run(self, i, j):
 
 					if (target_tile.piece == None or target_tile.piece.is_user == False):
 						if not is_check_after_move:
-							target_tile.is_traversable = True
+							self.traversable.append(target_tile)
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirSW = False
 					else:
@@ -222,7 +223,7 @@ def run(self, i, j):
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False):
 					if not is_check_after_move:
-						target_tile.is_traversable = True
+						self.traversable.append(target_tile)
 					if(target_tile.piece is not None and target_tile.piece.is_user == False):
 						dirE = False
 				else:
@@ -240,7 +241,7 @@ def run(self, i, j):
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False):
 					if not is_check_after_move:
-						target_tile.is_traversable = True
+						self.traversable.append(target_tile)
 					if(target_tile.piece is not None and target_tile.piece.is_user == False):
 						dirW = False
 				else:
@@ -258,7 +259,7 @@ def run(self, i, j):
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False):
 					if not is_check_after_move:
-						target_tile.is_traversable = True
+						self.traversable.append(target_tile)
 					if(target_tile.piece is not None and target_tile.piece.is_user == False):
 						dirN = False
 				else:
@@ -276,7 +277,7 @@ def run(self, i, j):
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False):
 					if not is_check_after_move:
-						target_tile.is_traversable = True
+						self.traversable.append(target_tile)
 					if(target_tile.piece is not None and target_tile.piece.is_user == False):
 						dirS = False
 				else:
@@ -310,7 +311,7 @@ def run(self, i, j):
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False):
 					if not is_check_after_move:
-						target_tile.is_traversable = True
+						self.traversable.append(target_tile)
 					if(target_tile.piece is not None and target_tile.piece.is_user == False):
 						dirE = False
 				else:
@@ -328,7 +329,7 @@ def run(self, i, j):
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False):
 					if not is_check_after_move:
-						target_tile.is_traversable = True
+						self.traversable.append(target_tile)
 					if(target_tile.piece is not None and target_tile.piece.is_user == False):
 						dirW = False
 				else:
@@ -346,7 +347,7 @@ def run(self, i, j):
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False):
 					if not is_check_after_move:
-						target_tile.is_traversable = True
+						self.traversable.append(target_tile)
 					if(target_tile.piece is not None and target_tile.piece.is_user == False):
 						dirN = False
 				else:
@@ -364,7 +365,7 @@ def run(self, i, j):
 
 				if (target_tile.piece == None or target_tile.piece.is_user == False):
 					if not is_check_after_move:
-						target_tile.is_traversable = True
+						self.traversable.append(target_tile)
 					if(target_tile.piece is not None and target_tile.piece.is_user == False):
 						dirS = False
 				else:
@@ -383,7 +384,7 @@ def run(self, i, j):
 
 					if (target_tile.piece == None or target_tile.piece.is_user == False):
 						if not is_check_after_move:
-							target_tile.is_traversable = True
+							self.traversable.append(target_tile)
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirNE = False
 					else:
@@ -401,7 +402,7 @@ def run(self, i, j):
 
 					if (target_tile.piece == None or target_tile.piece.is_user == False):
 						if not is_check_after_move:
-							target_tile.is_traversable = True
+							self.traversable.append(target_tile)
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirSE = False
 					else:
@@ -420,7 +421,7 @@ def run(self, i, j):
 
 					if (target_tile.piece == None or target_tile.piece.is_user == False):
 						if not is_check_after_move:
-							target_tile.is_traversable = True
+							self.traversable.append(target_tile)
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirNW = False
 					else:
@@ -438,7 +439,7 @@ def run(self, i, j):
 
 					if (target_tile.piece == None or target_tile.piece.is_user == False):
 						if not is_check_after_move:
-							target_tile.is_traversable = True
+							self.traversable.append(target_tile)
 						if(target_tile.piece is not None and target_tile.piece.is_user == False):
 							dirSW = False
 					else:
@@ -456,7 +457,7 @@ def run(self, i, j):
 			is_check_after_move = self.is_check(temp_board)
 
 			if(target_tile.threat_level_opponent <= 0 and (target_tile.piece == None or target_tile.piece.is_user == False)) and not is_check_after_move:
-				target_tile.is_traversable = True
+				self.traversable.append(target_tile)
 			
 			if(is_7j_lte_7):
 				target_tile = self.board[i+1][j+1]
@@ -467,7 +468,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if(target_tile.threat_level_opponent <= 0 and (target_tile.piece == None or target_tile.piece.is_user == False)) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 			
 			if(is_7j_gte_0):
 				target_tile = self.board[i+1][j-1]
@@ -478,7 +479,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if(target_tile.threat_level_opponent <= 0 and (target_tile.piece == None or target_tile.piece.is_user == False)) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 			
 		if(is_i_gte_0):
 			target_tile = self.board[i-1][j]
@@ -489,7 +490,7 @@ def run(self, i, j):
 			is_check_after_move = self.is_check(temp_board)
 
 			if(target_tile.threat_level_opponent <= 0 and (target_tile.piece == None or target_tile.piece.is_user == False)) and not is_check_after_move:
-				target_tile.is_traversable = True
+				self.traversable.append(target_tile)
 			
 			if(is_7j_lte_7):
 				target_tile = self.board[i-1][j+1]
@@ -500,7 +501,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if(target_tile.threat_level_opponent <= 0 and (target_tile.piece == None or target_tile.piece.is_user == False)) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 			
 			if(is_7j_gte_0):
 				target_tile = self.board[i-1][j-1]
@@ -511,7 +512,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if(target_tile.threat_level_opponent <= 0 and (target_tile.piece == None or target_tile.piece.is_user == False)) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 			
 		if(is_7j_lte_7):
 			target_tile = self.board[i][j+1]
@@ -522,7 +523,7 @@ def run(self, i, j):
 			is_check_after_move = self.is_check(temp_board)
 
 			if(target_tile.threat_level_opponent <= 0 and (target_tile.piece == None or target_tile.piece.is_user == False)) and not is_check_after_move:
-				target_tile.is_traversable = True
+				self.traversable.append(target_tile)
 		
 		if(is_7j_gte_0):
 			target_tile = self.board[i][j-1]
@@ -533,7 +534,7 @@ def run(self, i, j):
 			is_check_after_move = self.is_check(temp_board)
 
 			if(target_tile.threat_level_opponent <= 0 and (target_tile.piece == None or target_tile.piece.is_user == False)) and not is_check_after_move:
-				target_tile.is_traversable = True
+				self.traversable.append(target_tile)
 
 		# Castling
 		if not piece.is_moved and self.board[i][j].threat_level_opponent <= 0:
@@ -586,7 +587,7 @@ def run(self, i, j):
 			is_check_after_move = self.is_check(temp_board)
 
 			if target_tile.piece == None and not is_check_after_move:
-				target_tile.is_traversable = True
+				self.traversable.append(target_tile)
 
 			# That movement from where the pawn moves two spaces. I don't know what it's called
 			start_rank = Constants.PIECE_MAPPING['2'] if self.is_player_white else Constants.PIECE_MAPPING['7']
@@ -599,7 +600,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if(target_tile.piece == None) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 
 			# Pawn's doing a capture!
 			if(is_i_lt_7 and is_7j_lt_7):
@@ -611,7 +612,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if(target_tile.piece is not None and target_tile.piece.is_user == False) and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 
 			if(is_i_gt_0 and is_7j_lt_7):
 				target_tile = self.board[i-1][j+factor*1]
@@ -622,7 +623,7 @@ def run(self, i, j):
 				is_check_after_move = self.is_check(temp_board)
 
 				if(target_tile.piece is not None and target_tile.piece.is_user == False)  and not is_check_after_move:
-					target_tile.is_traversable = True
+					self.traversable.append(target_tile)
 		
 
 		# En Passant
@@ -634,4 +635,7 @@ def run(self, i, j):
 
 			if j == target_tile_y - factor and (i == target_tile_x + factor or i == target_tile_x - factor):
 				target_tile = self.board[target_tile_x][target_tile_y]
-				target_tile.is_traversable = True
+				self.traversable.append(target_tile)
+
+	for element in self.traversable:
+		element.is_traversable = True
