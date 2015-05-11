@@ -18,6 +18,21 @@ def manage_characters(self, height_offset = 100):
 	image_w = 65
 	image_h = 65
 
+	# Set up characters
+	font_text = "Choose your avatar: "
+	font_color = Constants.BLACK
+	font_size = 35
+	x = 240
+	y = height_offset - 55
+	self.write_text(font_text, font_color, font_size, x, y)
+
+	font_text = self.character_names[self.image_id]
+	font_color = Constants.RED
+	font_size = 35
+	x = 500
+	y = height_offset - 55
+	self.write_text(font_text, font_color, font_size, x, y)
+
 	# Set up the character selection
 	for i in range(2):
 		center_y = i*(65+10) + height_offset
@@ -32,6 +47,82 @@ def manage_characters(self, height_offset = 100):
 
 			self.buttons.append(Button(center_x, center_y, width, height, radius, color, border_color,
 				border_width, screen, command, image_filename=character, image_x='', image_y='', image_w=image_w, image_h=image_h))
+
+def back_button(self, center_x=100, center_y=100):
+
+	color = Constants.TWO_PLAYER_BUTTON
+	border_color = Constants.BLACK
+	border_width = 10
+	width = 200
+	height = 50
+	radius = 10
+	command = "main_menu"
+	
+	display_text = "Back"
+	font = Constants.RESOURCES+Constants.FONT
+	font_size = 50
+	font_color = Constants.WHITE
+
+	self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+		border_color, border_width, self.screen, command,
+		display_text=display_text, font=font, font_size=font_size, font_color=font_color))
+
+def choose_color(self, center_x=100, center_y=150):
+
+	# Set up minus-color button
+	color = Constants.SINGLE_PLAYER_BUTTON
+	border_color = Constants.BLACK
+	border_width = 10
+	width = 50
+	height = 50
+	radius = 2
+	command = "minus_color"
+	
+	display_text = "<"
+	font = Constants.RESOURCES+Constants.FONT
+	font_size = 45
+	font_color = Constants.WHITE
+
+	self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+		border_color, border_width, self.screen, command,
+		display_text=display_text, font=font, font_size=font_size, font_color=font_color))
+
+	# Set up the textbox in the middle
+	# Set up the textbox border
+	color_index = self.user_color_active
+	font_color = Constants.PLAY_AS_WHITE_TEXT
+	bg_color = Constants.PLAY_AS_WHITE_BG
+	if color_index == 1:
+		font_color = Constants.PLAY_AS_BLACK_TEXT
+		bg_color = Constants.PLAY_AS_BLACK_BG
+	elif color_index == 2:
+		font_color = Constants.PLAY_AS_RANDOM_TEXT
+		bg_color = Constants.PLAY_AS_RANDOM_BG
+
+	border_width = 9
+	hp_border_rectangle = (center_x + 25, center_y - 25, 550, 50)
+	pygame.draw.rect(self.screen, bg_color, hp_border_rectangle, 0)
+	pygame.draw.rect(self.screen, border_color, hp_border_rectangle, border_width)
+
+	# Set up the text
+	font_text = self.user_color[color_index]
+	font_color = Constants.WHITE if color_index else Constants.BLACK
+	font_size = 30
+	x = 400
+	y = center_y
+	self.write_text(font_text, font_color, font_size, x, y)
+
+	# Set up plus-color button
+	font_size = 45
+	font_color = Constants.WHITE
+	center_x = 700
+	command = "plus_color"
+	
+	display_text = ">"
+
+	self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+		border_color, border_width, self.screen, command,
+		display_text=display_text, font=font, font_size=font_size, font_color=font_color))
 
 def run(self):
 
@@ -173,84 +264,17 @@ def run(self):
 		self.write_text(font_text, font_color, font_size, x, y)
 
 		# Set up the color-choosing:
-		# Set up minus-color button
-		color = Constants.SINGLE_PLAYER_BUTTON
-		border_color = Constants.BLACK
-		border_width = 10
-		center_x = 100
-		center_y = 150
-		width = 50
-		height = 50
-		radius = 2
-		command = "minus_color"
-		
-		display_text = "<"
-		font = Constants.RESOURCES+Constants.FONT
-		font_size = 45
-		font_color = Constants.WHITE
+		choose_color(self)
 
-		self.buttons.append(Button(center_x, center_y, width, height, radius, color,
-			border_color, border_width, self.screen, command,
-			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
-
-		# Set up plus-color button
-		center_x = 700
-		center_y = 150
-		command = "plus_color"
-		
-		display_text = ">"
-
-		self.buttons.append(Button(center_x, center_y, width, height, radius, color,
-			border_color, border_width, self.screen, command,
-			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
-
-		# Set up the textbox in the middle
-		# Set up the textbox border
-		color_index = self.user_color_active
-		font_color = Constants.PLAY_AS_WHITE_TEXT
-		bg_color = Constants.PLAY_AS_WHITE_BG
-		if color_index == 1:
-			font_color = Constants.PLAY_AS_BLACK_TEXT
-			bg_color = Constants.PLAY_AS_BLACK_BG
-		elif color_index == 2:
-			font_color = Constants.PLAY_AS_RANDOM_TEXT
-			bg_color = Constants.PLAY_AS_RANDOM_BG
-
-		border_width = 9
-		hp_border_rectangle = (125, 125, 550, 50)
-		pygame.draw.rect(self.screen, bg_color, hp_border_rectangle, 0)
-		pygame.draw.rect(self.screen, border_color, hp_border_rectangle, border_width)
-
-		# Set up characters
-		font_text = "Choose your avatar: "
-		font_color = Constants.BLACK
-		font_size = 25
-		x = 210
-		y = 205
-		self.write_text(font_text, font_color, font_size, x, y)
-
-		font_text = self.character_names[self.image_id]
-		font_color = Constants.BLACK
-		font_size = 25
-		x = 400
-		y = 205
-		self.write_text(font_text, font_color, font_size, x, y)
-
-		manage_characters(self, 250)
-
-		# Set up the text
-		font_text = self.user_color[color_index]
-		font_size = 30
-		x = 400
-		y = 150
-		self.write_text(font_text, font_color, font_size, x, y)
+		# Choose color
+		manage_characters(self, 260)
 
 		# Start game button
 		color = Constants.SINGLE_PLAYER_BUTTON
 		border_color = Constants.BLACK
 		border_width = 10
 		center_x = 575
-		center_y = 425
+		center_y = 435
 		width = 300
 		height = 50
 		radius = 10
@@ -266,6 +290,7 @@ def run(self):
 			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
 
 		# Set up the back button
+		back_button(self, 150, 435)
 
 	# Ask for the IP address to connect to
 	elif self.location == 'two_player_menu_screen_ip':
@@ -338,6 +363,9 @@ def run(self):
 			border_color, border_width, self.screen, command,
 			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
 
+		# Set up the back button
+		back_button(self, 200, 425)
+
 	elif self.location == 'two_player_menu_screen_connecting':
 
 		host = self.host
@@ -398,21 +426,6 @@ def run(self):
 		elif message == 'ready':
 			self.location = 'two_player_menu_screen_waiting_color'
 
-	# The second person to connect waits for the first player to choose the settings
-	# elif self.location == 'two_player_menu_screen_waiting_color':
-	# 	font_color = Constants.WAIT_COLOR[int(time.time()*3)%3]
-	# 	font_text = "Waiting for opponent to set the color and rules..."
-	# 	font_size = 30
-	# 	x = 400
-	# 	y = 60
-	# 	self.write_text(font_text, font_color, font_size, x, y)
-
-	# 	message = self.client_listener_thread.get_message()
-	# 	if message:
-	# 		self.is_two_player = True
-	# 		self.user_color_active = 0 if message == 'black' else 1
-	# 		self.start_game_two_player()
-
 	# The first person to connect gets to set the rules of the game
 	elif self.location == 'two_player_menu_screen_choose_color' or self.location == 'two_player_menu_screen_waiting_color':
 		
@@ -423,79 +436,9 @@ def run(self):
 			next_action = "start_game_player_a"
 
 			# Set up the color-choosing:
-			# Set up minus-color button
-			basic_font = pygame.font.Font(font, 30)
-			
-			color = Constants.SINGLE_PLAYER_BUTTON
-			border_color = Constants.BLACK
-			border_width = 10
-			center_x = 100
-			center_y = 50
-			width = 50
-			height = 50
-			radius = 2
-			command = "minus_color"
-			
-			display_text = "<"
-			font = Constants.RESOURCES+Constants.FONT
-			font_size = 45
-			font_color = Constants.WHITE
+			choose_color(self, 100, 250)
 
-			self.buttons.append(Button(center_x, center_y, width, height, radius, color,
-				border_color, border_width, self.screen, command,
-				display_text=display_text, font=font, font_size=font_size, font_color=font_color))
-
-			# Set up plus-color button
-			center_x = 700
-			center_y = 50
-			command = "plus_color"
-			
-			display_text = ">"
-
-			self.buttons.append(Button(center_x, center_y, width, height, radius, color,
-				border_color, border_width, self.screen, command,
-				display_text=display_text, font=font, font_size=font_size, font_color=font_color))
-
-			# Set up the textbox in the middle
-			# Set up the textbox border
-			color_index = self.user_color_active
-			font_color = Constants.PLAY_AS_WHITE_TEXT
-			bg_color = Constants.PLAY_AS_WHITE_BG
-			if color_index == 1:
-				font_color = Constants.PLAY_AS_BLACK_TEXT
-				bg_color = Constants.PLAY_AS_BLACK_BG
-			elif color_index == 2:
-				font_color = Constants.PLAY_AS_RANDOM_TEXT
-				bg_color = Constants.PLAY_AS_RANDOM_BG
-
-			border_width = 9
-			hp_border_rectangle = (125, 26, 550, 50)
-			pygame.draw.rect(self.screen, bg_color, hp_border_rectangle, 0)
-			pygame.draw.rect(self.screen, border_color, hp_border_rectangle, border_width)
-
-			# Set up the color text
-			font_text = self.user_color[color_index]
-			font_size = 45
-			x = 400
-			y = 50
-			self.write_text(font_text, font_color, font_size, x, y)
-
-		# Set up characters
-		font_text = "Choose your avatar: "
-		font_color = Constants.BLACK
-		font_size = 25
-		x = 210
-		y = 205
-		self.write_text(font_text, font_color, font_size, x, y)
-
-		font_text = self.character_names[self.image_id]
-		font_color = Constants.BLACK
-		font_size = 25
-		x = 400
-		y = 205
-		self.write_text(font_text, font_color, font_size, x, y)
-
-		manage_characters(self, 250)
+		manage_characters(self, 75)
 
 		# Start game button
 		color = Constants.SINGLE_PLAYER_BUTTON

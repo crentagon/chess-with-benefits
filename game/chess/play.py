@@ -31,7 +31,9 @@ def run(self):
 			self.is_board_changed = False
 
 		if has_player_moved or has_opponent_moved:
-			self.board_status = 'in_game'
+			if self.board_status == 'user_check' or self.board_status == 'opponent_check':
+				self.board_status = 'in_game'
+	
 			self.clear_traversable()				
 			self.build_threats(self.board)
 			self.is_board_changed = True
@@ -134,8 +136,8 @@ def run(self):
 		# Wait for the human opponent's turn
 		else:
 			message = self.listener.get_message()
-			print "Got message!", message
 			if message:
+				print "Got message!", message
 				if message != 'GAME_OVER':
 					source_x = Constants.PIECE_MAPPING[message[:1]]
 					source_y = Constants.PIECE_MAPPING[message[1:2]]

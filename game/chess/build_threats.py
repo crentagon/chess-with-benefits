@@ -307,7 +307,7 @@ def run(self, board_input, peek):
 							is_piece_opponent = element.piece.is_user is False
 
 							if is_piece_king and is_piece_opponent:
-								self.is_opponent_check = True
+								self.board_status = 'opponent_check'
 								is_opponent_king_detected = True
 
 				else:
@@ -320,5 +320,5 @@ def run(self, board_input, peek):
 							is_piece_user = element.piece.is_user is True
 
 							if is_piece_king and is_piece_user:
-								self.is_user_check = True
+								self.board_status = 'user_check'
 								is_user_king_detected = True

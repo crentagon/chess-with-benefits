@@ -58,7 +58,7 @@ class MainMenu:
 			message = self.client_listener_thread.get_message()
 			if message:
 				is_white = re.compile('white_(.*)')
-				self.user_color_active = 1 if is_white.match(message) else 0
+				self.user_color_active = 1 if is_white.match(message) is not None else 0
 				self.opponent_image_id = int(message[6:])
 				break
 

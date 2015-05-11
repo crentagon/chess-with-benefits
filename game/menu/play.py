@@ -44,7 +44,10 @@ def run(self):
 
 				p = re.compile('set_avatar_(.*)')
 
-				if active_command == 'main_single':
+				if active_command == 'main_menu':
+					self.location = 'main_menu'
+
+				elif active_command == 'main_single':
 					self.location = 'single_player_menu'
 
 				elif active_command == 'main_two_player':
