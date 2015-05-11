@@ -377,8 +377,8 @@ def run(self):
 		image_file_opp = self.image_file_opp
 
 		# Load both images and render them
-		image_user = pygame.image.load(image_file_user)
-		image_opp = pygame.image.load(image_file_opp)
+		image_user = pygame.transform.scale(pygame.image.load(image_file_user), (avatar_size, avatar_size))
+		image_opp = pygame.transform.scale(pygame.image.load(image_file_opp), (avatar_size, avatar_size))
 		self.screen.blit(image_user, user_avatar_rect)
 		self.screen.blit(image_opp, opp_avatar_rect)
 

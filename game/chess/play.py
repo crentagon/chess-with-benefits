@@ -134,6 +134,7 @@ def run(self):
 		# Wait for the human opponent's turn
 		else:
 			message = self.listener.get_message()
+			print "Got message!", message
 			if message:
 				if message != 'GAME_OVER':
 					source_x = Constants.PIECE_MAPPING[message[:1]]
@@ -155,7 +156,6 @@ def run(self):
 					self.move_piece(source_x, source_y, destination_x, destination_y, promotion)
 					has_opponent_moved = True
 				else:
-					print "Got message", message
 					return "main_menu"
 
 		for event in pygame.event.get(): 
@@ -373,6 +373,7 @@ def run(self):
 						self.source_y = board_y
 					else:
 						if self.is_two_player:
+							print "Sending to the server:", self.move_string
 							self.speaker.send_message(self.move_string)
 
 				# User clicked on tile that is not traversable? We cool as long as user didn't click on its own piece.
