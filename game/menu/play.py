@@ -13,7 +13,9 @@ def run(self):
 		events = pygame.event.get()
 		
 		for event in events:
-			if event.type == pygame.QUIT: 
+			if event.type == pygame.QUIT:
+				self.client_speaker_thread.close()
+				self.client_listener_thread.close()
 				sys.exit(0)
 
 			elif event.type == 5:

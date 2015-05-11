@@ -15,40 +15,48 @@ class ServerThread(threading.Thread):
 		self.message = ''
 		self.addr = addr
 
+		self.server_socket = None
+		self.client_socket_a = None
+		self.client_socket_b = None
+
 	def run(self):
 		bufsize = self.bufsize
 
-		server_socket = socket(AF_INET,SOCK_STREAM)
-		server_socket.bind(self.addr)
-		server_socket.listen(2)
+		self.server_socket = socket(AF_INET,SOCK_STREAM)
+		self.server_socket.bind(self.addr)
+		self.server_socket.listen(2)
 
 		self.broadcast_message("Waiting for the first connection...")
-		client_socket_a, addr_a = server_socket.accept()
+		self.client_socket_a, addr_a = self.server_socket.accept()
 		self.broadcast_message("Conntected! Address:" + str(addr_a))
 
 		self.broadcast_message("Waiting for the second connection...")
-		client_socket_b, addr_b = server_socket.accept()
+		self.client_socket_b, addr_b = self.server_socket.accept()
 		self.broadcast_message("Conntected! Address:" + str(addr_b))
 
-		self.broadcast_message("Connections: " + str(client_socket_a.getsockname()) + str(client_socket_b.getsockname()))
-		client_socket_a.send("ready-first")
-		client_socket_b.send("ready")
+		self.broadcast_message("Connections: " + str(self.client_socket_a.getsockname()) + str(self.client_socket_b.getsockname()))
+		self.client_socket_a.send("ready-first")
+		self.client_socket_b.send("ready")
 
 		# First player says "READY!"
-		color_a = client_socket_a.recv(bufsize)
+		color_a = self.client_socket_a.recv(bufsize)
 		self.broadcast_message("Sending to socket_b:" + str(color_a))
-		client_socket_b.send(color_a)
+		if self.is_message_game_over(color_a, self.client_socket_b):
+			return
+		self.client_socket_b.send(color_a)
 
 		# Second player says "READY!"
-		ready_b = client_socket_b.recv(bufsize)
-		client_socket_a.send(ready_b)
+		ready_b = self.client_socket_b.recv(bufsize)
+		if self.is_message_game_over(ready_b, self.client_socket_a):
+			return
+		self.client_socket_a.send(ready_b)
 
 		# Check color
 		is_white = re.compile('white_(.*)')
 		is_white = is_white.match(color_a)
 
-		white_client = client_socket_a if is_white else client_socket_b
-		black_client = client_socket_a if not is_white else client_socket_b
+		white_client = self.client_socket_a if is_white else self.client_socket_b
+		black_client = self.client_socket_a if not is_white else self.client_socket_b
 
 		while self.is_server_running:
 			# White's move
@@ -56,23 +64,29 @@ class ServerThread(threading.Thread):
 			white_move = white_client.recv(bufsize)
 			
 			self.broadcast_message("Received white's move: "+white_move)
-			if white_move == 'GAME_OVER' or not self.is_server_running:
-				black_client.send('GAME_OVER')
-				break
 			black_client.send(white_move)
+			if white_move == 'GAME_OVER' or not self.is_server_running:
+				break
 
 			# Black's move
 			self.broadcast_message("Waiting for black's move...")
 			black_move = black_client.recv(bufsize)
 			self.broadcast_message("Received black's move: "+black_move)
-			if black_move == 'GAME_OVER' or not self.is_server_running:
-				black_client.send('GAME_OVER')
-				break
 			white_client.send(black_move)
+			if black_move == 'GAME_OVER' or not self.is_server_running:
+				break
 
-		client_socket_a.close()
-		client_socket_b.close()
-		server_socket.close()
+		self.client_socket_a.close()
+		self.client_socket_b.close()
+		self.server_socket.close()
+
+	def is_message_game_over(self, message, target_client):
+		if message == 'GAME_OVER':
+			target_client.send(message)
+			self.server_socket.close()
+			self.stop_thread()
+			return True
+		return False
 
 	def broadcast_message(self, message):
 		self.is_new_message = True

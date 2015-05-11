@@ -165,8 +165,7 @@ def run(self):
 			
 			if event.type == pygame.QUIT:
 				if self.is_two_player:
-					print "Sending GAME_OVER"
-					self.speaker.send_message("GAME_OVER")
+					self.speaker.close()
 					self.listener.close()
 				print "Exiting."
 				sys.exit(0)

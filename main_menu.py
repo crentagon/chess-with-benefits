@@ -44,8 +44,12 @@ class MainMenu:
 		while True:
 			message = self.client_listener_thread.get_message()
 			if message:
-				self.opponent_image_id = int(message[6:])
-				break
+				if message != 'GAME_OVER':
+					self.opponent_image_id = int(message[6:])
+					break
+				else:
+					self.location = 'main_menu'
+					return
 
 		self.start_game_two_player()
 
@@ -57,10 +61,15 @@ class MainMenu:
 		while True:
 			message = self.client_listener_thread.get_message()
 			if message:
-				is_white = re.compile('white_(.*)')
-				self.user_color_active = 1 if is_white.match(message) is not None else 0
-				self.opponent_image_id = int(message[6:])
-				break
+				print "Recevied message:", message
+				if message != 'GAME_OVER':
+					is_white = re.compile('white_(.*)')
+					self.user_color_active = 1 if is_white.match(message) is not None else 0
+					self.opponent_image_id = int(message[6:])
+					break
+				else:
+					self.location = 'main_menu'
+					return
 
 		self.start_game_two_player()
 

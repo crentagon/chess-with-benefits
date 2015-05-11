@@ -379,7 +379,7 @@ def run(self):
 		y = 60
 		self.write_text(font_text, font_color, font_size, x, y)
 		pygame.display.update()
-		time.sleep(2)
+		# time.sleep(2)
 
 		# TO-DO: Conenct to the server.
 		try:
