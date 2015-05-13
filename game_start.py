@@ -1,19 +1,20 @@
 from game.chess import (
-	populate_lists,
+	build_piece_stats,
 	build_threats,
-	is_check,
-	render_captured,
 	clear,
+	convert_fen_to_board,
 	convert_to_fen,
 	endgame_check,
+	initialize,
+	is_check,
 	move_piece,
-	show_traversable,
-	convert_fen_to_board,
-	render_tile,
-	render_board,
-	write_text,
 	play,
-	initialize
+	populate_lists,
+	render_board,
+	render_captured,
+	render_tile,
+	show_traversable,
+	write_text
 )
 
 class Chesselate:
@@ -22,7 +23,6 @@ class Chesselate:
 		name_user="Player", name_opponent="Opponent", fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
 		listener=None, speaker=None):
 		
-		# fen_string = "6RQ/8/5p2/2p2k2/7K/8/6r1/5q2 b ---- - 7 69"
 		initialize.run(self, screen, is_player_white, is_two_player, cpu_level, img_user, img_opponent,
 			name_user, name_opponent, fen_string, listener, speaker)
 
@@ -31,6 +31,9 @@ class Chesselate:
 
 	def build_threats(self, board_input, peek=False):
 		build_threats.run(self, board_input, peek)
+
+	def build_piece_stats(self, board_input, i, j, mode='build_threats', target_tiles=[]):
+		build_piece_stats.run(self, board_input, i, j, mode, target_tiles)
 
 	def render_captured(self, x, y, cmax, side, all_captured):
 		render_captured.run(self, x, y, cmax, side, all_captured)
