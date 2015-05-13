@@ -10,7 +10,7 @@ def piece_build(self, board_input, i, j, mode='build_threats',
 
 	if is_build_threats:
 		target_tile = board_input[i][j]
-		target_tiles.append(target_tile)
+		target_tiles.append(target_tile) # Add who's attacking it. TO-DO: modify the tiles to support this!
 		if change_bool is not None and target_tile.piece is not None:
 			change_bool[0] = False
 
@@ -34,6 +34,16 @@ def piece_build(self, board_input, i, j, mode='build_threats',
 				self.traversable.append(target_tile)
 
 	elif is_show_stats:
+		# "Status":
+			# Defender (defending at least two pieces)
+			# Warrior (attacking at least one piece OR in a valuable position)
+			# Healthy (default)
+			# Threatened (being attacked by a piece without being defended or being attacked by a piece of lower rank)
+			# Note: place its value right next to it
+
+		# Number of tiles controlled: "Tile Control Count: " // add counter at the bottom
+		# Number of pieces defending it: "Supporters: "
+		# Number of pieces attacking it: "Threatener: "
 		pass
 
 def run(self, board_input, i, j, mode='build_threats', target_tiles=[]):
