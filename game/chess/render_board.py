@@ -1,4 +1,5 @@
 from constants import *
+from button import *
 from piece import *
 import pygame, time
 
@@ -14,6 +15,7 @@ def run(self):
 	rect_h = Constants.OUTERBOARD_HEIGHT
 	rect = (rect_x, rect_y, rect_w, rect_h)
 	pygame.draw.rect(self.screen, Constants.CHESSBOARD_BG, rect, 0)
+	self.buttons = []
 
 	# User is undergoing pawn promotion
 	if self.board_status == 'promoting':
@@ -47,73 +49,163 @@ def run(self):
 		promotion_rect.center = Constants.PROMOTION_COORD
 		self.screen.blit(promotion_text, promotion_rect)
 
+	# User clicked "forfeit"!
+	elif self.board_status == 'is_forfeitting':
+
+		font_text = "Are you sure"
+		font_color = Constants.WHITE
+		font_size = Constants.GAMEOVER_FONT_SIZE
+		font_x = Constants.AFTERGAME_COORD[0] + (rect_w/5)
+		font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT*2)
+
+		self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+		font_text = "you want to forfeit?"
+		font_color = Constants.WHITE
+		font_size = Constants.GAMEOVER_FONT_SIZE
+		font_x = Constants.AFTERGAME_COORD[0] + (rect_w/5)
+		font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT*1.5)
+
+		self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+		# Set up the button
+		color = Constants.SIDEBAR_BG
+		border_color = Constants.BLACK
+		border_width = 10
+		center_x = 650
+		center_y = 200
+		width = 100
+		height = 50
+		radius = 2
+		command = "is_forfeitting_yes"
+		
+		display_text = "Yes"
+		font = Constants.RESOURCES+Constants.FONT
+		font_size = 30
+		font_color = Constants.WHITE
+
+		self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+			border_color, border_width, self.screen, command,
+			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
+		
+		display_text = "No"
+		command = "is_forfeitting_no"
+		center_y = 275
+
+		self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+			border_color, border_width, self.screen, command,
+			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
+
 	# Game over
 	elif self.is_game_over[self.board_status]:
 		if self.is_two_player:
 			self.speaker.send_message('GAME_OVER')
 
-		# Determine the winner
-		color_winner = "Stalemate"
-		if self.board_status == 'user_checkmate':
-			color_winner = "Black" if self.is_player_white else "White"
-		else:
-			color_winner = "White" if self.is_player_white else "Black"
+		if self.board_status == 'opponent_forfeited':
+			board_buffer = Constants.BOARD_BUFFER
 
-		game_over_text = "Good game."
-		game_winner = color_winner+" wins by checkmate!" if not self.board_status == 'stalemate' else "It's a stalemate!"
+			font_text = "Your opponent forfeited."
+			font_color = Constants.CHESSBOARD_WH
+			font_size = Constants.GAMEOVER_FONT_SIZE
+			font_x = Constants.AFTERGAME_COORD[0] + (rect_w/5)
+			font_y = Constants.AFTERGAME_COORD[1] - Constants.AFTERGAME_HEIGHT
 
-		# Options after game
-		board_buffer = Constants.BOARD_BUFFER
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
 
-		# Render the game over text
-		rect_w = Constants.AFTERGAME_WIDTH
-		rect_h = Constants.AFTERGAME_HEIGHT
-		rect_x = Constants.AFTERGAME_COORD[0]
+			rect_w = Constants.AFTERGAME_WIDTH
+			rect_h = Constants.AFTERGAME_HEIGHT
+			rect_x = Constants.AFTERGAME_COORD[0]
 
-		font_text = game_over_text
-		font_color = Constants.CHESSBOARD_WH
-		font_size = Constants.GAMEOVER_FONT_SIZE
-		font_x = Constants.AFTERGAME_COORD[0] + (rect_w/2)
-		font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT*2)
+			color = Constants.SIDEBAR_BG
+			border_color = Constants.BLACK
+			border_width = 10
+			center_x = rect_x + (rect_w/2)
+			width = rect_w
+			height = rect_h
+			radius = 2
+			
+			font_size = 25
+			font_color = Constants.WHITE
 
-		self.write_text(font_text, font_color, font_size, font_x, font_y)
+			command = "endgame_main_menu"
+			display_text = "Main Menu"
+			center_y = Constants.AFTERGAME_COORD[1] + rect_h
 
-		# Render the winner text
-		font_text = game_winner
-		font_color = Constants.CHESSBOARD_WH
-		font_size = Constants.GAMEOVER_FONT_SIZE
-		font_x = Constants.AFTERGAME_COORD[0] + (rect_w/2)
-		font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT*1.5)
+			self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+				border_color, border_width, self.screen, command,
+				display_text=display_text, font=font, font_size=font_size, font_color=font_color))
 
-		self.write_text(font_text, font_color, font_size, font_x, font_y)
+		else:		
+			# Determine the winner
+			color_winner = "Stalemate"
+			if self.board_status == 'user_checkmate':
+				color_winner = "Black" if self.is_player_white else "White"
+			else:
+				color_winner = "White" if self.is_player_white else "Black"
 
-		if self.board_status == '50_move_rule':
-			# Render the text
-			font_text = "That is, by the 50-move rule!"
+			game_over_text = "Good game."
+			game_winner = color_winner+" wins by checkmate!" if not self.board_status == 'stalemate' else "It's a stalemate!"
+
+			# Options after game
+			board_buffer = Constants.BOARD_BUFFER
+
+			# Render the game over text
+			rect_w = Constants.AFTERGAME_WIDTH
+			rect_h = Constants.AFTERGAME_HEIGHT
+			rect_x = Constants.AFTERGAME_COORD[0]
+
+			font_text = game_over_text
 			font_color = Constants.CHESSBOARD_WH
 			font_size = Constants.GAMEOVER_FONT_SIZE
 			font_x = Constants.AFTERGAME_COORD[0] + (rect_w/2)
-			font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT)
+			font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT*2)
 
 			self.write_text(font_text, font_color, font_size, font_x, font_y)
 
-		i = 0
-		for element in self.aftergame_options:
-
-			# Render the rectangular buttons
-			rect_y = Constants.AFTERGAME_COORD[1] + (rect_h + board_buffer)*i
-			rect = (rect_x, rect_y, rect_w, rect_h)
-			pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, rect, 0)
-			pygame.draw.rect(self.screen, Constants.CHESSBOARD_DK, rect, 1)
-
-			font_text = self.aftergame_options[i][0]
-			font_color = Constants.CHESSBOARD_DK
-			font_size = Constants.ENDGAME_FONT_SIZE
-			font_x = (rect_w/2) + rect_x
-			font_y = (rect_h/2) + rect_y
+			# Render the winner text
+			font_text = game_winner
+			font_color = Constants.CHESSBOARD_WH
+			font_size = Constants.GAMEOVER_FONT_SIZE
+			font_x = Constants.AFTERGAME_COORD[0] + (rect_w/2)
+			font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT*1.5)
 
 			self.write_text(font_text, font_color, font_size, font_x, font_y)
-			i = i + 1
+
+			if self.board_status == '50_move_rule':
+				# Render the text
+				font_text = "That is, by the 50-move rule!"
+				font_color = Constants.CHESSBOARD_WH
+				font_size = Constants.GAMEOVER_FONT_SIZE
+				font_x = Constants.AFTERGAME_COORD[0] + (rect_w/2)
+				font_y = Constants.AFTERGAME_COORD[1] - (Constants.AFTERGAME_HEIGHT)
+
+				self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			i = 0
+
+			# Set up the button
+			color = Constants.SIDEBAR_BG
+			border_color = Constants.BLACK
+			border_width = 10
+			center_x = rect_x + (rect_w/2)
+			width = rect_w
+			height = rect_h
+			radius = 2
+			
+			font_size = 25
+			font_color = Constants.WHITE
+
+			for element in self.aftergame_options:
+
+				command = element[1]
+				display_text = element[0]
+				center_y = Constants.AFTERGAME_COORD[1] + (rect_h + board_buffer+10)*i
+
+				self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+					border_color, border_width, self.screen, command,
+					display_text=display_text, font=font, font_size=font_size, font_color=font_color))
+
+				i = i + 1
 
 	# If the user isn't undergoing promotion
 	else:
@@ -127,24 +219,30 @@ def run(self):
 
 		# Render the sidebar buttons
 		rect_x = ((Constants.SIDEBAR_WIDTH - Constants.SIDEBAR_BUTTON)/2) + (Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH)
-		size = Constants.SIDEBAR_BUTTON
-		i = 0
+		size = Constants.SIDEBAR_BUTTON - 5
+		i = 0 #needed to determine height offset of sidebar button
+
+		width = size
+		height = size
+		image_w = size
+		image_h = size
+		radius = 2
+		color = Constants.DARK_GRAY
+		border_width = 5
+		border_color = Constants.BLACK
+		screen = self.screen
+		center_x = int(rect_x + (size/1.75))
 
 		for element in self.sidebar_buttons:
-			image_file = element[0]
+
+			image_file = Constants.RESOURCES+element[0]
 			image_text = element[1]
-			image_icon = pygame.image.load(Constants.RESOURCES+image_file)
+			command = element[2]
 
-			# The button
-			rect_y = Constants.BOARD_BUFFER + (size + Constants.BOARD_BUFFER)*i
-			button_rect = (rect_x, rect_y, size, size)
-			pygame.draw.rect(self.screen, Constants.SIDEBAR_BUTTON_BG, button_rect, 0)
-			pygame.draw.rect(self.screen, Constants.CHESSBOARD_DK, button_rect, 1)
-
-			# The icon
-			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
-			icon_rect = (rect_x, rect_y, size, size)
-			self.screen.blit(image_piece, icon_rect)
+			center_y = Constants.BOARD_BUFFER + (size + Constants.BOARD_BUFFER)*i + (size/2)
+			self.buttons.append(Button(center_x, center_y, width, height, radius, color, border_color,
+				border_width, screen, command, image_filename=image_file, image_x='', image_y='', image_w=image_w,
+				image_h=image_h))
 
 			i+=1
 
@@ -455,4 +553,8 @@ def run(self):
 				self.screen.blit(guide_text_char, char_rect)
 				self.screen.blit(guide_text_num, num_rect)
 
-	pygame.display.flip()
+	# Draw all the buttons
+	for button in self.buttons:
+		button.draw_button()
+
+	pygame.display.update()

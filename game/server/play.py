@@ -36,7 +36,7 @@ def run(self):
 				if self.server_thread.is_new_message:
 					self.is_display_changed = True
 					self.last_message = self.server_thread.get_message()
-					print "Here:", self.last_message
+					print self.last_message
 			else:
 				self.server_thread.stop_thread()
 

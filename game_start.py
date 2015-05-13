@@ -22,6 +22,7 @@ class Chesselate:
 		name_user="Player", name_opponent="Opponent", fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
 		listener=None, speaker=None):
 		
+		# fen_string = "6RQ/8/5p2/2p2k2/7K/8/6r1/5q2 b ---- - 7 69"
 		initialize.run(self, screen, is_player_white, is_two_player, cpu_level, img_user, img_opponent,
 			name_user, name_opponent, fen_string, listener, speaker)
 

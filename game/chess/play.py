@@ -158,7 +158,7 @@ def run(self):
 					self.move_piece(source_x, source_y, destination_x, destination_y, promotion)
 					has_opponent_moved = True
 				else:
-					return "main_menu"
+					self.board_status="opponent_forfeited"
 
 		for event in pygame.event.get(): 
 			self.is_board_changed = True
@@ -173,6 +173,109 @@ def run(self):
 			# User's turn
 			elif event.type == 5:
 				mouse_pos = pygame.mouse.get_pos()
+				x_coord = mouse_pos[0]
+				y_coord = mouse_pos[1]
+
+				active_command = ''
+				for button in self.buttons:
+					if button.is_button_pressed(x_coord, y_coord):
+						active_command = button.get_command()
+						break
+
+				if active_command == 'sidebar_undo' or active_command == 'endgame_undo':
+					# Cannot undo if stack only has one element
+					if self.stack.size() > 1:
+						# After an undo, it'll always be your turn unless it's the first move
+						self.active_turn = 'w' if self.is_player_white else 'b'
+
+						# print has_player_moved
+						# sys.exit(0)
+
+						# If the player has just moved, we pop twice
+						if not is_turn_user:
+							self.stack.pop()
+							element = self.stack.pop()
+							fen = element[0]
+
+							if thread is not None:
+								thread.is_undo_clicked = True
+
+							self.stack.push(element)
+							
+							is_turn_opponent = False
+							is_turn_user = True
+
+						# If the opponent has just moved...
+						else:
+							# If it's the very first move, we push it again.
+							if self.stack.size() == 2:
+								self.stack.pop()
+								element = self.stack.pop()
+								fen = element[0]
+								# print "Popped thrice?", fen
+
+								is_turn_opponent = False
+								is_turn_user = True
+
+								self.stack.push(element)
+								# print "Pushed*:", fen
+
+								if not self.is_player_white:
+									self.active_turn = 'w'
+									is_turn_opponent = True
+									is_turn_user = False
+								elif thread is not None:
+									thread.is_undo_clicked = True
+
+							else:
+								# ...we pop thrice.
+								self.stack.pop()
+								self.stack.pop()
+								element = self.stack.pop()
+								fen = element[0]
+								# print "Popped thrice?", fen
+
+								is_turn_opponent = False
+								is_turn_user = True
+
+								self.stack.push(element)
+								# print "Pushed*:", fen
+
+						fen_string = fen
+						self.convert_fen_to_board(fen)
+
+						self.board_status = 'in_game'
+
+						index = self.fullmove_clock #if self.is_player_white else self.fullmove_clock - 1
+						opp_index = self.fullmove_clock if self.is_player_white else self.fullmove_clock + 1
+						self.opponent_captured.search_and_pop(opp_index)
+						self.user_captured.search_and_pop(index)
+
+						self.clear_current_movement()
+						self.clear_traversable()
+						self.build_threats(self.board)
+						self.clear_last_movement()
+						self.is_board_changed = True
+
+				elif active_command == 'endgame_main_menu':
+					# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close game clicked
+					return 'main_menu'
+					
+				elif active_command == 'is_forfeitting_yes':
+					if self.is_two_player:
+						self.speaker.close()
+						self.listener.close()
+					return 'main_menu'
+
+				elif active_command == 'sidebar_forfeit':
+					self.board_status = 'is_forfeitting'
+
+				elif active_command == 'endgame_play_again':
+					# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close game clicked
+					return 'single_player_menu' # Return 'two_player_search_menu' instead if two-player
+
+				elif active_command == 'is_forfeitting_no':
+					self.board_status = 'in_game'
 
 				if self.is_player_white:
 					board_x = (mouse_pos[0] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
@@ -204,7 +307,6 @@ def run(self):
 
 						if index < len(self.sidebar_buttons):
 							action = self.sidebar_buttons[index][2]
-						
 
 					# Is the game over and the user is clicking on the game over options?
 					elif self.is_game_over[self.board_status]:
@@ -221,89 +323,6 @@ def run(self):
 							if index < len(self.aftergame_options):
 								self.is_game_over = False
 								action = self.aftergame_options[index][1]
-
-					if action == 'undo':
-						# Cannot undo if stack only has one element
-						if self.stack.size() > 1:
-							# After an undo, it'll always be your turn unless it's the first move
-							self.active_turn = 'w' if self.is_player_white else 'b'
-
-							# print has_player_moved
-							# sys.exit(0)
-
-							# If the player has just moved, we pop twice
-							if not is_turn_user:
-								self.stack.pop()
-								element = self.stack.pop()
-								fen = element[0]
-
-								if thread is not None:
-									thread.is_undo_clicked = True
-
-								self.stack.push(element)
-								
-								is_turn_opponent = False
-								is_turn_user = True
-
-							# If the opponent has just moved...
-							else:
-								# If it's the very first move, we push it again.
-								if self.stack.size() == 2:
-									self.stack.pop()
-									element = self.stack.pop()
-									fen = element[0]
-									# print "Popped thrice?", fen
-
-									is_turn_opponent = False
-									is_turn_user = True
-
-									self.stack.push(element)
-									# print "Pushed*:", fen
-
-									if not self.is_player_white:
-										self.active_turn = 'w'
-										is_turn_opponent = True
-										is_turn_user = False
-									elif thread is not None:
-										thread.is_undo_clicked = True
-
-								else:
-									# ...we pop thrice.
-									self.stack.pop()
-									self.stack.pop()
-									element = self.stack.pop()
-									fen = element[0]
-									# print "Popped thrice?", fen
-
-									is_turn_opponent = False
-									is_turn_user = True
-
-									self.stack.push(element)
-									# print "Pushed*:", fen
-
-							fen_string = fen
-							self.convert_fen_to_board(fen)
-
-							self.board_status = 'in_game'
-
-							index = self.fullmove_clock #if self.is_player_white else self.fullmove_clock - 1
-							opp_index = self.fullmove_clock if self.is_player_white else self.fullmove_clock + 1
-							self.opponent_captured.search_and_pop(opp_index)
-							self.user_captured.search_and_pop(index)
-
-							self.clear_current_movement()
-							self.clear_traversable()
-							self.build_threats(self.board)
-							self.clear_last_movement()
-							self.is_board_changed = True
-
-					elif action == 'main_menu':
-						# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close game clicked
-						return 'main_menu'
-
-					elif action == 'play_again':
-						# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close game clicked
-						return 'single_player_menu' # Return 'two_player_search_menu' instead if two-player
 
 					# Is the user clicking on the promotion buttons?
 					for i in range(4):

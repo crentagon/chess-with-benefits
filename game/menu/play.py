@@ -27,6 +27,7 @@ def run(self):
 				for button in self.buttons:
 					if button.is_button_pressed(x_coord, y_coord):
 						active_command = button.get_command()
+						break
 
 				self.active_textbox_index = -1
 				for index, textbox in enumerate(self.textboxes):

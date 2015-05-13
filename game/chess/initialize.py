@@ -95,6 +95,7 @@ def run(self, screen, is_player_white, is_two_player, cpu_level, img_user, img_o
 	self.sidebar_buttons = []
 	self.is_game_over = {}
 	self.traversable = []
+	self.buttons = []
 	self.populate_lists()
 
 	self.screen = screen

@@ -76,6 +76,11 @@ class ServerThread(threading.Thread):
 			if black_move == 'GAME_OVER' or not self.is_server_running:
 				break
 
+		time.sleep(1)
+		white_client.send("GAME_OVER")
+		black_client.send("GAME_OVER")
+		time.sleep(1)
+		print "---Closing shop."
 		self.client_socket_a.close()
 		self.client_socket_b.close()
 		self.server_socket.close()
