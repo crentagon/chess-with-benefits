@@ -2,6 +2,7 @@ from constants import *
 import pygame, math
 
 def run(self, source_x, source_y, destination_x, destination_y, promotion):
+
 	# Flag for checking if the move is a capture
 	hp_converter = {
 		0: 1,
