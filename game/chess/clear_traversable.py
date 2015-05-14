@@ -16,5 +16,5 @@ def clear_last_movement(self):
 
 # clear_current_movement
 def clear_current_movement(self):
-		self.board[self.currmove_source_x][self.currmove_source_y].is_current_movement = False
-		self.board[self.currmove_destination_x][self.currmove_destination_y].is_current_movement = False
+	self.board[self.currmove_source_x][self.currmove_source_y].is_current_movement = False
+	self.board[self.currmove_destination_x][self.currmove_destination_y].is_current_movement = False

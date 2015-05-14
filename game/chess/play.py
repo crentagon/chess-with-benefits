@@ -30,7 +30,8 @@ def run(self):
 			self.render_board()
 			self.is_board_changed = False
 
-		if has_player_moved or has_opponent_moved:
+		if has_player_moved or has_opponent_moved:			
+			self.piece_stats = {}
 			if self.board_status == 'user_check' or self.board_status == 'opponent_check':
 				self.board_status = 'in_game'
 	
@@ -278,11 +279,11 @@ def run(self):
 					self.board_status = 'in_game'
 
 				if self.is_player_white:
-					board_x = (mouse_pos[0] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
-					board_y = 7-((mouse_pos[1] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+					board_x = (x_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					board_y = 7-((y_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
 				else:
-					board_x = 7-((mouse_pos[0] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
-					board_y = (mouse_pos[1] - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					board_x = 7-((x_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+					board_y = (y_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
 
 				is_piece_clicked = False
 				is_traversable = False
@@ -396,10 +397,28 @@ def run(self):
 							print "Sending to the server:", self.move_string
 							self.speaker.send_message(self.move_string)
 
-				# User clicked on tile that is not traversable? We cool as long as user didn't click on its own piece.
+				# User clicked on tile that is not traversable? We cool as long as user didn't click on its own piece. (???)
 				else:
 					if not is_piece_clicked:
 						self.clear_traversable()
 
-			# else: 
-			# 	print event
+			# Right click
+			elif event.type == 6: 
+				mouse_pos = pygame.mouse.get_pos()
+				x_coord = mouse_pos[0]
+				y_coord = mouse_pos[1]
+
+				if self.is_player_white:
+					board_x = (x_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+					board_y = 7-((y_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+				else:
+					board_x = 7-((x_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
+					board_y = (y_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
+
+				if 0 <= board_x <= 7 and 0 <= board_y <= 7 and self.is_board_clickable and is_turn_user:
+					# What did the user right click? A piece? A tile? Is the tile traversable?
+					tile = self.board[board_x][board_y]
+					piece = tile.piece
+					is_traversable = tile.is_traversable
+					if piece is not None:
+						self.show_piece_stats(self.board, board_x, board_y)

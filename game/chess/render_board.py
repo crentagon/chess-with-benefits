@@ -207,7 +207,7 @@ def run(self):
 
 				i = i + 1
 
-	# If the user isn't undergoing promotion
+	# Mid-game
 	else:
 		# Render the sidebar
 		rect_x = Constants.SCREENSIZE[0] - Constants.SIDEBAR_WIDTH
@@ -278,6 +278,132 @@ def run(self):
 		# User's captured pieces
 		cur_y = usr_y + Constants.MINIBUFFER
 		self.render_captured(cur_x, cur_y, cur_max, side, self.user_captured.container)
+
+		# Piece statistics
+		s_rect_x = 510
+		s_rect_y = 195
+		s_rect_w = 222
+		s_rect_h = 115
+		stat_rect = (s_rect_x, s_rect_y, s_rect_w, s_rect_h)
+		pygame.draw.rect(self.screen, Constants.BG_CAPTURED, stat_rect)
+		pygame.draw.rect(self.screen, Constants.BG_BORDERS, stat_rect, border)
+
+		# Render the piece stats
+		if self.piece_stats != {}:
+			# Render the piece clicked
+			piece_stats = self.piece_stats
+			is_piece_white = piece_stats['is_piece_white']
+			piece_color = 'w' if is_piece_white else 'b'
+			opposite_color = 'b' if is_piece_white else 'b'
+
+			# TO-DO: store these values in a separate file
+			side = 35
+			p_rect_x = s_rect_x + 10
+			p_rect_y = s_rect_y + 10
+			piece_rect = (p_rect_x, p_rect_y, side, side)
+
+			image_file = "mini_"+piece_color+str(piece_stats['piece_type'])+".png"
+			image_piece = pygame.image.load(Constants.RESOURCES+image_file)
+			self.screen.blit(image_piece, piece_rect)
+
+			# Render the piece stats
+			"""
+			{'tile_control_count': 2, 'piece_type': 3,
+			'defensive_power': [1], 'defenders': [5], 'is_piece_white': True,
+			'attackers': [], 'offensive_power': []}
+			"""
+
+			max_control = {
+				1: 2,
+				3: 8,
+				4: 13,
+				5: 14,
+				9: 27,
+				0: 8
+			}
+
+			font_text = "Tiles controlled: "
+			font_color = Constants.WHITE
+			font_size = Constants.HP_TEXT_FONT_SIZE +2
+			font_x = s_rect_x + 115
+			font_y = s_rect_y + 15
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			font_text = "Offensive Power: "
+			font_x = s_rect_x + 120
+			font_y = s_rect_y + 30
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			font_text = "Defensive Power: "
+			font_x = s_rect_x + 120
+			font_y = s_rect_y + 45
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			font_text = "Attackers: "
+			font_x = s_rect_x + 97
+			font_y = s_rect_y + 60
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			font_text = "Defenders: "
+			font_x = s_rect_x + 97
+			font_y = s_rect_y + 75
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			tile_control_count = piece_stats['tile_control_count']
+			font_text = str(tile_control_count)
+			other_colors = int(255-(255*(tile_control_count*1.0/max_control[piece_stats['piece_type']])))
+			font_color = (other_colors,255,other_colors)
+			font_x = s_rect_x + 190
+			font_y = s_rect_y + 15
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			offensive_power = len(piece_stats['offensive_power'])
+			font_text = str(offensive_power)
+			other_colors = int(255-(255*(offensive_power*1.0/10)))
+			font_color = (255,other_colors,other_colors)
+			font_x = s_rect_x + 190
+			font_y = s_rect_y + 30
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			defensive_power = len(piece_stats['defensive_power'])
+			font_text = str(defensive_power)
+			other_colors = int(255-(255*(defensive_power*1.0/10)))
+			font_color = (other_colors,other_colors,255)
+			font_x = s_rect_x + 190
+			font_y = s_rect_y + 45
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			attackers = len(piece_stats['attackers'])
+			font_text = str(attackers)
+			other_colors = int(255-(255*(attackers*1.0/10)))
+			font_color = (255,other_colors,other_colors)
+			font_x = s_rect_x + 190
+			font_y = s_rect_y + 60
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			defenders = len(piece_stats['defenders'])
+			font_text = str(defenders)
+			other_colors = int(255-(255*(defenders*1.0/10)))
+			font_color = (other_colors,other_colors,255)
+			font_x = s_rect_x + 190
+			font_y = s_rect_y + 75
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			# print self.piece_stats
+
+		else:
+			font_text = "Right click a piece"
+			font_color = Constants.WHITE
+			font_size = Constants.HP_TEXT_FONT_SIZE +2
+			font_x = s_rect_x + 110
+			font_y = s_rect_y + 50
+
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+			
+			font_text = "to show its stats."
+			font_y = s_rect_y + 65
+
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
 
 		# Constants for this portion: x-coordinate, width and height
 		rect_x = cap_x + buff

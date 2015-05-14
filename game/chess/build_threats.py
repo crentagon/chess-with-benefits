@@ -8,6 +8,10 @@ def run(self, board_input, peek):
 			board_input[i][j].threat_level_user = 0
 			board_input[i][j].threat_level_opponent = 0
 
+			piece = board_input[i][j].piece
+			if piece is not None:
+				piece.reset_stats()
+
 	# Build threats
 	for i in range(8):
 		for j in range(8):

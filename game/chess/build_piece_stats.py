@@ -6,13 +6,33 @@ def piece_build(self, board_input, i, j, mode='build_threats',
 
 	is_build_threats = mode == 'build_threats'
 	is_show_traversable = mode == 'show_traversable'
-	is_show_stats = mode == 'show_stats'
 
 	if is_build_threats:
 		target_tile = board_input[i][j]
-		target_tiles.append(target_tile) # Add who's attacking it. TO-DO: modify the tiles to support this!
-		if change_bool is not None and target_tile.piece is not None:
-			change_bool[0] = False
+		target_tiles.append(target_tile)
+
+		origin_piece = board_input[old_i][old_j].piece
+
+		if target_tile.piece is not None:
+			target_piece = target_tile.piece
+
+			# If it is attacking an enemy piece
+			if origin_piece.is_white != target_piece.is_white:
+				origin_piece.offensive_power.append(target_piece.piece_type)
+				target_piece.attackers.append(origin_piece.piece_type)
+
+			# If it is defending a friendly piece
+			else:
+				# if origin_piece.is_white and origin_piece.piece_type == 5 and target_piece.piece_type == 1:
+				# 	print "Defending!"
+				origin_piece.defensive_power.append(target_piece.piece_type)
+				target_piece.defenders.append(origin_piece.piece_type)
+
+			if change_bool is not None:
+				change_bool[0] = False
+
+		else:
+			origin_piece.tiles_controlled += 1
 
 	elif is_show_traversable:
 		target_tile = board_input[i][j]
@@ -32,19 +52,6 @@ def piece_build(self, board_input, i, j, mode='build_threats',
 		else:
 			if (target_tile.piece is not None and target_tile.piece.is_user == False) and not is_check_after_move:
 				self.traversable.append(target_tile)
-
-	elif is_show_stats:
-		# "Status":
-			# Defender (defending at least two pieces)
-			# Warrior (attacking at least one piece OR in a valuable position)
-			# Healthy (default)
-			# Threatened (being attacked by a piece without being defended or being attacked by a piece of lower rank)
-			# Note: place its value right next to it
-
-		# Number of tiles controlled: "Tile Control Count: " // add counter at the bottom
-		# Number of pieces defending it: "Supporters: "
-		# Number of pieces attacking it: "Threatener: "
-		pass
 
 def run(self, board_input, i, j, mode='build_threats', target_tiles=[]):
 
@@ -124,12 +131,14 @@ def run(self, board_input, i, j, mode='build_threats', target_tiles=[]):
 		factor = 1 if is_user else -1
 
 		if mode == 'show_traversable' and is_7j_lte_7:
-			# Normal movement: moving one square up (or below) a rank
-			piece_build(self, board_input, i, j+factor, mode, target_tiles, i, j)
+			# Normal movement: moving one square up (or below) a rank -- only if there's no one up front!
+			if board_input[i][j+factor].piece is None:
+				piece_build(self, board_input, i, j+factor, mode, target_tiles, i, j)
 
 			# That movement from where the pawn moves two spaces. I don't know what it's called
 			start_rank = Constants.PIECE_MAPPING['2'] if self.is_player_white else Constants.PIECE_MAPPING['7']
-			if(j == start_rank and self.board[i][j+factor].piece == None):
+			
+			if(j == start_rank and self.board[i][j+factor*2].piece == None):
 				piece_build(self, board_input, i, j+factor*2, mode, target_tiles, i, j)
 
 		if is_white:

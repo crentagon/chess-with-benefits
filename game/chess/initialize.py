@@ -90,6 +90,9 @@ def run(self, screen, is_player_white, is_two_player, cpu_level, img_user, img_o
 	self.speaker = speaker
 	self.move_string = ''
 
+	# Piece stats
+	self.piece_stats = {}
+
 	# Lists
 	self.aftergame_options = []
 	self.sidebar_buttons = []

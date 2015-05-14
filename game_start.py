@@ -14,6 +14,7 @@ from game.chess import (
 	render_captured,
 	render_tile,
 	show_traversable,
+	show_piece_stats,
 	write_text
 )
 
@@ -55,6 +56,9 @@ class Chesselate:
 
 	def move_piece(self, source_x, source_y, destination_x, destination_y, promotion = False):
 		move_piece.run(self, source_x, source_y, destination_x, destination_y, promotion)
+
+	def show_piece_stats(self, board_input, i, j):
+		show_piece_stats.run(self, board_input, i, j)
 
 	def convert_to_fen(self):
 		return convert_to_fen.run(self)

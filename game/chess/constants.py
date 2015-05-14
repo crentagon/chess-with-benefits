@@ -148,6 +148,7 @@ class Constants:
 	RED =   (255,   0,   0)
 	BLUE =  (  0,   0, 255)
 	DARK_GRAY = (64, 64, 64)
+	GRAY = (128, 128, 128)
 	JUST_MOVED = (128, 128, 128)
 	CURR_MOVEMENT = (180, 120, 255)
 

@@ -19,6 +19,15 @@ class Piece:
 		self.threat_level = 0
 		self.piece_position = (0,0,0,0)
 		self.is_moved = False
+		self.reset_stats()
+
+	def reset_stats(self):
+		self.status = ''
+		self.tiles_controlled = 0
+		self.defenders = [] 			# The pieces defending it
+		self.attackers = [] 			# The pieces attacking it
+		self.defensive_power = []		# The pieces it is defending
+		self.offensive_power = [] 		# The pieces it is attacking
 
 	def pressed(self, mouse):
 		rect = self.piece_position
