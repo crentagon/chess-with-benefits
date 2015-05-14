@@ -43,8 +43,9 @@ def piece_build(self, board_input, i, j, mode='build_threats',
 		is_check_after_move = self.is_check(temp_board)
 
 		if not is_pawn_capture:
-			if (target_tile.piece == None or target_tile.piece.is_user == False) and not is_check_after_move:
-				self.traversable.append(target_tile)
+			if (target_tile.piece == None or target_tile.piece.is_user == False):
+				if not is_check_after_move:
+					self.traversable.append(target_tile)
 				if change_bool is not None and target_tile.piece is not None and target_tile.piece.is_user == False:
 					change_bool[0] = False
 			elif change_bool is not None:
@@ -156,7 +157,6 @@ def run(self, board_input, i, j, mode='build_threats', target_tiles=[]):
 				piece_build(self, board_input, i-1, j-1, mode, target_tiles, i, j, is_pawn_capture=True)
 
 	else:
-
 		if piece_type == Constants.P_BISHOP or piece_type == Constants.P_QUEEN:
 			dirNE = [True] # needed to turn this into a mutable object
 			dirSE = [True] # so that python can pass this by reference

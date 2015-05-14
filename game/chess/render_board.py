@@ -307,12 +307,6 @@ def run(self):
 			self.screen.blit(image_piece, piece_rect)
 
 			# Render the piece stats
-			"""
-			{'tile_control_count': 2, 'piece_type': 3,
-			'defensive_power': [1], 'defenders': [5], 'is_piece_white': True,
-			'attackers': [], 'offensive_power': []}
-			"""
-
 			max_control = {
 				1: 2,
 				3: 8,
@@ -347,6 +341,11 @@ def run(self):
 			font_text = "Defenders: "
 			font_x = s_rect_x + 97
 			font_y = s_rect_y + 75
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
+
+			font_text = "Status: "
+			font_x = s_rect_x + 85
+			font_y = s_rect_y + 90
 			self.write_text(font_text, font_color, font_size, font_x, font_y)
 
 			tile_control_count = piece_stats['tile_control_count']
@@ -389,7 +388,24 @@ def run(self):
 			font_y = s_rect_y + 75
 			self.write_text(font_text, font_color, font_size, font_x, font_y)
 
-			# print self.piece_stats
+			font_text = piece_stats['status']
+			font_color = (64,255,64)
+
+			# Threatened (being attacked by a piece without being defended OR being attacked by a piece of lower rank)
+			if font_text == 'Threatened':
+				font_color = (255,64,64)
+
+			# Warrior (attacking at least one piece OR in a valuable position OR at 60% maximum activity)
+			elif font_text == 'Warrior':
+				font_color = (249,105,14)
+
+			# Defender (defending at least two pieces)
+			elif font_text == 'Defender':
+				font_color = (120,120,255)
+			
+			font_x = s_rect_x + 163
+			font_y = s_rect_y + 90
+			self.write_text(font_text, font_color, font_size, font_x, font_y)
 
 		else:
 			font_text = "Right click a piece"

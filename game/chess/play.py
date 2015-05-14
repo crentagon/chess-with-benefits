@@ -172,7 +172,7 @@ def run(self):
 				sys.exit(0)
 
 			# User's turn
-			elif event.type == 5:
+			elif event.type == 5 and event.button == 1:
 				mouse_pos = pygame.mouse.get_pos()
 				x_coord = mouse_pos[0]
 				y_coord = mouse_pos[1]
@@ -360,7 +360,7 @@ def run(self):
 				# A piece has been clicked!
 				if is_piece_clicked and self.is_board_clickable and is_turn_user:
 					# Let's check if it's a friendly piece
-					if piece.pressed(mouse_pos):
+					if piece.pressed(mouse_pos) and (self.source_x != board_x or self.source_y != board_y):
 						self.source_x = board_x
 						self.source_y = board_y
 						self.show_traversable(board_x, board_y)
@@ -371,6 +371,8 @@ def run(self):
 
 					# User clicked on an enemy, uncapturable piece. Not this time!
 					else:
+						self.source_x = -1
+						self.source_y = -1
 						self.clear_traversable()
 
 				# Looks like user clicked on a traversable tile
@@ -403,7 +405,7 @@ def run(self):
 						self.clear_traversable()
 
 			# Right click
-			elif event.type == 6: 
+			elif event.type == 5 and event.button == 3: 
 				mouse_pos = pygame.mouse.get_pos()
 				x_coord = mouse_pos[0]
 				y_coord = mouse_pos[1]
