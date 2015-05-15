@@ -60,8 +60,8 @@ def run(self, i, j):
 		piece_type = piece.piece_type
 		piece.piece_position = piece_rect
 
-		color = "w" if piece.is_white else "b"
-		image_file = color + str(piece_type) + ".png"
+		piece_color = "w" if piece.is_white else "b"
+		image_file = piece_color + str(piece_type) + ".png"
 
 		image_piece = pygame.image.load(Constants.RESOURCES+image_file)
 		self.screen.blit(image_piece, piece_rect)
@@ -81,28 +81,45 @@ def run(self, i, j):
 		alpha = 0
 		basic_font = pygame.font.Font(font_reg, Constants.THREAT_FONT_SIZE)
 
-		# The opponent is guarding the tile!
-		if cumulative_threat < 0:
-			color = Constants.RED
-			threat_string = str(abs(cumulative_threat))
-			alpha = 255.0*abs(cumulative_threat)/12.0
+		will_render_opponent_threat = self.will_render_opponent_threat
+		will_render_user_threat = self.will_render_user_threat
 
-		# The user is guarding the tile!
-		elif cumulative_threat > 0:
-			color = Constants.BLUE
-			threat_string = str(abs(cumulative_threat))
-			alpha = 255.0*abs(cumulative_threat)/12.0
+		if will_render_user_threat and will_render_opponent_threat:
 
-		# Special case: even though it's 0, you still can't just put your queen there 'cause you'll be captured!
-		elif cumulative_threat == 0:
-			if threat_level_opponent > 0:
-				alpha = 21.25 #255*1/12
-				threat_string = str(threat_level_opponent)+"*"
+			# The opponent is guarding the tile!
+			if cumulative_threat < 0:
 				color = Constants.RED
-			elif threat_level_user > 0:
-				alpha = 21.25 #255*1/12
-				threat_string = str(threat_level_user)+"*"
+				threat_string = str(abs(cumulative_threat))
+				alpha = 255.0*abs(cumulative_threat)/12.0
+
+			# The user is guarding the tile!
+			elif cumulative_threat > 0:
 				color = Constants.BLUE
+				threat_string = str(abs(cumulative_threat))
+				alpha = 255.0*abs(cumulative_threat)/12.0
+
+			# Special case: even though it's 0, you still can't just put your queen there 'cause you'll be captured!
+			elif cumulative_threat == 0:
+				if threat_level_opponent > 0:
+					alpha = 21.25 #255*1/12
+					threat_string = str(threat_level_opponent)+"*"
+					color = Constants.RED
+				elif threat_level_user > 0:
+					alpha = 21.25 #255*1/12
+					threat_string = str(threat_level_user)+"*"
+					color = Constants.BLUE
+
+		else:
+
+			if will_render_user_threat and threat_level_user > 0:
+				color = Constants.BLUE
+				threat_string = str(threat_level_user)
+				alpha = 255.0*int(threat_string)/12.0
+
+			elif will_render_opponent_threat and threat_level_opponent > 0:
+				color = Constants.RED
+				threat_string = str(threat_level_opponent)
+				alpha = 255.0*int(threat_string)/12.0
 
 		if is_urgent:
 			alpha = 64

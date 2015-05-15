@@ -40,6 +40,7 @@ def run(self, board_input, peek):
 
 							if is_piece_king and is_piece_opponent:
 								self.board_status = 'opponent_check'
+								self.converted_move = self.converted_move + "+"
 								is_opponent_king_detected = True
 
 				else:
@@ -53,4 +54,5 @@ def run(self, board_input, peek):
 
 							if is_piece_king and is_piece_user:
 								self.board_status = 'user_check'
+								self.converted_move = self.converted_move + "+"
 								is_user_king_detected = True

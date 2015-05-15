@@ -1,6 +1,7 @@
 from constants import *
 from stockfish_thread import *
 import pygame
+import re
 
 #play
 def run(self):
@@ -8,7 +9,8 @@ def run(self):
 
 	fen_string = self.convert_to_fen()
 	current_move = ''
-	self.stack.push([fen_string, current_move])
+	converted_move = ''
+	self.stack.push([fen_string, current_move, converted_move])
 	# print "Pushed:", fen_string
 
 	has_player_moved = False
@@ -53,7 +55,7 @@ def run(self):
 
 			if not (self.board_status == 'promoting' or self.is_game_over[self.board_status]):
 				fen_string = self.convert_to_fen()
-				self.stack.push([fen_string, current_move])
+				self.stack.push([fen_string, self.move_string, self.converted_move])
 				self.endgame_check(fen_string) # Check if there is a stalemate or checkmate
 				print "After:", fen_string
 
@@ -105,7 +107,7 @@ def run(self):
 
 					if not thread.is_undo_clicked:
 						cpu_move = thread.cpu_move
-						current_move = cpu_move
+						self.move_string = cpu_move
 						ponder = thread.ponder
 
 						print cpu_move
@@ -183,6 +185,8 @@ def run(self):
 						active_command = button.get_command()
 						break
 
+				p = re.compile('view_state_(.*)')
+
 				if active_command == 'sidebar_undo' or active_command == 'endgame_undo':
 					# Cannot undo if stack only has one element
 					if self.stack.size() > 1:
@@ -258,15 +262,61 @@ def run(self):
 						self.clear_last_movement()
 						self.is_board_changed = True
 
+				elif active_command == 'toggle_guide':
+					self.will_render_guides = not self.will_render_guides
+					self.is_board_changed = True
+
+				elif active_command == 'heatmap_opponent':
+					self.will_render_opponent_threat = not self.will_render_opponent_threat
+					self.is_board_changed = True
+
+				elif active_command == 'heatmap_user':
+					self.will_render_user_threat = not self.will_render_user_threat
+					self.is_board_changed = True
+
 				elif active_command == 'endgame_main_menu':
 					# TO-DO/NOTE: export PGN and save to Database WHEN play again/main menu/close game clicked
 					return 'main_menu'
 					
+				elif active_command == 'endgame_review_game':
+					self.board_status = 'review_game_endgame'
+
+				elif active_command == 'sidebar_review_game':
+					self.board_status = 'review_game_midgame'
+
+				elif active_command == 'review_game_back':
+					self.is_board_clickable = True
+					active_index = self.stack.size()-1
+					fen_string = self.stack.container[active_index][0]
+					self.convert_fen_to_board(fen_string, False)
+					self.build_threats(self.board)
+					self.board_status = 'in_game' if self.board_status == 'review_game_midgame' else self.endgame_status
+
 				elif active_command == 'is_forfeitting_yes':
 					if self.is_two_player:
 						self.speaker.close()
 						self.listener.close()
 					return 'main_menu'
+
+				elif active_command == 'review_game_up':
+					if self.active_stack_index > 0:
+						self.active_stack_index -= 1
+
+					if self.currently_active_index > 0:
+						self.currently_active_index -= 1
+						fen_string = self.stack.container[self.currently_active_index][0]
+						self.convert_fen_to_board(fen_string, False)
+						self.build_threats(self.board, peek=True)
+
+				elif active_command == 'review_game_down':
+					if self.active_stack_index < self.stack.size() -1:
+						self.active_stack_index += 1
+
+					if self.currently_active_index < self.stack.size() -1:
+						self.currently_active_index += 1
+						fen_string = self.stack.container[self.currently_active_index][0]
+						self.convert_fen_to_board(fen_string, False)
+						self.build_threats(self.board, peek=True)
 
 				elif active_command == 'sidebar_forfeit':
 					self.board_status = 'is_forfeitting'
@@ -277,6 +327,12 @@ def run(self):
 
 				elif active_command == 'is_forfeitting_no':
 					self.board_status = 'in_game'
+
+				elif p.match(active_command):
+					self.currently_active_index = int(active_command[11:])
+					fen_string = self.stack.container[self.currently_active_index][0]
+					self.convert_fen_to_board(fen_string, False)
+					self.build_threats(self.board, peek=True)
 
 				if self.is_player_white:
 					board_x = (x_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
@@ -322,7 +378,6 @@ def run(self):
 								index = (neutralized/(Constants.AFTERGAME_HEIGHT+Constants.BOARD_BUFFER))
 
 							if index < len(self.aftergame_options):
-								self.is_game_over = False
 								action = self.aftergame_options[index][1]
 
 					# Is the user clicking on the promotion buttons?
@@ -381,12 +436,11 @@ def run(self):
 					self.move_piece(self.source_x, self.source_y, board_x, board_y)
 					has_player_moved = True
 
-					if self.is_two_player:
-						source_move_x = Constants.CHAR_MAPPING[self.source_x]
-						source_move_y = Constants.NUM_MAPPING[self.source_y]
-						destination_move_x = Constants.CHAR_MAPPING[board_x]
-						destination_move_y = Constants.NUM_MAPPING[board_y]
-						self.move_string = source_move_x + source_move_y + destination_move_x + destination_move_y
+					source_move_x = Constants.CHAR_MAPPING[self.source_x]
+					source_move_y = Constants.NUM_MAPPING[self.source_y]
+					destination_move_x = Constants.CHAR_MAPPING[board_x]
+					destination_move_y = Constants.NUM_MAPPING[board_y]
+					self.move_string = source_move_x + source_move_y + destination_move_x + destination_move_y
 
 					# Pawn promotion
 					if board_y == self.goal_rank and self.board[board_x][board_y].piece.piece_type == Constants.P_PAWN:
@@ -417,7 +471,7 @@ def run(self):
 					board_x = 7-((x_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH)
 					board_y = (y_coord - Constants.BOARD_BUFFER)/Constants.TILE_LENGTH
 
-				if 0 <= board_x <= 7 and 0 <= board_y <= 7 and self.is_board_clickable and is_turn_user:
+				if 0 <= board_x <= 7 and 0 <= board_y <= 7:
 					# What did the user right click? A piece? A tile? Is the tile traversable?
 					tile = self.board[board_x][board_y]
 					piece = tile.piece

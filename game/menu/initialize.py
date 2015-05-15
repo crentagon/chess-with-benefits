@@ -14,7 +14,7 @@ def run(self):
 	self.buttons = []
 	self.textboxes = []
 	self.active_textbox_index = -1
-	self.location = 'main_menu'
+	self.location = 'title_screen'
 
 	# Single player info
 	self.cpu_level = 5
@@ -24,8 +24,8 @@ def run(self):
 	self.opponent_image_id = 99
 
 	# Socket
-	self.host = "127.0.0.1"
-	self.port = 28888
+	self.host = "192.168.1.20"
+	self.port = 8888
 	self.bufsize = 1024
 	self.client_socket = None
 	self.client_speaker_thread = None

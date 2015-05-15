@@ -125,6 +125,10 @@ def choose_color(self, center_x=100, center_y=150):
 		display_text=display_text, font=font, font_size=font_size, font_color=font_color))
 
 def run(self):
+	self.screen.fill(Constants.BG)
+	image_piece = pygame.image.load(Constants.RESOURCES+"bg_rest.png")
+	piece_rect = (0,0,800,500)
+	self.screen.blit(image_piece, piece_rect)
 
 	"""
 	Menu:
@@ -143,13 +147,34 @@ def run(self):
 		Records
 				
 	"""
-	# Screen fill
-	self.screen.fill(Constants.BG)
+	# Screen fill	
 	font = Constants.RESOURCES+Constants.FONT
 	self.buttons = []
 	self.textboxes = []
 
-	if self.location == 'main_menu':
+	if self.location == 'title_screen':
+		center_x = 400
+		center_y = 250
+		width = 800
+		height = 500
+		radius = 0
+		color = Constants.BLACK
+		border_color = Constants.BLACK
+		border_width = 0
+		screen = self.screen
+		command = "main_menu"
+		image_filename = "res/title_screen.png"
+		image_w = 800
+		image_h = 500
+
+		self.buttons.append(Button(center_x, center_y, width, height, radius, color, border_color,
+			border_width, screen, command, image_filename=image_filename, image_x='', image_y='', image_w=image_w, image_h=image_h))
+
+
+	elif self.location == 'main_menu':
+		image_piece = pygame.image.load(Constants.RESOURCES+"main_menu_background.png")
+		piece_rect = (0,0,800,500)
+		self.screen.blit(image_piece, piece_rect)
 
 		# Set up the left button: Single Player
 		color = Constants.SINGLE_PLAYER_BUTTON

@@ -4,7 +4,9 @@ from piece import *
 import pygame, time
 
 def run(self):
+
 	self.screen.fill(Constants.BG)
+
 	font = Constants.RESOURCES+Constants.FONT
 	font_reg = Constants.RESOURCES+Constants.FONT_REG
 
@@ -48,6 +50,90 @@ def run(self):
 		promotion_rect = promotion_text.get_rect()
 		promotion_rect.center = Constants.PROMOTION_COORD
 		self.screen.blit(promotion_text, promotion_rect)
+
+	# User is reviewing the game so far
+	elif self.board_status == 'review_game_midgame' or self.board_status == 'review_game_endgame':
+		self.is_board_clickable = False
+
+		# Big-ass Rectangular Area filled with BUTTONS OuO
+		j = 0
+		border_color = Constants.BLACK
+		border_width = 1
+		center_x = 650
+		width = 240
+		height = 30
+		radius = 0
+		font_size = 25
+		
+		for i in range(max(0, self.active_stack_index), min(self.active_stack_index+12,self.stack.size())):
+			font_color = Constants.BLACK if i != self.currently_active_index else Constants.RED
+			center_y = 40 + 30*j
+			temp_i = (i+1)/2
+			color = Constants.CHESSBOARD_WH if i % 2 != 0 else Constants.CHESSBOARD_DK
+			display_text = str(temp_i)+": "+self.stack.container[i][2] if i != 0 else "Start"
+			command = "view_state_"+str(i)
+
+			self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+				border_color, border_width, self.screen, command,
+				display_text=display_text, font=font, font_size=font_size, font_color=font_color))
+			
+			j += 1
+
+			# self.fen_string = self.convert_fen_to_board(fen_string, True)
+			# print self.stack.container[i]
+		
+		rect_x = 525
+		rect_y = 20
+		rect_w = 250
+		rect_h = 372
+		rect = (rect_x, rect_y, rect_w, rect_h)
+		pygame.draw.rect(self.screen, Constants.SIDEBAR_BG, rect, 5)
+
+		# Back button
+		color = Constants.SIDEBAR_BG
+		border_color = Constants.BLACK
+		border_width = 10
+		center_x = 575
+		center_y = 450
+		width = 100
+		height = 30
+		radius = 2
+		
+		font_size = 25
+		font_color = Constants.WHITE
+
+		command = "review_game_back"
+		display_text = "Back"
+
+		self.buttons.append(Button(center_x, center_y, width, height, radius, color,
+			border_color, border_width, self.screen, command,
+			display_text=display_text, font=font, font_size=font_size, font_color=font_color))
+
+		# Button up
+		width = 50
+		height = 30
+		image_w = 30
+		image_h = 30
+		screen = self.screen
+		center_x = 675
+		center_y = 450
+
+		image_file = Constants.RESOURCES+"review-game-up.png"
+		image_text = "Review Game Up"
+		command = "review_game_up"
+		self.buttons.append(Button(center_x, center_y, width, height, radius, color, border_color,
+			border_width, screen, command, image_filename=image_file, image_x='', image_y='', image_w=image_w,
+			image_h=image_h))
+
+		center_x = 745
+		image_file = Constants.RESOURCES+"review-game-down.png"
+		image_text = "Review Game Down"
+		command = "review_game_down"
+		self.buttons.append(Button(center_x, center_y, width, height, radius, color, border_color,
+			border_width, screen, command, image_filename=image_file, image_x='', image_y='', image_w=image_w,
+			image_h=image_h))
+
+		# Button down		
 
 	# User clicked "forfeit"!
 	elif self.board_status == 'is_forfeitting':
@@ -98,8 +184,6 @@ def run(self):
 
 	# Game over
 	elif self.is_game_over[self.board_status]:
-		if self.is_two_player:
-			self.speaker.send_message('GAME_OVER')
 
 		if self.board_status == 'opponent_forfeited':
 			board_buffer = Constants.BOARD_BUFFER
@@ -135,7 +219,7 @@ def run(self):
 				border_color, border_width, self.screen, command,
 				display_text=display_text, font=font, font_size=font_size, font_color=font_color))
 
-		else:		
+		else:
 			# Determine the winner
 			color_winner = "Stalemate"
 			if self.board_status == 'user_checkmate':
@@ -672,7 +756,7 @@ def run(self):
 			self.render_tile(i, j)
 
 			# Render the board guide
-			if j == 0:
+			if j == 0 and self.will_render_guides:
 				if self.is_player_white:
 					num_text = Constants.NUM_MAPPING[7-i]
 					char_text = Constants.CHAR_MAPPING[i]

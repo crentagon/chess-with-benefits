@@ -12,9 +12,26 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 		4: 3,
 		1: 1,
 	}
+	piece_converter = {
+		0: 'K',
+		1: '',
+		3: 'N',
+		4: 'B',
+		5: 'R',
+		9: 'Q'
+	}
+
+	convert_capture = ''
+	piece = self.board[source_x][source_y].piece
+	convert_piece = piece_converter[piece.piece_type]
+	convert_target = Constants.CHAR_MAPPING[destination_x] + str(destination_y+1)
+	convert_promote = ''
 
 	is_capture = self.board[destination_x][destination_y].piece is not None
 	if is_capture:
+		if piece.piece_type == 1:
+			convert_piece = Constants.CHAR_MAPPING[source_x]
+		convert_capture = 'x'
 
 		captured_piece = self.board[destination_x][destination_y].piece
 		captured_color = 'w' if captured_piece.is_white else 'b'
@@ -51,8 +68,6 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 					self.queenside_white = '-'
 				else:
 					self.queenside_black = '-'
-
-	piece = self.board[source_x][source_y].piece
 
 	# Clear last movement
 	self.clear_last_movement()
@@ -230,6 +245,7 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 	self.board[destination_x][destination_y].piece = destination_piece
 
 	if promotion:
+		convert_promote = piece_converter[promotion]
 		self.board[destination_x][destination_y].piece.piece_type = promotion
 		self.opponent_hp_current += (hp_converter[promotion] - 1)
 
@@ -295,15 +311,19 @@ def run(self, source_x, source_y, destination_x, destination_y, promotion):
 			else:
 				self.queenside_black = '-'
 
+	self.converted_move = convert_piece + convert_capture + convert_target + convert_promote
+
 	# Check if it's a castle. If yes, move the rook as well
 	if piece.piece_type == Constants.P_KING and abs(difference_x) == 2:
 		# Kingside castle:
 		if destination_x == Constants.TILE_C:
+			self.converted_move = 'O-O-O'
 			rook_destination = Constants.TILE_D
 			rook_source = Constants.TILE_A
 
 		# Queenside castle:
 		else:
+			self.converted_move = 'O-O'
 			rook_destination = Constants.TILE_F
 			rook_source = Constants.TILE_H
 			

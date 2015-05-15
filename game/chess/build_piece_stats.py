@@ -129,7 +129,7 @@ def run(self, board_input, i, j, mode='build_threats', target_tiles=[]):
 	elif piece_type == Constants.P_PAWN:
 		is_user = piece.is_user
 		is_white = piece.is_white
-		factor = 1 if is_user else -1
+		factor = 1 if is_white else -1
 
 		if mode == 'show_traversable' and is_7j_lte_7:
 			# Normal movement: moving one square up (or below) a rank -- only if there's no one up front!
