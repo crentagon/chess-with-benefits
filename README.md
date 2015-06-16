@@ -25,15 +25,15 @@ Chess With Benefits: Chess made much friendlier.
 	1. Greatly aids players decide their moves.
 	2. In the following photo, the tile says “3” in blue, because three of the player’s pieces are defending the tile.
 
-	![heatmap-001](https://github.com/crentagon/forkpi/blob/master/images/forkpi-spoonpi-architecture.png)
+	![heatmap-001](https://github.com/crentagon/chess-with-benefits/blob/master/res/heatmap-001.png)
 	
 	3. The tile says “3” in red, because three of the opponent’s pieces are defending the tile.
 
-	![heatmap-002](https://github.com/crentagon/forkpi/blob/master/images/forkpi-spoonpi-architecture.png)
+	![heatmap-002](https://github.com/crentagon/chess-with-benefits/blob/master/res/heatmap-002.png)
 
 	4. The tile says “1” in red, because there 3 of the opponent’s pieces are defending the tile, while there are only 2 user pieces attacking the same tile – the numbers are cumulative.
 
-	![heatmap-003](https://github.com/crentagon/forkpi/blob/master/images/forkpi-spoonpi-architecture.png)
+	![heatmap-003](https://github.com/crentagon/chess-with-benefits/blob/master/res/heatmap-003.png)
 
 	5. Note that the numbers are cumulative.
 
@@ -43,13 +43,13 @@ Chess With Benefits: Chess made much friendlier.
 
 	2. Note that the piece values are:
 
-	![piece-values-01](https://github.com/crentagon/forkpi/blob/master/images/forkpi-spoonpi-architecture.png)
+	![piece-values-01](https://github.com/crentagon/chess-with-benefits/blob/master/res/piece-values-01.png)
 
 3. **Piece Status**
 
 	1. Aids players by showing important information of a piece upon right-clicking it.
 
-	![piece-status-01](https://github.com/crentagon/forkpi/blob/master/images/forkpi-spoonpi-architecture.png)
+	![piece-status-01](https://github.com/crentagon/chess-with-benefits/blob/master/res/piece-status-01.png)
 
 	2. Major Statuses:
 
