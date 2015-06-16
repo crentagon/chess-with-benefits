@@ -31,11 +31,9 @@ Chess With Benefits: Chess made much friendlier.
 
 	![heatmap-002](https://github.com/crentagon/chess-with-benefits/blob/master/res/heatmap-002.png)
 
-	4. The tile says “1” in red, because there 3 of the opponent’s pieces are defending the tile, while there are only 2 user pieces attacking the same tile – the numbers are cumulative.
+	4. The tile says “1” in red, because there are 3 of the opponent’s pieces are defending the tile, while there are only 2 user pieces attacking the same tile – the numbers are cumulative.
 
 	![heatmap-003](https://github.com/crentagon/chess-with-benefits/blob/master/res/heatmap-003.png)
-
-	5. Note that the numbers are cumulative.
 
 2. **HP Display**
 
