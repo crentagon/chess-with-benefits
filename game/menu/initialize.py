@@ -24,6 +24,7 @@ def run(self):
 	self.opponent_image_id = 99
 
 	# Socket
+	# self.host = "127.0.0.1"
 	self.host = "192.168.1.20"
 	self.port = 8888
 	self.bufsize = 1024

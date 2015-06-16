@@ -11,7 +11,7 @@ from game.server import (
 
 class ChessServer:
 
-	def __init__(self, host='192.168.1.20', port=8888, bufsize=1024):
+	def __init__(self, host='127.0.0.1', port=8888, bufsize=1024):
 		# To-do: Check for external IP address
 		initialize.run(self, host, port, bufsize)
 
