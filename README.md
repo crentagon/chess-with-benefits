@@ -1,6 +1,7 @@
 # Chess With Benefits 
 
 Chess With Benefits: Chess made much friendlier.
+(A work in progress.)
 
 -----------------------
 
