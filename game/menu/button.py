@@ -8,20 +8,26 @@ class Button:
 		font_x='', font_y='', image_filename='', image_x='', image_y='', image_w='', image_h=''):
 
 		# Button properties
+		## Coordinates Rectangle
 		self.center_x = center_x 			# x-coordinate of the center of the button
 		self.center_y = center_y			# y-coordinate of the center of the button
 		self.width = width 					# button width
 		self.height = height 				# button height
+
+		## Border Helper
 		self.radius = radius 				# google "border-radius"
-		self.color = color 					# button color
 		self.border_color = border_color 	# border color
 		self.border_width = border_width 	# border width
+		self.color = color 					# button color
+
+		## Command
 		self.command = command
 		
 		# Pygame screen
 		self.screen = screen
 
 		# Text information
+		## Font Helper
 		self.display_text = display_text
 		self.font_color = font_color
 		self.font_size = font_size
@@ -30,6 +36,7 @@ class Button:
 		self.font = font
 
 		# Image information
+		## Image Helper
 		self.image_filename = image_filename
 		self.image_w = image_w
 		self.image_h = image_h
