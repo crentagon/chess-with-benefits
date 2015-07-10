@@ -19,6 +19,12 @@ Chess With Benefits: Chess made much friendlier.
 
 -----------------------
 
+## Running the Game
+
+To run the game: `python main_menu.py`
+
+-----------------------
+
 ## Major Features
 
 1. **Heat Map**
