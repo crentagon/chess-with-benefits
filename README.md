@@ -9,6 +9,7 @@ Chess With Benefits: Chess made much friendlier.
 
 - **Motivation**: Not a lot of people play chess nowadays due to its level of difficulty, especially when positions get very complicated.
 - **Objective**: To get people to play chess more by adding certain features into the game that make it easier for casual players to play. 
+- **TEST!**
 
 -----------------------
 
